@@ -43,16 +43,24 @@ document.addEventListener("DOMContentLoaded", function() {
     fetchShopItems();
   }
 
-  // Función para obtener los datos de la tienda de Fortnite
+  // Función para obtener los datos de la tienda de Fortnite de la API
   function fetchShopItems() {
-    fetch('https://fortniteapi.io/v2/shop?lang=es', {
+    const apiKey = '928ef864-82ceb119-8d9124e7-a570bd6c'; // Reemplaza con tu propia clave de API
+    const apiUrl = 'https://fortniteapi.io/v2/shop?lang=es&includeRenderData=true&includeHiddenTabs=false';
+
+    fetch(apiUrl, {
       headers: {
-        'Authorization': '928ef864-82ceb119-8d9124e7-a570bd6c'
+        'Authorization': apiKey
       }
     })
     .then(response => response.json())
     .then(data => {
-      displayShopItems(data.shop);
+      if (data.result && data.fullShop) {
+        const shopItems = data.shop;
+        displayShopItems(shopItems);
+      } else {
+        console.log('No se pudo obtener datos de la tienda.');
+      }
     })
     .catch(error => console.error('Error:', error));
   }
@@ -64,19 +72,23 @@ document.addEventListener("DOMContentLoaded", function() {
       const shopItem = document.createElement('div');
       shopItem.classList.add('shop-item');
 
-      const itemImage = document.createElement('img');
-      itemImage.src = item.full_background;
-      itemImage.alt = item.name;
-
       const itemName = document.createElement('h2');
-      itemName.textContent = item.name;
+      itemName.textContent = item.displayName;
+
+      const itemDescription = document.createElement('p');
+      itemDescription.textContent = item.displayDescription;
 
       const itemPrice = document.createElement('p');
-      itemPrice.textContent = `Precio: ${item.price} V-Bucks`;
+      itemPrice.textContent = `Precio: ${item.price.finalPrice}`;
 
-      shopItem.appendChild(itemImage);
+      const itemImage = document.createElement('img');
+      itemImage.src = item.displayAssets[0].url; // Usamos la primera imagen como imagen del artículo
+      itemImage.alt = item.displayName;
+
       shopItem.appendChild(itemName);
+      shopItem.appendChild(itemDescription);
       shopItem.appendChild(itemPrice);
+      shopItem.appendChild(itemImage);
 
       shopItemsContainer.appendChild(shopItem);
     });
