@@ -20,8 +20,9 @@ body {
   background-blend-mode: color;
   font-family: 'Open Sans';
   margin: 0;
+  background-size: cover; /* Ajusta el tamaño del fondo para que cubra todo el área */
+  background-position: center; /* Centra la imagen de fondo */
 }
-
 /* Estilos para las filas */
 .row {
   display: flex;
@@ -269,12 +270,11 @@ h1 {
 }
 /* Estilos responsivos */
 @media screen and (max-width: 800px) {
-  :root {
-    --font: 1.2rem;
-  }
   body {
-    padding: 1rem;
+    background: url('https://www.lego.com/cdn/cs/aboutus/assets/blta2f7045752055c85/JunoEpicNewsroom_Inline_1920x1080_png.png') no-repeat center center fixed;
+    background-size: cover; /* Ajusta el tamaño del fondo para que cubra toda la pantalla */
   }
+}
   .play {
     --font: 2rem;
     width: 20rem;
@@ -285,4 +285,4 @@ h1 {
   .play > span {
     width: 16rem; 
   }
-}
+
