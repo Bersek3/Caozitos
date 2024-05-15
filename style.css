@@ -1,0 +1,288 @@
+@import url('https://fonts.googleapis.com/css?family=Open%20Sans:800');
+
+/* Variables de raíz */
+:root {
+  --font: 2rem;
+}
+
+/* Estilos básicos del cuerpo */
+body {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 2rem;
+  align-items: flex-start;
+  height: 100vh;
+  box-sizing: border-box;
+  padding: 5rem;
+  background: url('https://www.lego.com/cdn/cs/aboutus/assets/blta2f7045752055c85/JunoEpicNewsroom_Inline_1920x1080_png.png') no-repeat center center fixed;
+  background-color: rgba(0,0,0,0.3);
+  background-blend-mode: color;
+  font-family: 'Open Sans';
+  margin: 0;
+}
+
+/* Estilos para las filas */
+.row {
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-start;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+/* Estilos generales para botones */
+button {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  font-family: 'Open Sans';
+  font-size: var(--font);
+  border-radius: calc(var(--font) * 0.6);
+  padding: calc(var(--font) * 0.5);
+  margin: 0;
+  line-height: 1;
+  position: relative;
+  background-color: transparent;
+  color: white;
+  box-shadow: inset 0 0 0 0 rgba(248, 249, 255, 0.5), inset 0 0 0 0 rgba(248, 249, 255, 0.3), 0 0 0 rgba(248, 249, 255, 0.2);
+  transition: all ease 0.2s;
+}
+
+button:hover {
+  box-shadow: inset 0 0 0 calc(var(--font) * 0.2) rgba(248, 249, 255, 0.5), inset 0 0 calc(var(--font) * 0.2) calc(var(--font) * 0.5) rgba(248, 249, 255, 0.3), 0 0 calc(var(--font) * 0.2) rgba(248, 249, 255, 0.2);
+}
+
+/* Estilos para los pseudo-elementos */
+button::before {
+  content: '';
+  height: 110%;
+  width: 105%;
+  position: absolute;
+  border-radius: calc(var(--font) * 0.8);
+  background-color: transparent;
+}
+
+/* Animaciones para los bordes */
+@keyframes borders {
+  0%, 100% {border-width: calc(var(--font) * 0.2) calc(var(--font) * 0.1) calc(var(--font) * 0.02) calc(var(--font) * 0.02);}
+  25% { border-width: calc(var(--font) * 0.1) calc(var(--font) * 0.02) calc(var(--font) * 0.02) calc(var(--font) * 0.2);}
+  50% { border-width: calc(var(--font) * 0.02) calc(var(--font) * 0.02) calc(var(--font) * 0.2) calc(var(--font) * 0.1);}
+  75% { border-width: calc(var(--font) * 0.02) calc(var(--font) * 0.2) calc(var(--font) * 0.1) calc(var(--font) * 0.02);}
+}
+
+button:hover::before {
+  border: solid rgba(210, 255, 227, 0.8);
+  padding: calc(var(--font) * 0.08);
+  box-shadow: inset 0 0 calc(var(--font) * 0.2) calc(var(--font) * 0.2) rgba(186, 201, 255, 0.3);
+  filter: blur(calc(var(--font) * 0.06));
+  animation: borders infinite 2s linear;
+  opacity: 0.5;
+}
+
+span {
+  height: 100%;
+  width: 100%;
+  position: absolute;
+  overflow: hidden;
+  display: flex;
+  border-radius: calc(var(--font) * 0.6);
+  z-index: -1;
+}
+
+span::after {
+  content: '';
+  height: 100%;
+  width: 100%;
+  position: absolute;
+  background: linear-gradient(90deg, rgba(248, 249, 255, 0), rgba(206, 216, 255, 0.6), rgba(248, 249, 255, 0));
+  opacity: 0;
+  transform: translateX(-100%);
+}
+
+button:hover > span::after {
+  opacity: 1;
+  transform: translateX(100%);
+  transition: all ease 1s;
+}
+
+/* Estilos específicos para los botones de pestaña */
+.tab {
+  background-color: white;
+  color: black;
+}
+
+/* Contenedor y botones de juego */
+.play-cont {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  height: fit-content;
+  border-radius: 1rem;
+  padding: 1rem;
+  background-color: rgba(0,0,0, 0.2);
+  backdrop-filter: blur(50px);
+  -webkit-backdrop-filter: blur(50px);
+}
+
+.play {
+  --font: 3rem;
+  color: black;
+  border-radius: 4rem;
+  height: 12rem;
+  width: 25rem;
+  box-shadow: inset 0 0 0 0 rgba(248, 249, 255, 0.5);
+  border: 1rem solid transparent;
+  position: relative;
+}
+
+.play:hover::before {
+  opacity: 0.2;
+  border-radius: 4rem;
+}
+
+.play > span {
+  background-color: rgb(247, 255, 25);
+  height: 8rem;
+  width: 21rem;
+  border-radius: 2rem;
+}
+
+.play > span::after {
+  display: none;
+}
+
+.play:hover {
+  box-shadow: inset 0 0 0 calc(var(--font) * 0.15) rgba(248, 249, 255, 0.6);
+}
+
+.mode > span {
+  background-color: rgb(200, 204, 205);
+  height: 6rem;
+}
+
+.mode {
+  font-size: 1.5rem;
+  width: 25rem;
+  height: 10rem;
+  top: 2rem;
+}
+
+h1 {
+  color: white;
+  margin: 0;
+  position: relative;
+  top: 1rem;
+  font-style: italic;
+}
+
+/* Estilos del modal */
+.modal {
+  display: none; /* Oculto por defecto */
+  position: fixed;
+  z-index: 1;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  overflow: auto;
+  background-color: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(10px);
+}
+
+.modal-content {
+  margin: 15% auto;
+  padding: 2rem;
+  border: 1rem solid transparent;
+  border-radius: 1rem;
+  width: 80%;
+  max-width: 40rem;
+  box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+  animation: animatezoom 0.3s;
+}
+
+@keyframes animatezoom {
+  from {transform: scale(0)}
+  to {transform: scale(1)}
+}
+
+/* Botón de cerrar modal */
+.close {
+  color: #aaa;
+  font-size: 2rem;
+  font-weight: bold;
+  position: absolute;
+  top: 10px;
+  right: 25px;
+  cursor: pointer;
+}
+
+.close:hover,
+.close:focus {
+  color: black;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+
+/* Estilos para la sección de la tienda */
+.shop-section {
+  display: none; /* Oculto por defecto */
+  flex-direction: column;
+  align-items: center;
+  background-color: rgba(0, 0, 0, 0.7);
+  border-radius: 1rem;
+  padding: 2rem;
+  color: white;
+  text-align: center;
+  margin-top: 2rem;
+}
+
+.shop-items {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2rem;
+  justify-content: center;
+}
+
+.shop-item {
+  background-color: rgba(255, 255, 255, 0.2);
+  border-radius: 1rem;
+  padding: 1rem;
+  width: 15rem;
+  text-align: center;
+}
+
+.shop-item img {
+  max-width: 100%;
+  border-radius: 0.5rem;
+}
+
+/* Estilos para botones activos */
+.tab.active {
+  background-color: rgba(255, 255, 255, 0.3);
+  color: black;
+}
+/* Estilos responsivos */
+@media screen and (max-width: 800px) {
+  :root {
+    --font: 1.2rem;
+  }
+  body {
+    padding: 1rem;
+  }
+  .play {
+    --font: 2rem;
+    width: 20rem;
+  }
+  .mode {
+    width: 20rem;
+  }
+  .play > span {
+    width: 16rem; 
+  }
+}

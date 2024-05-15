@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>PRUEBA CAOZ</title>
+  <link rel="stylesheet" href="./style.css">
+</head>
+<body>
+<div class="row" role="navigation">
+  <button class="tab" id="btn-maps" aria-label="Ver mapas">MAPAS<span></span></button>
+  <button class="tab" id="btn-shop" aria-label="Ver tienda">TIENDA<span></span></button>
+</div>
+
+<div class="play-cont" id="maps-section">
+  <h1 id="codigo-title">CODIGO: CAOZ</h1>
+  <button id="open-modal" class="mode play" aria-labelledby="codigo-title">SELECCIONA EL MAPA<span></span></button>
+</div>
+
+<!-- Modal para seleccionar el mapa -->
+<div id="modal" class="modal">
+  <div class="modal-content play-cont">
+    <span class="close">&times;</span>
+    <h1>CODIGO: CAOZ</h1>
+    <button class="mode play" aria-labelledby="codigo-title">SELECCIONA EL MAPA<span></span></button>
+  </div>
+</div>
+
+<!-- Sección para mostrar la tienda -->
+<div id="shop-section" class="shop-section">
+  <h1>Tienda de Fortnite</h1>
+  <div id="shop-items" class="shop-items"></div>
+</div>
+
+<script src="./script.js"></script>
+</body>
+</html>
