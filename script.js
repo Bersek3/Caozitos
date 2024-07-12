@@ -15,38 +15,25 @@ btnModal.onclick = function() {
     displayMapImages(); // Muestra las imágenes al abrir el modal
 }
 
-// Función para detectar el sistema operativo
-function getOS() {
-  const userAgent = window.navigator.userAgent;
-  if (userAgent.includes("Win")) return "windows";
-  if (userAgent.includes("Mac")) return "mac";
-  if (userAgent.includes("Linux")) return "linux";
-  if (userAgent.includes("Android")) return "android";
-  if (userAgent.includes("iPhone")) return "ios";
-  return "unknown";
-}
-
 // Función para mostrar las imágenes de los mapas
 function displayMapImages() {
   const modalContent = document.querySelector('.modal-content');
-  const os = getOS();
-  const fortniteLink = os === "windows" || os === "mac" ? 'fortnite://launch' : 'https://www.epicgames.com/fortnite/';
 
   const images = [
       {
           url: 'img/CAOZ DOWNTOWN.png',
           alt: 'Mapa 1',
-          link: fortniteLink,
+          link: 'https://www.fortnite.com/@czmatecraft/9336-0959-0757',
       },
       {
           url: 'img/CAOZ_GAMES.png',
           alt: 'Mapa 2',
-          link: fortniteLink,
+          link: 'https://www.fortnite.com/@caoz/9069-6187-5522',
       },
       {
           url: 'img/CAOZITOS_WORLD.png',
           alt: 'Mapa 3',
-          link: fortniteLink,
+          link: 'https://www.fortnite.com/@caoz/9585-4870-6549',
       }
   ];
 
@@ -57,23 +44,41 @@ function displayMapImages() {
   `;
 
   // Agregar imágenes al modal
+  const imageContainer = document.createElement('div');
+  imageContainer.style.display = 'grid';
+  imageContainer.style.gridTemplateColumns = 'repeat(2, 1fr)';
+  imageContainer.style.gap = '10px';
+  imageContainer.style.marginTop = '10px';
+
   images.forEach(image => {
       const imgElement = document.createElement('img');
       imgElement.src = image.url;
       imgElement.alt = image.alt;
       imgElement.style.cursor = 'pointer';
-      imgElement.style.width = '400px';
-      imgElement.style.height = '200px';
-      imgElement.style.margin = '10px';
+      imgElement.style.width = '700px';
+      imgElement.style.height = '300px';
+      imgElement.style.objectFit = 'cover';
+      imgElement.style.borderRadius = '10px';
 
       // Añadir evento click
       imgElement.onclick = function() {
-          window.location.href = image.link; // Abre la aplicación Fortnite o la página web
+          const link = image.link;
+          window.open(link, '_self');
       };
 
-      modalContent.appendChild(imgElement);
+      imageContainer.appendChild(imgElement);
   });
+
+  modalContent.appendChild(imageContainer);
+
+  // Ajustar el tamaño del modal
+  modalContent.style.width = 'auto'; // Ajustar automáticamente
+  modalContent.style.maxWidth = '90vw'; // No exceder el 90% del ancho de la ventana
+  modalContent.style.padding = '20px'; // Agregar algo de padding
+  modalContent.style.boxSizing = 'border-box'; // Incluir padding en el tamaño total
 }
+
+
   // Función para cerrar el modal
   span.onclick = function() {
       modal.style.display = "none";
@@ -157,3 +162,19 @@ function displayMapImages() {
   // Inicializar mostrando la sección de mapas
   btnMaps.click();
 });
+
+document.getElementById('btn-maps').addEventListener('click', () => {
+  document.getElementById('maps-section').style.display = 'flex';
+  document.getElementById('shop-section').style.display = 'none';
+  document.querySelector('.player-container').style.display = 'flex'; // Mostrar sección de streamers
+});
+
+document.getElementById('btn-shop').addEventListener('click', () => {
+  document.getElementById('maps-section').style.display = 'none';
+  document.getElementById('shop-section').style.display = 'flex';
+  document.querySelector('.player-container').style.display = 'none'; // Ocultar sección de streamers
+});
+
+// Por defecto mostrar la sección de mapas
+document.getElementById('maps-section').style.display = 'flex';
+document.getElementById('shop-section').style.display = 'none';

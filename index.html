@@ -6,31 +6,45 @@
   <link rel="stylesheet" href="./style.css">
 </head>
 <body>
-<div class="row" role="navigation">
-  <button class="tab" id="btn-maps" aria-label="Ver mapas">MAPAS<span></span></button>
-  <button class="tab" id="btn-shop" aria-label="Ver tienda">TIENDA<span></span></button>
-</div>
-
-<div class="play-cont" id="maps-section">
-  <h1 id="codigo-title">CODIGO: CAOZ</h1>
-  <button id="open-modal" class="mode play" aria-labelledby="codigo-title">SELECCIONA EL MAPA<span></span></button>
-</div>
-
-<!-- Modal para seleccionar el mapa -->
-<div id="modal" class="modal">
-  <div class="modal-content play-cont">
-    <span class="close"></span>
-    <h1>CODIGO: CAOZ</h1>
-    <button class="mode play" aria-labelledby="codigo-title">SELECCIONA EL MAPA<span></span></button>
+  <div class="row" role="navigation">
+    <button class="tab" id="btn-maps" aria-label="Ver mapas">MAPAS<span></span></button>
+    <button class="tab" id="btn-shop" aria-label="Ver tienda">TIENDA<span></span></button>
   </div>
-</div>
 
-<!-- Sección para mostrar la tienda -->
-<div id="shop-section" class="shop-section">
-  <h1></h1>
-  <div id="shop-items" class="shop-items"></div>
-</div>
+  <div class="container">
+    <div class="play-cont" id="maps-section">
+      <h1 id="codigo-title">CODIGO: CAOZ</h1>
+      <button id="open-modal" class="mode play" aria-labelledby="codigo-title">SELECCIONA EL MAPA<span></span></button>
+    </div>
 
-<script src="./script.js"></script>
+    <div class="player-container">
+      <div class="stream-container">
+        <h1>Directo de Kick</h1>
+        <button id="kick-button" onclick="window.open('https://kick.com/caoz', '_blank')">Ver en Kick</button>
+      </div>
+
+      <div class="stream-container">
+        <h1>Directo de Youtube</h1>
+        <button id="youtube-button" onclick="window.open('https://www.youtube.com/@CAOZ', '_blank')">Ver en Youtube</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal para seleccionar el mapa -->
+  <div id="modal" class="modal">
+    <div class="modal-content play-cont">
+      <span class="close"></span>
+      <h1>CODIGO: CAOZ</h1>
+      <button class="mode play" aria-labelledby="codigo-title">SELECCIONA EL MAPA<span></span></button>
+    </div>
+  </div>
+
+  <!-- Sección para mostrar la tienda -->
+  <div id="shop-section" class="shop-section">
+    <h1></h1>
+    <div id="shop-items" class="shop-items"></div>
+  </div>
+
+  <script src="./script.js"></script>
 </body>
 </html>
