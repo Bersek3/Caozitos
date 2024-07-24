@@ -4,6 +4,7 @@
   <meta charset="UTF-8">
   <title>PRUEBA CAOZ</title>
   <link rel="stylesheet" href="./style.css">
+  <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
 </head>
 <body>
   <div class="row" role="navigation">
@@ -16,6 +17,10 @@
       <h1 id="codigo-title">CODIGO: CAOZ</h1>
       <button id="open-modal" class="mode play" aria-labelledby="codigo-title">SELECCIONA EL MAPA<span></span></button>
     </div>
+
+    <div class="video-container">
+      <video id="live-stream" controls></video>
+  </div>
 
     <div class="player-container">
       <div class="stream-container">
@@ -46,5 +51,25 @@
   </div>
 
   <script src="./script.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const video = document.getElementById('live-stream');
+        const videoSrc = 'https://video-weaver.scl01.hls.live-video.net/v1/playlist/CoAGuYetil4kKCt1illIVrTZDvAx3nD-qwso7101QoQf3VVZsZV8ZFbX62-9Z9SCKEr9VUejH4w_NyRkjAeBcwbO_xR7JZEz6ScVOwbJb24LF_LzfSDk4NNmIY5IAnZsP-Qsty2C6GEqT4xR26bGGbjc0gRtUjXhlkf82PFzR9ogKphMn5P6dRJF-wMZkdW9Hj0gVdfGKGioPCRbTAIZtiLdl98juG9rDiUMa8-HPC_rLBYNIijNi2trvsuWk3IYfciK5ZT_N1l9udSMEAVyBuzUlc1HUODsIIyQF8Qci9UEGGpBkoUOK0rzkl1GfFzxRT0DKDmXmz3upFPqXQQYVEYN8ucub2d-4Yi8pcRJ3b_Iy_Zj54J-y9L9nxAB71TIQ61TNINP9eTxYy_zt7DBhv0WN_UVyYIOB42HUxqGe-AlEUVWvv5uGtQqkNzsRv4ZmRrIP3aR-stfQyNCMBD4F_ivJu1JhmaU7zxv0T1uWS9r2xq4kNrb0JAF_lZB4g17nr7d21Zd9Gk1ljOe8pu_8lXvYQz87UoZdSqEIRJKcVDKaaiQHGlPUL_-uNLT4IaXvt5gByZ19RIR8cLKj7eg_nX6zle5FxREe-LChDHaEhJR9Eu8IQFeqJonSZKggoAM5wmEqc9hkwotLAFYYxS-yUTnCDvwv_ZESZNGKxT-iOGe_4Q_G-ab3_E7Ly_SeAU5d5RuCMRtw8RTGQZXJgxKZW1pqQj3vdf5SIQogD1_JkQpnap822_WPek-ew_egXtkwQAxpcFJfmWSdtJMwmgyyvweA0xuzGdZDjEqr2TZtB5HvuBml9bX_-XyMzE4gufQ_7bPc2mRNOknKtC2SbctW1EA_8sGaq-F02NbZ8W_4C5GN8A5riUf1kdMX6owLB75hvKu2TFvRy_HIHUo6sR0wNwjyRpPNcqNBsgi3elfHfFho87_vE8lsMb5-TLiYfqgYPqQLJglSyxjUkAxNUp43qiPTgr9xOxe1lb8JiYZA-u5xbL-OynI8R08h1qYHHIsngrgGgwPBY7zYPHDbd9-g2kgASoJdXMtZWFzdC0xMLII.m3u8';
+
+        if (Hls.isSupported()) {
+            const hls = new Hls();
+            hls.loadSource(videoSrc);
+            hls.attachMedia(video);
+            hls.on(Hls.Events.MANIFEST_PARSED, function() {
+                video.play();
+            });
+        } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+            video.src = videoSrc;
+            video.addEventListener('loadedmetadata', function() {
+                video.play();
+            });
+        }
+    });
+</script>
 </body>
 </html>
