@@ -172,8 +172,16 @@ document.getElementById('btn-maps').addEventListener('click', () => {
 document.getElementById('btn-shop').addEventListener('click', () => {
   document.getElementById('maps-section').style.display = 'none';
   document.getElementById('shop-section').style.display = 'flex';
+
   document.querySelector('.player-container').style.display = 'none'; // Ocultar sección de streamers
 });
+
+document.getElementById('btn-sorteo').addEventListener('click', () => {
+    document.getElementById('maps-section').style.display = 'none';
+    document.getElementById('shop-section').style.display = 'none';
+    document.getElementById('sorteo-section').style.display = 'flex';
+    document.querySelector('.player-container').style.display = 'none'; 
+  });
 
 // Por defecto mostrar la sección de mapas
 document.getElementById('maps-section').style.display = 'flex';
