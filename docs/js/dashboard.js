@@ -4021,8 +4021,8 @@ function renderVoiceLibrary(voices) {
           </div>
         </div>
         <div class="voice-card-actions">
-          <button class="btn-card-play" title="Escuchar previa" onclick="handleTTSVoicePreview('${escapeHtml(v.id)}', '${escapeHtml(v.name)}', this)">
-            <i class="fas fa-play"></i>
+          <button class="btn-card-play" title="Escuchar muestra de audio" onclick="handleTTSVoicePreview('${escapeHtml(v.id)}', '${escapeHtml(v.name)}', this)">
+            <i class="fas fa-volume-up"></i>
           </button>
           <button class="btn-card-add ${isAdded ? 'added' : ''}" onclick="handleAddVoiceFromLibrary('${escapeHtml(v.id)}', '${escapeHtml(v.name)}', '${escapeHtml(v.defaultCommand || '')}', this)">
             ${isAdded ? '<i class="fas fa-check"></i> Añadido' : '+ Añadir'}
@@ -4046,7 +4046,7 @@ function handleTTSVoicePreview(voiceId, voiceName, btnEl) {
     b.classList.remove('playing');
     const icon = b.querySelector('i');
     if (icon && icon.classList.contains('fa-stop')) {
-      icon.className = b.classList.contains('btn-card-play') ? 'fas fa-play' : 'fas fa-volume-up';
+      icon.className = 'fas fa-volume-up';
     }
   });
 
@@ -4067,7 +4067,7 @@ function handleTTSVoicePreview(voiceId, voiceName, btnEl) {
     if (btnEl) {
       btnEl.classList.remove('playing');
       const icon = btnEl.querySelector('i');
-      if (icon) icon.className = btnEl.classList.contains('btn-card-play') ? 'fas fa-play' : 'fas fa-volume-up';
+      if (icon) icon.className = 'fas fa-volume-up';
     }
     activeTTSPreviewAudio = null;
   }
