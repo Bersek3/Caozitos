@@ -92,6 +92,21 @@ class TTSService {
       rubius: 'es_rubius',
       elrubius: 'es_rubius',
       el_rubius: 'es_rubius',
+      farid: 'es_farid',
+      farid_dieck: 'es_farid',
+      westcol: 'es_westcol',
+      cr7: 'es_cr7',
+      cristiano_ronaldo: 'es_cr7',
+      ronaldo: 'es_cr7',
+      bicho: 'es_cr7',
+      goku: 'es_goku',
+      goku_latino: 'es_goku',
+      maradona: 'es_maradona',
+      diego_maradona: 'es_maradona',
+      xokas: 'es_xokas',
+      elxokas: 'es_xokas',
+      illojuan: 'es_illojuan',
+      illo_juan: 'es_illojuan',
 
       // Voces Estándar / Multilingües
       mia: 'es_mx_mia',
@@ -132,7 +147,10 @@ class TTSService {
     const normalized = this.normalizeVoice(voiceId);
     const dbVoice = voiceCatalog.getVoiceById(normalized);
     if (dbVoice && dbVoice.isAI) return true;
-    return ['es_ar_messi', 'es_ve_maduro', 'es_tiktok', 'es_mx_homero', 'es_dross', 'es_badbunny', 'es_rubius'].includes(normalized);
+    return [
+      'es_ar_messi', 'es_ve_maduro', 'es_tiktok', 'es_mx_homero', 'es_dross', 'es_badbunny', 'es_rubius',
+      'es_farid', 'es_westcol', 'es_cr7', 'es_goku', 'es_maradona', 'es_xokas', 'es_illojuan'
+    ].includes(normalized);
   }
 
   generateAudioUrl(text, voiceId = 'es_mx_mia') {

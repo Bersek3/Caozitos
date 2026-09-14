@@ -1139,7 +1139,38 @@ app.get('/api/tts/audio', async (req, res) => {
       'es_rubius': '39382efbc7584d428f0f789d882cd3b8',
       'rubius': '39382efbc7584d428f0f789d882cd3b8',
       'elrubius': '39382efbc7584d428f0f789d882cd3b8',
-      'el_rubius': '39382efbc7584d428f0f789d882cd3b8'
+      'el_rubius': '39382efbc7584d428f0f789d882cd3b8',
+
+      'es_farid': 'dfa5b230c8054f429e434f4a6e9bbdec',
+      'farid': 'dfa5b230c8054f429e434f4a6e9bbdec',
+      'farid_dieck': 'dfa5b230c8054f429e434f4a6e9bbdec',
+
+      'es_westcol': '1e5d99568ab847f499bb1d65be15afd6',
+      'westcol': '1e5d99568ab847f499bb1d65be15afd6',
+
+      'es_cr7': '3521525edb80495e9ad276fc86c7a5e9',
+      'cr7': '3521525edb80495e9ad276fc86c7a5e9',
+      'cristiano_ronaldo': '3521525edb80495e9ad276fc86c7a5e9',
+      'ronaldo': '3521525edb80495e9ad276fc86c7a5e9',
+      'bicho': '3521525edb80495e9ad276fc86c7a5e9',
+
+      'es_goku': '9f850ee9ada24b20a6866825eaefd3f8',
+      'goku': '9f850ee9ada24b20a6866825eaefd3f8',
+      'goku_latino': '9f850ee9ada24b20a6866825eaefd3f8',
+
+      'es_maradona': '51f0a7c29e5f4743a84e41250898d293',
+      'maradona': '51f0a7c29e5f4743a84e41250898d293',
+      'diego_maradona': '51f0a7c29e5f4743a84e41250898d293',
+
+      'es_xokas': '8f23453397d14e4d9a579bad5aab41a8',
+      'xokas': '8f23453397d14e4d9a579bad5aab41a8',
+      'elxokas': '8f23453397d14e4d9a579bad5aab41a8',
+      'el_xokas': '8f23453397d14e4d9a579bad5aab41a8',
+
+      'es_illojuan': '97582f301e1c4f93a514ceda15e23e26',
+      'illojuan': '97582f301e1c4f93a514ceda15e23e26',
+      'illo_juan': '97582f301e1c4f93a514ceda15e23e26',
+      'juan': '97582f301e1c4f93a514ceda15e23e26'
     };
 
     const fishRefId = FISH_MODELS[voice];

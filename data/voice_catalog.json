@@ -20,7 +20,9 @@
     "gender": "male",
     "isAI": true,
     "referenceId": "e3ded66586764591a457fcdaba8a268b",
-    "sampleAudio": "/assets/sounds/messi_sample.mp3"
+    "sampleAudio": "/assets/sounds/messi_sample.mp3",
+    "pitch": 0.78,
+    "rate": 0.98
   },
   {
     "id": "es_ve_maduro",
@@ -42,7 +44,9 @@
     "gender": "male",
     "isAI": true,
     "referenceId": "b011ad1198284358b766a597f6fdd171",
-    "sampleAudio": "/assets/sounds/maduro_sample.mp3"
+    "sampleAudio": "/assets/sounds/maduro_sample.mp3",
+    "pitch": 0.72,
+    "rate": 0.95
   },
   {
     "id": "es_tiktok",
@@ -64,7 +68,9 @@
     "gender": "female",
     "isAI": true,
     "referenceId": "1505e291ec504760a285fd163a78b5eb",
-    "sampleAudio": "/assets/sounds/tiktok_sample.mp3"
+    "sampleAudio": "/assets/sounds/tiktok_sample.mp3",
+    "pitch": 1.2,
+    "rate": 1.05
   },
   {
     "id": "es_mx_homero",
@@ -87,7 +93,9 @@
     "gender": "male",
     "isAI": true,
     "referenceId": "134d19eda4c64cb0b2a84d93e327be3b",
-    "sampleAudio": "/assets/sounds/homero_sample.mp3"
+    "sampleAudio": "/assets/sounds/homero_sample.mp3",
+    "pitch": 0.85,
+    "rate": 0.92
   },
   {
     "id": "es_dross",
@@ -110,7 +118,9 @@
     "gender": "male",
     "isAI": true,
     "referenceId": "d9f0d3d3fe734af6acb5ecc9129bc49a",
-    "sampleAudio": "/assets/sounds/dross_sample.mp3"
+    "sampleAudio": "/assets/sounds/dross_sample.mp3",
+    "pitch": 0.7,
+    "rate": 0.95
   },
   {
     "id": "es_badbunny",
@@ -133,7 +143,9 @@
     "gender": "male",
     "isAI": true,
     "referenceId": "9b30f7190dbe49acb731345e70366cf7",
-    "sampleAudio": "/assets/sounds/badbunny_sample.mp3"
+    "sampleAudio": "/assets/sounds/badbunny_sample.mp3",
+    "pitch": 0.75,
+    "rate": 0.95
   },
   {
     "id": "es_rubius",
@@ -156,7 +168,9 @@
     "gender": "male",
     "isAI": true,
     "referenceId": "39382efbc7584d428f0f789d882cd3b8",
-    "sampleAudio": "/assets/sounds/rubius_sample.mp3"
+    "sampleAudio": "/assets/sounds/rubius_sample.mp3",
+    "pitch": 1.05,
+    "rate": 1.05
   },
   {
     "id": "es_mx_mia",
@@ -175,7 +189,9 @@
     },
     "previewText": "Hola streamer, soy Mia con voz en español latino.",
     "gender": "female",
-    "isAI": false
+    "isAI": false,
+    "pitch": 1.15,
+    "rate": 1
   },
   {
     "id": "es_us_miguel",
@@ -194,7 +210,9 @@
     },
     "previewText": "Saludos a toda la comunidad del canal.",
     "gender": "male",
-    "isAI": false
+    "isAI": false,
+    "pitch": 0.65,
+    "rate": 1
   },
   {
     "id": "es_us_lupe",
@@ -250,7 +268,9 @@
     },
     "previewText": "Hola a todos chavales, aquí Enrique desde España.",
     "gender": "male",
-    "isAI": false
+    "isAI": false,
+    "pitch": 0.62,
+    "rate": 1.05
   },
   {
     "id": "es_es_conchita",
@@ -269,7 +289,9 @@
     },
     "previewText": "Voz clásica en castellano con Conchita.",
     "gender": "female",
-    "isAI": false
+    "isAI": false,
+    "pitch": 1.1,
+    "rate": 1
   },
   {
     "id": "es_es_lucia",
@@ -308,7 +330,9 @@
     },
     "previewText": "Hello there, I am Brian the classic Twitch TTS voice.",
     "gender": "male",
-    "isAI": false
+    "isAI": false,
+    "pitch": 0.7,
+    "rate": 0.95
   },
   {
     "id": "en_emma",
@@ -513,7 +537,9 @@
     },
     "previewText": "皆さん、こんにちは！配信へようこそ。",
     "gender": "male",
-    "isAI": false
+    "isAI": false,
+    "pitch": 0.8,
+    "rate": 1.1
   },
   {
     "id": "ja_mizuki",

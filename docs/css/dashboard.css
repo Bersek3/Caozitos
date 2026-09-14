@@ -3434,24 +3434,46 @@ input[type=range]::-webkit-slider-thumb {
 }
 
 .btn-audio-preview {
-  background: transparent;
-  border: none;
-  color: #94a3b8;
-  font-size: 13px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  color: #a3e635;
+  font-size: 12px;
   cursor: pointer;
-  padding: 2px 4px;
-  border-radius: 4px;
-  transition: all 0.15s ease;
+  padding: 4px 8px;
+  border-radius: 6px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  transition: all 0.2s ease;
+}
+
+.btn-audio-preview i {
+  color: #a3e635;
+  font-size: 12px;
+  transition: all 0.2s ease;
 }
 
 .btn-audio-preview:hover {
-  color: #a3e635;
-  transform: scale(1.15);
+  background: rgba(163, 230, 53, 0.2);
+  border-color: rgba(163, 230, 53, 0.4);
+  color: #fff;
+  transform: scale(1.08);
+}
+
+.btn-audio-preview:hover i {
+  color: #fff;
 }
 
 .btn-audio-preview.playing {
-  color: #a3e635;
+  background: #a3e635;
+  color: #0c111d;
+  border-color: #a3e635;
   animation: pulse 1s infinite;
+}
+
+.btn-audio-preview.playing i {
+  color: #0c111d;
 }
 
 .tts-cmd-trigger-wrap {
@@ -3774,28 +3796,45 @@ input[type=range]::-webkit-slider-thumb {
 }
 
 .btn-card-play {
-  width: 32px;
-  height: 32px;
+  width: 34px;
+  height: 34px;
   border-radius: 8px;
   background: rgba(255, 255, 255, 0.06);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  color: #94a3b8;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: #a3e635;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  font-size: 12px;
-  transition: all 0.15s ease;
+  font-size: 13px;
+  transition: all 0.2s ease;
+}
+
+.btn-card-play i {
+  color: #a3e635;
+  font-size: 13px;
+  transition: all 0.2s ease;
+  pointer-events: none;
 }
 
 .btn-card-play:hover {
-  background: rgba(163, 230, 53, 0.2);
-  border-color: rgba(163, 230, 53, 0.4);
-  color: #a3e635;
+  background: rgba(163, 230, 53, 0.22);
+  border-color: rgba(163, 230, 53, 0.45);
+  color: #fff;
+  transform: scale(1.08);
+}
+
+.btn-card-play:hover i {
+  color: #fff;
 }
 
 .btn-card-play.playing {
   background: #a3e635;
+  border-color: #a3e635;
+  color: #0a0d16;
+}
+
+.btn-card-play.playing i {
   color: #0a0d16;
 }
 

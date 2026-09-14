@@ -103,6 +103,97 @@ const VOICE_CATALOG = [
     referenceId: '39382efbc7584d428f0f789d882cd3b8',
     sampleAudio: '/assets/sounds/rubius_sample.mp3'
   },
+  {
+    id: 'es_farid',
+    name: 'Farid Dieck',
+    category: 'celebrity',
+    tags: ['popular', 'trending', 'ia', 'reflexion', 'motivacion'],
+    lang: 'es-MX',
+    defaultCommand: '!farid',
+    stats: { uses: '890k', downloads: '6.2k' },
+    previewText: 'Las cosas no pasan por algo, pasan para algo. Saludos a todos en el stream.',
+    gender: 'male',
+    isAI: true,
+    referenceId: 'dfa5b230c8054f429e434f4a6e9bbdec'
+  },
+  {
+    id: 'es_westcol',
+    name: 'WestCol',
+    category: 'streamer',
+    tags: ['popular', 'trending', 'ia', 'streamer', 'colombia'],
+    lang: 'es-CO',
+    defaultCommand: '!westcol',
+    stats: { uses: '1.4M', downloads: '9.8k' },
+    previewText: '¡Qué hubo pues parceros! Bienvenidos a la transmisión.',
+    gender: 'male',
+    isAI: true,
+    referenceId: '1e5d99568ab847f499bb1d65be15afd6'
+  },
+  {
+    id: 'es_cr7',
+    name: 'Cristiano Ronaldo',
+    category: 'celebrity',
+    tags: ['popular', 'trending', 'ia', 'futbol', 'cr7', 'siuuu'],
+    lang: 'es-ES',
+    defaultCommand: '!cr7',
+    stats: { uses: '2.3M', downloads: '18k' },
+    previewText: '¡Siuuu! Aquí el bicho mandando un saludo a toda la gente del chat.',
+    gender: 'male',
+    isAI: true,
+    referenceId: '3521525edb80495e9ad276fc86c7a5e9'
+  },
+  {
+    id: 'es_goku',
+    name: 'Goku (Latino)',
+    category: 'anime',
+    tags: ['popular', 'trending', 'ia', 'anime', 'dragonball'],
+    lang: 'es-MX',
+    defaultCommand: '!goku',
+    stats: { uses: '1.6M', downloads: '11k' },
+    previewText: '¡Hola, soy Goku! ¡Levanten las manos para darme su energía!',
+    gender: 'male',
+    isAI: true,
+    referenceId: '9f850ee9ada24b20a6866825eaefd3f8'
+  },
+  {
+    id: 'es_maradona',
+    name: 'Diego Maradona',
+    category: 'celebrity',
+    tags: ['popular', 'trending', 'ia', 'futbol', 'argentina', 'd10s'],
+    lang: 'es-AR',
+    defaultCommand: '!maradona',
+    stats: { uses: '1.1M', downloads: '7.5k' },
+    previewText: 'Eeee... la pelota no se mancha. Saludos a todo el stream.',
+    gender: 'male',
+    isAI: true,
+    referenceId: '51f0a7c29e5f4743a84e41250898d293'
+  },
+  {
+    id: 'es_xokas',
+    name: 'El Xokas',
+    category: 'streamer',
+    tags: ['popular', 'trending', 'ia', 'streamer', 'gaming', 'twitch'],
+    lang: 'es-ES',
+    defaultCommand: '!xokas',
+    stats: { uses: '1.3M', downloads: '8.9k' },
+    previewText: '¡Esto es una locura! Soy el número uno y nadie me supera.',
+    gender: 'male',
+    isAI: true,
+    referenceId: '8f23453397d14e4d9a579bad5aab41a8'
+  },
+  {
+    id: 'es_illojuan',
+    name: 'IlloJuan',
+    category: 'streamer',
+    tags: ['popular', 'trending', 'ia', 'streamer', 'malaga', 'twitch'],
+    lang: 'es-ES',
+    defaultCommand: '!illojuan',
+    stats: { uses: '1.2M', downloads: '8.1k' },
+    previewText: '¡Illo qué pasa cabeza! Un abrazo muy fuerte pa toda la gente del stream.',
+    gender: 'male',
+    isAI: true,
+    referenceId: '97582f301e1c4f93a514ceda15e23e26'
+  },
 
   // --- Voces Multilingües Estándar ---
   {
