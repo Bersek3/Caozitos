@@ -370,7 +370,7 @@ class TwitchBot {
         return;
       }
 
-      // Check TTS Commands (Generic !tts or Specific Voice Commands ej: !anub, !esponja, !messi, !homero)
+      // Check TTS Commands (Generic !tts or Specific Voice Commands ej: !messi, !homero, !dross, !rubius)
       const ttsConfig = config.tts || {};
       const ttsCmd = (ttsConfig.chatCommand || '!tts').toLowerCase();
       const ttsVoiceCommands = storage.getTtsCommands() || [];

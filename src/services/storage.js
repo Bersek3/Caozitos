@@ -284,26 +284,23 @@ class StorageService {
   initVoiceCatalog() {
     try {
       const codeVoices = (voiceCatalog && typeof voiceCatalog.getCodeVoices === 'function') ? voiceCatalog.getCodeVoices() : [];
+      const validCodeIds = new Set(codeVoices.map(v => v.id.toLowerCase()));
       const localCatalog = readJSON('voice_catalog.json', []);
       const catalogMap = new Map();
 
-      if (Array.isArray(localCatalog)) {
-        for (const v of localCatalog) {
-          if (v && v.id) {
-            catalogMap.set(v.id.toLowerCase(), v);
-          }
+      // 1. Inicializar con todas las voces definidas en el código
+      for (const v of codeVoices) {
+        if (v && v.id) {
+          catalogMap.set(v.id.toLowerCase(), { ...v });
         }
       }
 
-      // Fusionar o registrar automáticamente las voces del código
-      for (const v of codeVoices) {
-        if (v && v.id) {
-          const idKey = v.id.toLowerCase();
-          if (!catalogMap.has(idKey)) {
-            catalogMap.set(idKey, v);
-          } else {
-            const current = catalogMap.get(idKey);
-            catalogMap.set(idKey, { ...current, ...v });
+      // 2. Fusionar personalizaciones solo si la voz existe en el código
+      if (Array.isArray(localCatalog)) {
+        for (const v of localCatalog) {
+          if (v && v.id && validCodeIds.has(v.id.toLowerCase())) {
+            const current = catalogMap.get(v.id.toLowerCase());
+            catalogMap.set(v.id.toLowerCase(), { ...current, ...v });
           }
         }
       }
@@ -314,10 +311,10 @@ class StorageService {
         voiceCatalog.setVoices(merged);
       }
 
-      // Sincronizar catálogo con Supabase y MongoDB
+      // Sincronizar catálogo depurado con Supabase y MongoDB
       setTimeout(() => {
         this.syncToCloud('voice_catalog', merged).catch(() => {});
-      }, 2000);
+      }, 1000);
 
       return merged;
     } catch (err) {
@@ -536,10 +533,28 @@ class StorageService {
           if (item.key === 'custom_images') {
             writeJSON('custom_images.json', item.value);
           }
+          if (item.key === 'tts_commands' && Array.isArray(item.value)) {
+            const codeVoices = (voiceCatalog && typeof voiceCatalog.getCodeVoices === 'function') ? voiceCatalog.getCodeVoices() : [];
+            const validVoiceIds = new Set(codeVoices.map(v => v.id.toLowerCase()));
+            const cleanCmds = item.value.filter(c => c && c.voiceId && validVoiceIds.has(c.voiceId.toLowerCase())).map(c => ({
+              id: c.id, voiceId: c.voiceId, name: c.name, command: c.command,
+              permissions: c.permissions || ['todos'], enabled: c.enabled !== false,
+              volume: c.volume || 90, rate: c.rate || 1.0, pitch: c.pitch || 1.0
+            }));
+            const finalCmds = cleanCmds.length > 0 ? cleanCmds : DEFAULT_TTS_COMMANDS;
+            writeJSON('tts_commands.json', finalCmds);
+          }
           if (item.key === 'voice_catalog' && Array.isArray(item.value)) {
-            writeJSON('voice_catalog.json', item.value);
+            const codeVoices = (voiceCatalog && typeof voiceCatalog.getCodeVoices === 'function') ? voiceCatalog.getCodeVoices() : [];
+            const validCodeIds = new Set(codeVoices.map(v => v.id.toLowerCase()));
+            const cleanVoices = item.value.filter(v => v && v.id && validCodeIds.has(v.id.toLowerCase())).map(v => {
+              const { avatar, ...rest } = v;
+              return rest;
+            });
+            const finalVoices = cleanVoices.length > 0 ? cleanVoices : codeVoices;
+            writeJSON('voice_catalog.json', finalVoices);
             if (voiceCatalog && typeof voiceCatalog.setVoices === 'function') {
-              voiceCatalog.setVoices(item.value);
+              voiceCatalog.setVoices(finalVoices);
             }
           }
         });
@@ -562,7 +577,17 @@ class StorageService {
         data.forEach(item => {
           if (item.key === 'config') writeJSON('config.json', item.value);
           if (item.key === 'commands') writeJSON('commands.json', item.value);
-          if (item.key === 'tts_commands') writeJSON('tts_commands.json', item.value);
+          if (item.key === 'tts_commands' && Array.isArray(item.value)) {
+            const codeVoices = (voiceCatalog && typeof voiceCatalog.getCodeVoices === 'function') ? voiceCatalog.getCodeVoices() : [];
+            const validVoiceIds = new Set(codeVoices.map(v => v.id.toLowerCase()));
+            const cleanCmds = item.value.filter(c => c && c.voiceId && validVoiceIds.has(c.voiceId.toLowerCase())).map(c => ({
+              id: c.id, voiceId: c.voiceId, name: c.name, command: c.command,
+              permissions: c.permissions || ['todos'], enabled: c.enabled !== false,
+              volume: c.volume || 90, rate: c.rate || 1.0, pitch: c.pitch || 1.0
+            }));
+            const finalCmds = cleanCmds.length > 0 ? cleanCmds : DEFAULT_TTS_COMMANDS;
+            writeJSON('tts_commands.json', finalCmds);
+          }
           if (item.key === 'alerts') writeJSON('alerts.json', item.value);
           if (item.key === 'channel_points') writeJSON('channel_points.json', item.value);
           if (item.key === 'goals') writeJSON('goals.json', item.value);
@@ -573,9 +598,16 @@ class StorageService {
             writeJSON('custom_images.json', item.value);
           }
           if (item.key === 'voice_catalog' && Array.isArray(item.value)) {
-            writeJSON('voice_catalog.json', item.value);
+            const codeVoices = (voiceCatalog && typeof voiceCatalog.getCodeVoices === 'function') ? voiceCatalog.getCodeVoices() : [];
+            const validCodeIds = new Set(codeVoices.map(v => v.id.toLowerCase()));
+            const cleanVoices = item.value.filter(v => v && v.id && validCodeIds.has(v.id.toLowerCase())).map(v => {
+              const { avatar, ...rest } = v;
+              return rest;
+            });
+            const finalVoices = cleanVoices.length > 0 ? cleanVoices : codeVoices;
+            writeJSON('voice_catalog.json', finalVoices);
             if (voiceCatalog && typeof voiceCatalog.setVoices === 'function') {
-              voiceCatalog.setVoices(item.value);
+              voiceCatalog.setVoices(finalVoices);
             }
           }
         });
@@ -679,8 +711,16 @@ class StorageService {
           if (item.key === 'alerts') writeJSON('alerts.json', item.value);
           if (item.key === 'channel_points') writeJSON('channel_points.json', item.value);
           if (item.key === 'goals') writeJSON('goals.json', item.value);
-          if (item.key === 'tts_commands') {
-            writeJSON('tts_commands.json', item.value);
+          if (item.key === 'tts_commands' && Array.isArray(item.value)) {
+            const codeVoices = (voiceCatalog && typeof voiceCatalog.getCodeVoices === 'function') ? voiceCatalog.getCodeVoices() : [];
+            const validVoiceIds = new Set(codeVoices.map(v => v.id.toLowerCase()));
+            const cleanCmds = item.value.filter(c => c && c.voiceId && validVoiceIds.has(c.voiceId.toLowerCase())).map(c => ({
+              id: c.id, voiceId: c.voiceId, name: c.name, command: c.command,
+              permissions: c.permissions || ['todos'], enabled: c.enabled !== false,
+              volume: c.volume || 90, rate: c.rate || 1.0, pitch: c.pitch || 1.0
+            }));
+            const finalCmds = cleanCmds.length > 0 ? cleanCmds : DEFAULT_TTS_COMMANDS;
+            writeJSON('tts_commands.json', finalCmds);
           }
           if (item.key === 'custom_sounds') {
             writeJSON('custom_sounds.json', item.value);
@@ -689,9 +729,16 @@ class StorageService {
             writeJSON('custom_images.json', item.value);
           }
           if (item.key === 'voice_catalog' && Array.isArray(item.value)) {
-            writeJSON('voice_catalog.json', item.value);
+            const codeVoices = (voiceCatalog && typeof voiceCatalog.getCodeVoices === 'function') ? voiceCatalog.getCodeVoices() : [];
+            const validCodeIds = new Set(codeVoices.map(v => v.id.toLowerCase()));
+            const cleanVoices = item.value.filter(v => v && v.id && validCodeIds.has(v.id.toLowerCase())).map(v => {
+              const { avatar, ...rest } = v;
+              return rest;
+            });
+            const finalVoices = cleanVoices.length > 0 ? cleanVoices : codeVoices;
+            writeJSON('voice_catalog.json', finalVoices);
             if (voiceCatalog && typeof voiceCatalog.setVoices === 'function') {
-              voiceCatalog.setVoices(item.value);
+              voiceCatalog.setVoices(finalVoices);
             }
           }
         });
@@ -1114,7 +1161,12 @@ class StorageService {
   }
 
   getTtsCommands() {
-    return readJSON('tts_commands.json', DEFAULT_TTS_COMMANDS);
+    const list = readJSON('tts_commands.json', DEFAULT_TTS_COMMANDS);
+    if (!Array.isArray(list) || list.length === 0) return DEFAULT_TTS_COMMANDS;
+    const codeVoices = (voiceCatalog && typeof voiceCatalog.getCodeVoices === 'function') ? voiceCatalog.getCodeVoices() : [];
+    const validVoiceIds = new Set(codeVoices.map(v => v.id.toLowerCase()));
+    const filtered = list.filter(c => c && c.voiceId && validVoiceIds.has(c.voiceId.toLowerCase()));
+    return filtered.length > 0 ? filtered : DEFAULT_TTS_COMMANDS;
   }
 
   saveTtsCommands(commands) {

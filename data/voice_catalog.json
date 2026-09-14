@@ -534,25 +534,5 @@
     "previewText": "こんにちは！チャットの皆さん、よろしくお願いします。",
     "gender": "female",
     "isAI": false
-  },
-  {
-    "id": "es_mario_bros",
-    "name": "Mario Bros",
-    "category": "gaming",
-    "tags": [
-      "popular",
-      "nintendo",
-      "mario"
-    ],
-    "lang": "es-MX",
-    "defaultCommand": "!mario",
-    "stats": {
-      "uses": "100k",
-      "downloads": "500"
-    },
-    "previewText": "¡It is a me, Mario!",
-    "pitch": 1.2,
-    "rate": 1.1,
-    "isAI": false
   }
 ]
