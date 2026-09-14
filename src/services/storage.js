@@ -4,6 +4,7 @@ const path = require('path');
 const crypto = require('crypto');
 const { createClient } = require('@supabase/supabase-js');
 const { MongoClient } = require('mongodb');
+const voiceCatalog = require('./voiceCatalog');
 
 const DATA_DIR = path.join(__dirname, '..', '..', 'data');
 
@@ -337,8 +338,61 @@ class StorageService {
     this.initSupabase();
     this.initMongoDB();
 
+    // Inicializar y sincronizar catálogo de voces desde código y base de datos
+    this.initVoiceCatalog();
+
     // Iniciar sistema Heartbeat Keep-Alive Anti-Pausa 24/7
     this.startDatabaseKeepAliveHeartbeat();
+  }
+
+  /**
+   * Inicializa y sincroniza el catálogo general de voces.
+   * Auto-registra cualquier voz añadida en el código fuente (voiceCatalog.js)
+   * hacia la base de datos y la caché local.
+   */
+  initVoiceCatalog() {
+    try {
+      const codeVoices = (voiceCatalog && typeof voiceCatalog.getCodeVoices === 'function') ? voiceCatalog.getCodeVoices() : [];
+      const localCatalog = readJSON('voice_catalog.json', []);
+      const catalogMap = new Map();
+
+      if (Array.isArray(localCatalog)) {
+        for (const v of localCatalog) {
+          if (v && v.id) {
+            catalogMap.set(v.id.toLowerCase(), v);
+          }
+        }
+      }
+
+      // Fusionar o registrar automáticamente las voces del código
+      for (const v of codeVoices) {
+        if (v && v.id) {
+          const idKey = v.id.toLowerCase();
+          if (!catalogMap.has(idKey)) {
+            catalogMap.set(idKey, v);
+          } else {
+            const current = catalogMap.get(idKey);
+            catalogMap.set(idKey, { ...current, ...v });
+          }
+        }
+      }
+
+      const merged = Array.from(catalogMap.values());
+      writeJSON('voice_catalog.json', merged);
+      if (voiceCatalog && typeof voiceCatalog.setVoices === 'function') {
+        voiceCatalog.setVoices(merged);
+      }
+
+      // Sincronizar catálogo con Supabase y MongoDB
+      setTimeout(() => {
+        this.syncToCloud('voice_catalog', merged).catch(() => {});
+      }, 2000);
+
+      return merged;
+    } catch (err) {
+      console.warn('⚠️ [Storage] Error al inicializar catálogo de voces:', err.message);
+      return (voiceCatalog && typeof voiceCatalog.getCodeVoices === 'function') ? voiceCatalog.getCodeVoices() : [];
+    }
   }
 
   /**
@@ -551,6 +605,12 @@ class StorageService {
           if (item.key === 'custom_images') {
             writeJSON('custom_images.json', item.value);
           }
+          if (item.key === 'voice_catalog' && Array.isArray(item.value)) {
+            writeJSON('voice_catalog.json', item.value);
+            if (voiceCatalog && typeof voiceCatalog.setVoices === 'function') {
+              voiceCatalog.setVoices(item.value);
+            }
+          }
         });
         this.restoreAllMediaFiles();
       } else {
@@ -581,6 +641,12 @@ class StorageService {
           if (item.key === 'custom_images') {
             writeJSON('custom_images.json', item.value);
           }
+          if (item.key === 'voice_catalog' && Array.isArray(item.value)) {
+            writeJSON('voice_catalog.json', item.value);
+            if (voiceCatalog && typeof voiceCatalog.setVoices === 'function') {
+              voiceCatalog.setVoices(item.value);
+            }
+          }
         });
         this.restoreAllMediaFiles();
       }
@@ -595,14 +661,17 @@ class StorageService {
   async syncToSupabase(key, value) {
     if (!this.supabase) return;
     const streamerId = this.getStreamerId();
-    if (!streamerId || streamerId === 'default') return;
-    const scopes = new Set([streamerId]);
-    for (const streamerId of scopes) {
+    const scopes = new Set(
+      key === 'voice_catalog'
+        ? ['system', 'default', streamerId].filter(Boolean)
+        : [streamerId].filter(s => s && s !== 'default')
+    );
+    for (const scopeId of scopes) {
       try {
         const { error } = await this.supabase
           .from('orbibot_settings')
           .upsert({
-            streamer_id: streamerId,
+            streamer_id: scopeId,
             key,
             value,
             updated_at: new Date().toISOString()
@@ -668,7 +737,7 @@ class StorageService {
     const streamerId = this.getStreamerId();
     try {
       const records = await this.mongoDb.collection('settings')
-        .find({ streamer_id: streamerId })
+        .find({ streamer_id: { $in: [streamerId, 'system', 'default'] } })
         .toArray();
 
       if (records && records.length > 0) {
@@ -687,6 +756,12 @@ class StorageService {
           }
           if (item.key === 'custom_images') {
             writeJSON('custom_images.json', item.value);
+          }
+          if (item.key === 'voice_catalog' && Array.isArray(item.value)) {
+            writeJSON('voice_catalog.json', item.value);
+            if (voiceCatalog && typeof voiceCatalog.setVoices === 'function') {
+              voiceCatalog.setVoices(item.value);
+            }
           }
         });
         this.restoreAllMediaFiles();
@@ -720,6 +795,10 @@ class StorageService {
         if (currentAlerts) {
           await this.syncToMongoDB('alerts', currentAlerts);
         }
+        const currentVoiceCatalog = this.getVoiceCatalog();
+        if (currentVoiceCatalog && currentVoiceCatalog.length > 0) {
+          await this.syncToMongoDB('voice_catalog', currentVoiceCatalog);
+        }
       }
     } catch (err) {
       console.warn('⚠️ [MongoDB Cloud] Error en sincronización inicial:', err.message);
@@ -728,7 +807,7 @@ class StorageService {
 
   async syncToMongoDB(key, value) {
     if (!this.isMongoReady || !this.mongoDb) return;
-    const scopes = new Set([this.getStreamerId(), 'default'].filter(Boolean));
+    const scopes = new Set([this.getStreamerId(), 'system', 'default'].filter(Boolean));
     for (const streamerId of scopes) {
       try {
         await this.mongoDb.collection('settings').updateOne(
@@ -1158,6 +1237,64 @@ class StorageService {
     commands = commands.filter(c => c.id !== id && c.command !== id);
     this.saveTtsCommands(commands);
     return commands;
+  }
+
+  // ================= 🎙️ CATÁLOGO GENERAL DE VOCES =================
+  getVoiceCatalog() {
+    const list = readJSON('voice_catalog.json', null);
+    if (Array.isArray(list) && list.length > 0) {
+      return list;
+    }
+    return this.initVoiceCatalog();
+  }
+
+  saveVoiceCatalog(catalog) {
+    const list = Array.isArray(catalog) ? catalog : [];
+    writeJSON('voice_catalog.json', list);
+    this.syncToCloud('voice_catalog', list);
+    if (voiceCatalog && typeof voiceCatalog.setVoices === 'function') {
+      voiceCatalog.setVoices(list);
+    }
+    return list;
+  }
+
+  addVoiceToCatalog(voiceData) {
+    if (!voiceData || !voiceData.id) return null;
+    const catalog = this.getVoiceCatalog();
+    const idKey = voiceData.id.toLowerCase().trim();
+    const newVoice = {
+      id: idKey,
+      name: voiceData.name || idKey,
+      category: voiceData.category || 'general',
+      tags: Array.isArray(voiceData.tags) ? voiceData.tags : ['custom'],
+      avatar: voiceData.avatar || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=120&auto=format&fit=crop&q=80',
+      lang: voiceData.lang || 'es-ES',
+      defaultCommand: voiceData.defaultCommand || `!${idKey.replace(/^es_|^en_/, '')}`,
+      stats: voiceData.stats || { uses: '1k', downloads: '10' },
+      previewText: voiceData.previewText || `Hola, soy ${voiceData.name || idKey}.`,
+      pitch: voiceData.pitch !== undefined ? Number(voiceData.pitch) : 1.0,
+      rate: voiceData.rate !== undefined ? Number(voiceData.rate) : 1.0,
+      isAI: Boolean(voiceData.isAI)
+    };
+
+    const existingIdx = catalog.findIndex(v => v.id.toLowerCase() === idKey);
+    if (existingIdx >= 0) {
+      catalog[existingIdx] = { ...catalog[existingIdx], ...newVoice };
+    } else {
+      catalog.push(newVoice);
+    }
+
+    this.saveVoiceCatalog(catalog);
+    return newVoice;
+  }
+
+  deleteVoiceFromCatalog(id) {
+    if (!id) return [];
+    const cleanId = id.toString().toLowerCase().trim();
+    let catalog = this.getVoiceCatalog();
+    catalog = catalog.filter(v => v.id.toLowerCase() !== cleanId && v.name.toLowerCase() !== cleanId);
+    this.saveVoiceCatalog(catalog);
+    return catalog;
   }
 
   getUsers() {

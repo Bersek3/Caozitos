@@ -1737,6 +1737,10 @@ function handleSocketMessage(msg) {
       cachedTTSCommands = data;
       renderTTSCommands(data);
     }
+  } else if (event === 'tts_catalog_updated') {
+    if (Array.isArray(data)) {
+      renderVoiceLibrary(data);
+    }
   } else if (event === 'goal_update' || event === 'goals_updated') {
     if (event === 'goals_updated' && Array.isArray(data)) {
       localStorage.setItem('orbibot_goals', JSON.stringify(data));

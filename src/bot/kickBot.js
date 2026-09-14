@@ -1,5 +1,6 @@
 const WebSocket = require('ws');
 const storage = require('../services/storage');
+const ttsService = require('../services/ttsService');
 
 class KickBot {
   constructor() {
@@ -198,6 +199,49 @@ class KickBot {
         };
 
         this.broadcast('chat_message', chatPayload);
+
+        // Procesar comandos de TTS en Kick
+        const config = storage.getConfig();
+        const ttsConfig = config.tts || {};
+        if (ttsConfig.enabled && ttsConfig.allowChatCommand) {
+          const trimmed = message.trim();
+          const ttsCmd = (ttsConfig.chatCommand || '!tts').toLowerCase();
+          const ttsVoiceCommands = storage.getTtsCommands() || [];
+          const firstWord = trimmed.split(' ')[0].toLowerCase();
+          const matchedVoiceCmd = ttsVoiceCommands.find(c => c.enabled && c.command && c.command.toLowerCase() === firstWord);
+
+          const userBadges = {
+            isMod,
+            isSub,
+            vip: badges.some(b => b.type === 'vip'),
+            broadcaster: badges.some(b => b.type === 'broadcaster')
+          };
+
+          if (trimmed.toLowerCase().startsWith(ttsCmd)) {
+            const ttsText = trimmed.slice(ttsCmd.length).trim();
+            if (ttsText) {
+              ttsService.processRequest({
+                user: username,
+                text: ttsText,
+                source: 'chat',
+                channel: this.currentChannel,
+                userBadges
+              });
+            }
+          } else if (matchedVoiceCmd && ttsService.hasPermission(matchedVoiceCmd, userBadges)) {
+            const voiceText = trimmed.slice(matchedVoiceCmd.command.length).trim();
+            if (voiceText) {
+              ttsService.processRequest({
+                user: username,
+                text: `${matchedVoiceCmd.command} ${voiceText}`,
+                source: 'chat',
+                voiceOverride: matchedVoiceCmd.voiceId,
+                channel: this.currentChannel,
+                userBadges
+              });
+            }
+          }
+        }
       } catch (e) {
         console.error('[KickBot] Error processing chat message:', e);
       }

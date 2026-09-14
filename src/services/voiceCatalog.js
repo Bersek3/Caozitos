@@ -704,16 +704,45 @@ class VoiceCatalogService {
     this.voices = [...VOICE_CATALOG];
   }
 
+  /**
+   * Retorna las voces definidas en el código fuente.
+   */
+  getCodeVoices() {
+    return VOICE_CATALOG;
+  }
+
+  /**
+   * Actualiza las voces activas cargadas desde la base de datos.
+   */
+  setVoices(voices) {
+    if (Array.isArray(voices) && voices.length > 0) {
+      this.voices = voices;
+    }
+  }
+
+  /**
+   * Retorna todas las voces registradas en la base de datos.
+   */
   getAllVoices() {
     return this.voices;
   }
 
+  /**
+   * Busca una voz por ID, nombre o alias de comando.
+   */
   getVoiceById(id) {
     if (!id) return null;
     const cleanId = id.toString().toLowerCase().trim().replace(/^[-@/]/, '').replace(/^voice:/, '');
-    return this.voices.find(v => v.id.toLowerCase() === cleanId || v.name.toLowerCase() === cleanId) || null;
+    return this.voices.find(v => 
+      v.id.toLowerCase() === cleanId || 
+      v.name.toLowerCase() === cleanId ||
+      (v.defaultCommand && (v.defaultCommand.toLowerCase() === cleanId || v.defaultCommand.toLowerCase() === `!${cleanId}`))
+    ) || null;
   }
 
+  /**
+   * Busca y filtra voces en la base de datos por término y categoría.
+   */
   searchVoices(query = '', category = 'all') {
     let result = this.voices;
 
@@ -743,6 +772,9 @@ class VoiceCatalogService {
     return result;
   }
 
+  /**
+   * Añade o actualiza una voz en la lista en memoria.
+   */
   addVoiceToCatalog(voiceData) {
     if (!voiceData || !voiceData.id) return false;
     const existingIdx = this.voices.findIndex(v => v.id.toLowerCase() === voiceData.id.toLowerCase());

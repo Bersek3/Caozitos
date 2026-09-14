@@ -1054,6 +1054,20 @@ app.get('/api/tts/library', (req, res) => {
   });
 });
 
+app.post('/api/tts/library/add', (req, res) => {
+  const result = storage.addVoiceToCatalog(req.body);
+  if (!result) return res.status(400).json({ success: false, message: 'Datos de voz inválidos.' });
+  const allVoices = storage.getVoiceCatalog();
+  broadcast('tts_catalog_updated', allVoices);
+  res.json({ success: true, voice: result, total: allVoices.length });
+});
+
+app.post('/api/tts/library/sync', (req, res) => {
+  const synced = storage.initVoiceCatalog();
+  broadcast('tts_catalog_updated', synced);
+  res.json({ success: true, total: synced.length, voices: synced });
+});
+
 app.get('/api/tts/commands', (req, res) => {
   res.json(storage.getTtsCommands());
 });

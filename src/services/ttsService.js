@@ -47,60 +47,43 @@ class TTSService {
   }
 
   normalizeVoice(voiceId) {
-    if (!voiceId) return 'es_mx_mia';
+    const config = storage.getConfig().tts || {};
+    const defaultVoice = config.voice || 'es_mx_mia';
+    if (!voiceId) return defaultVoice;
     const v = voiceId.toString().toLowerCase().trim().replace(/^[-@/]/, '').replace(/^voice:/, '');
+
+    // 1. Buscar coincidencia en el catálogo activo de la base de datos
+    const dbVoice = voiceCatalog.getVoiceById(v);
+    if (dbVoice) {
+      return dbVoice.id;
+    }
+
+    // 2. Buscar en los comandos configurados por el streamer en la base de datos
+    const commands = storage.getTtsCommands() || [];
+    const matchedCmd = commands.find(c =>
+      (c.command && (c.command.toLowerCase() === v || c.command.toLowerCase() === `!${v}`)) ||
+      (c.voiceId && c.voiceId.toLowerCase() === v) ||
+      (c.name && c.name.toLowerCase() === v)
+    );
+    if (matchedCmd && matchedCmd.voiceId) {
+      return matchedCmd.voiceId;
+    }
+
+    // 3. Mapeo de alias comunes que apuntan a voces de la base de datos
     const aliases = {
       // Voces Famosas / IA
       messi: 'es_ar_messi',
       lionel_messi: 'es_ar_messi',
       'lionel messi': 'es_ar_messi',
       'leo messi': 'es_ar_messi',
-      'leo_messi': 'es_ar_messi',
-      leomessi: 'es_ar_messi',
-      es_ar_messi: 'es_ar_messi',
-
       maduro: 'es_ve_maduro',
-      nicolas_maduro: 'es_ve_maduro',
-      'nicolas maduro': 'es_ve_maduro',
-      'nicolás maduro': 'es_ve_maduro',
-      nicolasmaduro: 'es_ve_maduro',
-      es_ve_maduro: 'es_ve_maduro',
-
       tiktok: 'es_tiktok',
-      voz_tiktok: 'es_tiktok',
-      'voz tiktok': 'es_tiktok',
-      tiktok_voice: 'es_tiktok',
-      es_tiktok: 'es_tiktok',
-
       homero: 'es_mx_homero',
-      homer: 'es_mx_homero',
-      homero_simpson: 'es_mx_homero',
-      'homero simpson': 'es_mx_homero',
-      'homer simpson': 'es_mx_homero',
-      homerosimpson: 'es_mx_homero',
-      es_mx_homero: 'es_mx_homero',
-
       dross: 'es_dross',
-      drossrotzank: 'es_dross',
-      'dross rotzank': 'es_dross',
-      es_dross: 'es_dross',
-
       badbunny: 'es_badbunny',
-      bad_bunny: 'es_badbunny',
-      'bad bunny': 'es_badbunny',
-      benito: 'es_badbunny',
-      conejo_malo: 'es_badbunny',
-      'conejo malo': 'es_badbunny',
-      es_badbunny: 'es_badbunny',
-
       rubius: 'es_rubius',
-      elrubius: 'es_rubius',
-      el_rubius: 'es_rubius',
-      'el rubius': 'es_rubius',
-      rubiuh: 'es_rubius',
-      es_rubius: 'es_rubius',
 
-      // Voces del catálogo general y comandos
+      // Voces del catálogo general
       anub: 'es_anub',
       anuel: 'es_anuel',
       ari: 'es_ari',
@@ -109,113 +92,50 @@ class TTSService {
       balanar: 'es_balanar',
       bala: 'es_balanar',
       bart: 'es_bart',
-      bart_simpson: 'es_bart',
-      'bart simpson': 'es_bart',
       esponja: 'es_esponja',
-      bob_esponja: 'es_esponja',
-      'bob esponja': 'es_esponja',
-      spongebob: 'en_us_spongebob',
       trump: 'en_us_trump',
-      donald_trump: 'en_us_trump',
-      'donald trump': 'en_us_trump',
       peter: 'en_us_peter',
-      peter_griffin: 'en_us_peter',
       goku: 'es_mx_goku',
-      goku_latino: 'es_mx_goku',
       melcochita: 'es_pe_melcochita',
       drphil: 'en_us_drphil',
       freeman: 'en_us_morgan',
-      morgan_freeman: 'en_us_morgan',
       cholo: 'es_pe_cholo',
-      cholojuanito: 'es_pe_cholo',
       tate: 'en_us_tate',
-      andrew_tate: 'en_us_tate',
       biden: 'en_us_biden',
-      joe_biden: 'en_us_biden',
       cr7: 'pt_br_cristiano',
       kermit: 'en_us_kermit',
       snoop: 'en_us_snoop',
-      snoop_dogg: 'en_us_snoop',
       girl: 'es_mx_girl',
       vegeta: 'es_mx_vegeta',
-      vegeta_latino: 'es_mx_vegeta',
       arnold: 'en_us_arnold',
       makanaky: 'es_pe_makanaky',
       thrall: 'en_us_thrall',
       drake: 'en_us_drake',
       adin: 'en_us_adin',
-      adin_ross: 'en_us_adin',
       alexjones: 'en_us_alexjones',
       rogan: 'en_us_rogan',
-      joe_rogan: 'en_us_rogan',
       kanye: 'en_us_kanye',
-      kanye_west: 'en_us_kanye',
       faraon: 'es_pe_faraon',
-      faraon_love_shady: 'es_pe_faraon',
       eddie: 'en_us_eddie',
       elon: 'en_us_musk',
-      elon_musk: 'en_us_musk',
       musk: 'en_us_musk',
-      orco: 'en_us_orco',
-
-      // Direct names
-      mia: 'es_mx_mia',
-      miguel: 'es_us_miguel',
-      lupe: 'es_us_lupe',
-      penelope: 'es_us_penelope',
-      penélope: 'es_us_penelope',
-      enrique: 'es_es_enrique',
-      conchita: 'es_es_conchita',
-      lucia: 'es_es_lucia',
-      lucía: 'es_es_lucia',
-      brian: 'en_brian',
-      emma: 'en_emma',
-      joey: 'en_joey',
-      matthew: 'en_matthew',
-      kendra: 'en_kendra',
-      justin: 'en_justin',
-      russell: 'en_russell',
-      cristiano: 'pt_cristiano',
-      mathieu: 'fr_mathieu',
-      giorgio: 'it_giorgio',
-      hans: 'de_hans',
-      takumi: 'ja_takumi',
-      mizuki: 'ja_mizuki',
-
-      // Legacy & IDs
-      es_mx_mia: 'es_mx_mia',
-      es_us_miguel: 'es_us_miguel',
-      es_us_lupe: 'es_us_lupe',
-      es_us_penelope: 'es_us_penelope',
-      es_es_enrique: 'es_es_enrique',
-      es_es_conchita: 'es_es_conchita',
-      es_es_lucia: 'es_es_lucia',
-      en_brian: 'en_brian',
-      en_emma: 'en_emma',
-      en_joey: 'en_joey',
-      en_matthew: 'en_matthew',
-      en_kendra: 'en_kendra',
-      en_justin: 'en_justin',
-      en_russell: 'en_russell',
-      pt_cristiano: 'pt_cristiano',
-      fr_mathieu: 'fr_mathieu',
-      it_giorgio: 'it_giorgio',
-      de_hans: 'de_hans',
-      ja_takumi: 'ja_takumi',
-      ja_mizuki: 'ja_mizuki',
-      es_001: 'es_mx_mia',
-      es_female: 'es_mx_mia',
-      es_male: 'es_us_miguel',
-      es_002: 'es_es_conchita',
-      'es-es-standard-a': 'es_es_enrique',
-      en_001: 'en_brian',
-      en_002: 'en_emma'
+      orco: 'en_us_orco'
     };
-    return aliases[v] || v;
+
+    const aliasTarget = aliases[v];
+    if (aliasTarget) {
+      const aliasVoice = voiceCatalog.getVoiceById(aliasTarget);
+      if (aliasVoice) return aliasVoice.id;
+    }
+
+    // 4. Si no existe en la base de datos de voces, retornar voz predeterminada
+    return defaultVoice;
   }
 
   isFishAudioVoice(voiceId) {
     const normalized = this.normalizeVoice(voiceId);
+    const dbVoice = voiceCatalog.getVoiceById(normalized);
+    if (dbVoice && dbVoice.isAI) return true;
     return ['es_ar_messi', 'es_ve_maduro', 'es_tiktok', 'es_mx_homero', 'es_dross', 'es_badbunny', 'es_rubius'].includes(normalized);
   }
 
@@ -225,7 +145,8 @@ class TTSService {
     if (this.isFishAudioVoice(normalized)) {
       return `/api/tts/audio?text=${encoded}&voice=${normalized}`;
     }
-    const lang = (normalized.split('_')[0] || 'es').toLowerCase();
+    const dbVoice = voiceCatalog.getVoiceById(normalized);
+    const lang = dbVoice?.lang || (normalized.split('_')[0] || 'es').toLowerCase();
     return `https://translate.google.com/translate_tts?ie=UTF-8&q=${encoded}&tl=${encodeURIComponent(lang)}&client=tw-ob`;
   }
 
