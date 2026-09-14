@@ -69,6 +69,177 @@ const DEFAULT_CONFIG = {
 
 const DEFAULT_COMMANDS = [];
 
+const DEFAULT_TTS_COMMANDS = [
+  {
+    id: 'tts_cmd_anub',
+    voiceId: 'es_anub',
+    name: 'Anub',
+    avatar: 'https://images.unsplash.com/photo-1563089145-599997674d42?w=120&auto=format&fit=crop&q=80',
+    command: '!anub',
+    permissions: ['todos'],
+    enabled: true,
+    volume: 90,
+    rate: 0.95,
+    pitch: 0.6
+  },
+  {
+    id: 'tts_cmd_anuel',
+    voiceId: 'es_anuel',
+    name: 'Anuel',
+    avatar: 'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=120&auto=format&fit=crop&q=80',
+    command: '!anuel',
+    permissions: ['todos', 'vip', 'sub', 'mod'],
+    enabled: true,
+    volume: 90,
+    rate: 1.05,
+    pitch: 0.75
+  },
+  {
+    id: 'tts_cmd_ari',
+    voiceId: 'es_ari',
+    name: 'Ari',
+    avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=120&auto=format&fit=crop&q=80',
+    command: '!ari',
+    permissions: ['todos'],
+    enabled: true,
+    volume: 90,
+    rate: 1.05,
+    pitch: 1.25
+  },
+  {
+    id: 'tts_cmd_arturito',
+    voiceId: 'es_arturito',
+    name: 'Arturito',
+    avatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=120&auto=format&fit=crop&q=80',
+    command: '!arturito',
+    permissions: ['todos'],
+    enabled: true,
+    volume: 90,
+    rate: 1.1,
+    pitch: 1.1
+  },
+  {
+    id: 'tts_cmd_babidi',
+    voiceId: 'es_babidi',
+    name: 'Babidi',
+    avatar: 'https://images.unsplash.com/photo-1578632767115-351597cf2477?w=120&auto=format&fit=crop&q=80',
+    command: '!babidi',
+    permissions: ['todos'],
+    enabled: true,
+    volume: 90,
+    rate: 1.15,
+    pitch: 1.35
+  },
+  {
+    id: 'tts_cmd_balanar',
+    voiceId: 'es_balanar',
+    name: 'Balanar',
+    avatar: 'https://images.unsplash.com/photo-1509198397868-475647b2a1e5?w=120&auto=format&fit=crop&q=80',
+    command: '!bala',
+    permissions: ['todos'],
+    enabled: true,
+    volume: 90,
+    rate: 0.9,
+    pitch: 0.55
+  },
+  {
+    id: 'tts_cmd_bart',
+    voiceId: 'es_bart',
+    name: 'Bart Simpson',
+    avatar: 'https://images.unsplash.com/photo-1579783902614-a3fb3927b675?w=120&auto=format&fit=crop&q=80',
+    command: '!bart',
+    permissions: ['todos'],
+    enabled: true,
+    volume: 90,
+    rate: 1.05,
+    pitch: 1.3
+  },
+  {
+    id: 'tts_cmd_esponja',
+    voiceId: 'es_esponja',
+    name: 'Bob Esponja',
+    avatar: 'https://images.unsplash.com/photo-1563245372-f21724e3856d?w=120&auto=format&fit=crop&q=80',
+    command: '!esponja',
+    permissions: ['todos'],
+    enabled: true,
+    volume: 90,
+    rate: 1.1,
+    pitch: 1.35
+  },
+  {
+    id: 'tts_cmd_messi',
+    voiceId: 'es_ar_messi',
+    name: 'Lionel Messi',
+    avatar: 'https://images.unsplash.com/photo-1517466787929-bc90951d0974?w=120&auto=format&fit=crop&q=80',
+    command: '!messi',
+    permissions: ['todos', 'vip', 'sub', 'mod'],
+    enabled: true,
+    volume: 90,
+    rate: 0.98,
+    pitch: 0.78
+  },
+  {
+    id: 'tts_cmd_homero',
+    voiceId: 'es_mx_homero',
+    name: 'Homero Simpson',
+    avatar: 'https://images.unsplash.com/photo-1579783902614-a3fb3927b675?w=120&auto=format&fit=crop&q=80',
+    command: '!homero',
+    permissions: ['todos'],
+    enabled: true,
+    volume: 90,
+    rate: 0.92,
+    pitch: 0.85
+  },
+  {
+    id: 'tts_cmd_dross',
+    voiceId: 'es_dross',
+    name: 'Dross Rotzank',
+    avatar: 'https://images.unsplash.com/photo-1509198397868-475647b2a1e5?w=120&auto=format&fit=crop&q=80',
+    command: '!dross',
+    permissions: ['todos'],
+    enabled: true,
+    volume: 90,
+    rate: 0.95,
+    pitch: 0.7
+  },
+  {
+    id: 'tts_cmd_badbunny',
+    voiceId: 'es_badbunny',
+    name: 'Bad Bunny',
+    avatar: 'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=120&auto=format&fit=crop&q=80',
+    command: '!badbunny',
+    permissions: ['todos'],
+    enabled: true,
+    volume: 90,
+    rate: 0.95,
+    pitch: 0.75
+  },
+  {
+    id: 'tts_cmd_goku',
+    voiceId: 'es_mx_goku',
+    name: 'Goku Latino',
+    avatar: 'https://images.unsplash.com/photo-1569701813229-33284b643e3c?w=120&auto=format&fit=crop&q=80',
+    command: '!goku',
+    permissions: ['todos'],
+    enabled: true,
+    volume: 90,
+    rate: 1.0,
+    pitch: 1.05
+  },
+  {
+    id: 'tts_cmd_trump',
+    voiceId: 'en_us_trump',
+    name: 'Donald Trump',
+    avatar: 'https://images.unsplash.com/photo-1580128660010-fd027e1e587a?w=120&auto=format&fit=crop&q=80',
+    command: '!trump',
+    permissions: ['todos'],
+    enabled: true,
+    volume: 90,
+    rate: 0.95,
+    pitch: 0.85
+  }
+];
+
 const DEFAULT_ALERTS = {
   follower: {
     enabled: true,
@@ -370,6 +541,7 @@ class StorageService {
         data.forEach(item => {
           if (item.key === 'config') writeJSON('config.json', item.value);
           if (item.key === 'commands') writeJSON('commands.json', item.value);
+          if (item.key === 'tts_commands') writeJSON('tts_commands.json', item.value);
           if (item.key === 'alerts') writeJSON('alerts.json', item.value);
           if (item.key === 'channel_points') writeJSON('channel_points.json', item.value);
           if (item.key === 'goals') writeJSON('goals.json', item.value);
@@ -399,6 +571,7 @@ class StorageService {
         data.forEach(item => {
           if (item.key === 'config') writeJSON('config.json', item.value);
           if (item.key === 'commands') writeJSON('commands.json', item.value);
+          if (item.key === 'tts_commands') writeJSON('tts_commands.json', item.value);
           if (item.key === 'alerts') writeJSON('alerts.json', item.value);
           if (item.key === 'channel_points') writeJSON('channel_points.json', item.value);
           if (item.key === 'goals') writeJSON('goals.json', item.value);
@@ -506,6 +679,9 @@ class StorageService {
           if (item.key === 'alerts') writeJSON('alerts.json', item.value);
           if (item.key === 'channel_points') writeJSON('channel_points.json', item.value);
           if (item.key === 'goals') writeJSON('goals.json', item.value);
+          if (item.key === 'tts_commands') {
+            writeJSON('tts_commands.json', item.value);
+          }
           if (item.key === 'custom_sounds') {
             writeJSON('custom_sounds.json', item.value);
           }
@@ -925,6 +1101,63 @@ class StorageService {
     this.restoreImageFiles(images);
     this.syncToCloud('custom_images', images || []);
     return images || [];
+  }
+
+  getTtsCommands() {
+    return readJSON('tts_commands.json', DEFAULT_TTS_COMMANDS);
+  }
+
+  saveTtsCommands(commands) {
+    const list = Array.isArray(commands) ? commands : DEFAULT_TTS_COMMANDS;
+    writeJSON('tts_commands.json', list);
+    this.syncToCloud('tts_commands', list);
+    return list;
+  }
+
+  addTtsCommand(command) {
+    if (!command || !command.command) return null;
+    const commands = this.getTtsCommands();
+    const cleanCmd = (command.command.startsWith('!') ? command.command : `!${command.command}`).toLowerCase().trim();
+    const newCmd = {
+      id: command.id || ('tts_cmd_' + Date.now() + '_' + Math.random().toString(36).substring(2, 6)),
+      voiceId: command.voiceId || 'es_mx_mia',
+      name: command.name || 'Voz Personalizada',
+      avatar: command.avatar || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=120&auto=format&fit=crop&q=80',
+      command: cleanCmd,
+      permissions: Array.isArray(command.permissions) && command.permissions.length ? command.permissions : ['todos'],
+      enabled: command.enabled !== undefined ? Boolean(command.enabled) : true,
+      volume: command.volume !== undefined ? Number(command.volume) : 90,
+      rate: command.rate !== undefined ? Number(command.rate) : 1.0,
+      pitch: command.pitch !== undefined ? Number(command.pitch) : 1.0
+    };
+
+    const existingIdx = commands.findIndex(c => c.id === newCmd.id || c.command.toLowerCase() === newCmd.command.toLowerCase());
+    if (existingIdx >= 0) {
+      commands[existingIdx] = { ...commands[existingIdx], ...newCmd };
+    } else {
+      commands.unshift(newCmd);
+    }
+
+    this.saveTtsCommands(commands);
+    return newCmd;
+  }
+
+  updateTtsCommand(id, updates) {
+    const commands = this.getTtsCommands();
+    const idx = commands.findIndex(c => c.id === id);
+    if (idx !== -1) {
+      commands[idx] = { ...commands[idx], ...updates };
+      this.saveTtsCommands(commands);
+      return commands[idx];
+    }
+    return null;
+  }
+
+  deleteTtsCommand(id) {
+    let commands = this.getTtsCommands();
+    commands = commands.filter(c => c.id !== id && c.command !== id);
+    this.saveTtsCommands(commands);
+    return commands;
   }
 
   getUsers() {

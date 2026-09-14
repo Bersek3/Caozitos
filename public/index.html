@@ -1089,149 +1089,230 @@
           </div>
         </section>
 
-        <!-- ================= TAB 4: TEXT-TO-SPEECH (TTS) ================= -->
+        <!-- ================= TAB 4: TEXT-TO-SPEECH (TTS MULTI-VOCES) ================= -->
         <section id="tab-tts" class="tab-pane">
-          <div class="grid-2">
-            <div class="card">
-              <div class="card-header">
-                <span class="card-title">🗣️ Configuración de Voz y Moderación</span>
-              </div>
+          <!-- Sub-pestañas de Navegación TTS (Estilo TTS Monster / SoundAlerts) -->
+          <div class="tts-subtabs-nav">
+            <button class="tts-subtab-btn active" data-subtab="tts-subtab-commands">Comandos</button>
+            <button class="tts-subtab-btn" data-subtab="tts-subtab-library">Biblioteca de voces</button>
+            <button class="tts-subtab-btn" data-subtab="tts-subtab-moderation">Moderación</button>
+            <button class="tts-subtab-btn" data-subtab="tts-subtab-settings">Configuración</button>
+          </div>
 
-              <div class="form-group">
-                <label class="switch-label">
-                  <span style="font-weight: 700;">Activar Text-to-Speech (TTS)</span>
-                  <input type="checkbox" id="cfgTtsEnabled" class="switch-input" checked>
-                  <span class="switch-slider"></span>
-                </label>
+          <!-- 1. SUB-PESTAÑA: COMANDOS (TUS COMANDOS DE TTS) -->
+          <div id="tts-subtab-commands" class="tts-subtab-content active">
+            <div class="tts-commands-header">
+              <div class="tts-header-title-wrap">
+                <h3 class="tts-section-title">Tus comandos de TTS</h3>
+                <span id="ttsCmdCountBadge" class="tts-count-badge">0 comandos</span>
               </div>
-
-              <div class="form-group">
-                <label class="form-label">Motor y Voz Predeterminada (Estilo StreamElements / AI)</label>
-                <select id="cfgTtsVoice" class="form-control">
-                  <optgroup label="⭐ Voces Famosas & IA (Fish Audio)">
-                    <option value="es_ar_messi">⭐ Lionel Messi - IA Fish Audio 🇦🇷</option>
-                    <option value="es_ve_maduro">⭐ Nicolás Maduro - IA Fish Audio 🇻🇪</option>
-                    <option value="es_tiktok">⭐ Voz TikTok - IA Fish Audio 🎵</option>
-                    <option value="es_mx_homero">⭐ Homero Simpson - IA Fish Audio 🍩</option>
-                    <option value="es_dross">⭐ Dross Rotzank - IA Fish Audio 🦇</option>
-                    <option value="es_badbunny">⭐ Bad Bunny - IA Fish Audio 🐰</option>
-                    <option value="es_rubius">⭐ ElRubius - IA Fish Audio 🎮</option>
-                  </optgroup>
-                  <optgroup label="Español Latino (México / US / Neutro)">
-                    <option value="es_mx_mia">Mia - Español Latino (Femenino)</option>
-                    <option value="es_us_miguel">Miguel - Español Latino (Masculino)</option>
-                    <option value="es_us_lupe">Lupe - Español US (Femenino)</option>
-                    <option value="es_us_penelope">Penélope - Español Neutro (Femenino)</option>
-                  </optgroup>
-                  <optgroup label="Español España (Castellano)">
-                    <option value="es_es_enrique">Enrique - Castellano (Masculino Pro)</option>
-                    <option value="es_es_conchita">Conchita - Castellano (Femenino Pro)</option>
-                    <option value="es_es_lucia">Lucía - Castellano (Natural)</option>
-                  </optgroup>
-                  <optgroup label="English (UK / US / AU)">
-                    <option value="en_brian">Brian - English UK (Voz Streamer Clásica / Meme)</option>
-                    <option value="en_emma">Emma - English UK (Femenino)</option>
-                    <option value="en_joey">Joey - English US (Masculino)</option>
-                    <option value="en_matthew">Matthew - English US (Masculino)</option>
-                    <option value="en_kendra">Kendra - English US (Femenino)</option>
-                    <option value="en_justin">Justin - English US (Joven)</option>
-                    <option value="en_russell">Russell - English Australia</option>
-                  </optgroup>
-                  <optgroup label="Internacionales (Português, Français, Italiano, Deutsch, 日本語)">
-                    <option value="pt_cristiano">Cristiano - Português (Brasil / Portugal)</option>
-                    <option value="fr_mathieu">Mathieu - Français</option>
-                    <option value="it_giorgio">Giorgio - Italiano</option>
-                    <option value="de_hans">Hans - Deutsch</option>
-                    <option value="ja_takumi">Takumi - 日本語 (Japonés Anime)</option>
-                    <option value="ja_mizuki">Mizuki - 日本語 (Japonés Femenino)</option>
-                  </optgroup>
+              <div class="tts-header-actions">
+                <select id="ttsSortSelect" class="tts-sort-select">
+                  <option value="az">Ordenar: A → Z</option>
+                  <option value="za">Ordenar: Z → A</option>
+                  <option value="recent">Más recientes</option>
+                  <option value="enabled">Solo activos</option>
                 </select>
-              </div>
-
-              <div class="form-group" id="groupFishApiKey" style="background: rgba(0, 242, 254, 0.05); border: 1px solid rgba(0, 242, 254, 0.2); border-radius: 10px; padding: 12px 14px; margin-bottom: 16px;">
-                <label class="form-label" style="display: flex; justify-content: space-between; align-items: center;">
-                  <span><i class="fas fa-key" style="color: #00f2fe; margin-right: 6px;"></i> Clave API Fish Audio (Para voces IA como Messi)</span>
-                  <a href="https://fish.audio" target="_blank" style="color: #00f2fe; font-size: 11px; text-decoration: underline;">Obtener créditos / API Key</a>
-                </label>
-                <input type="password" id="cfgTtsFishApiKey" class="form-control" placeholder="sk-fish-..." value="sk-fish-rOpXPwPZLXZAk5SPYaeSKBue6QfPM3l4i6Q3VG8ZbGI">
-                <small style="color: var(--text-secondary); font-size: 11px; margin-top: 5px; display: block;">
-                  Fish Audio clona la voz exacta de Lionel Messi con IA. Recuerda tener saldo/créditos en tu cuenta de <a href="https://fish.audio" target="_blank" style="color: #00f2fe;">fish.audio</a> para generación en directo.
-                </small>
-              </div>
-
-              <div class="form-group">
-                <label class="form-label">Volumen: <span id="valTtsVolume">90%</span></label>
-                <input type="range" id="cfgTtsVolume" min="0" max="100" value="90">
-              </div>
-
-              <div class="grid-2">
-                <div class="form-group">
-                  <label class="form-label">Velocidad: <span id="valTtsRate">1.0x</span></label>
-                  <input type="range" id="cfgTtsRate" min="0.5" max="2.0" step="0.1" value="1.0">
-                </div>
-                <div class="form-group">
-                  <label class="form-label">Tono (Pitch): <span id="valTtsPitch">1.0</span></label>
-                  <input type="range" id="cfgTtsPitch" min="0.5" max="1.5" step="0.1" value="1.0">
-                </div>
-              </div>
-
-              <div class="form-group">
-                <label class="form-label">Límite Máximo de Caracteres</label>
-                <input type="number" id="cfgTtsMaxLength" class="form-control" value="250" min="50" max="500">
-              </div>
-
-              <div class="form-group">
-                <label class="form-label">Palabras Prohibidas (separadas por coma)</label>
-                <textarea id="cfgTtsBannedWords" class="form-control" rows="3"
-                  placeholder="palabra1, palabra2, insulto"></textarea>
-                <div class="form-help">Estas palabras serán reemplazadas automáticamente con asteriscos (***).</div>
+                <button id="btnSwitchToVoiceLib" class="btn-tts-action btn-accent">
+                  <i class="fas fa-plus"></i> Añadir voz
+                </button>
               </div>
             </div>
 
-            <div class="card">
-              <div class="card-header">
-                <span class="card-title">🎯 Disparadores y Prueba en Vivo</span>
+            <!-- Lista Dinámica de Comandos de Voz -->
+            <div id="ttsCommandsList" class="tts-commands-list">
+              <div style="text-align: center; padding: 40px 20px; color: var(--text-secondary);">
+                <i class="fas fa-spinner fa-spin" style="font-size: 24px; color: #a3e635; margin-bottom: 12px; display: block;"></i>
+                Cargando tus comandos de voz...
+              </div>
+            </div>
+          </div>
+
+          <!-- 2. SUB-PESTAÑA: BIBLIOTECA GENERAL DE VOCES -->
+          <div id="tts-subtab-library" class="tts-subtab-content">
+            <div class="voice-lib-topbar">
+              <div class="voice-search-box">
+                <i class="fas fa-search"></i>
+                <input type="text" id="voiceLibrarySearch" class="voice-search-input" placeholder="Buscar voces...">
               </div>
 
-              <div class="form-group">
-                <label class="switch-label">
-                  <span>Permitir comando de chat (<code>!tts &lt;texto&gt;</code>)</span>
-                  <input type="checkbox" id="cfgTtsAllowCommand" class="switch-input" checked>
-                  <span class="switch-slider"></span>
-                </label>
-              </div>
-
-              <div class="form-group">
-                <label class="form-label">Nombre del Comando de Chat</label>
-                <input type="text" id="cfgTtsCommand" class="form-control" value="!tts">
-              </div>
-
-              <div class="form-group">
-                <label class="form-label">Bits Mínimos para Activar TTS</label>
-                <input type="number" id="cfgTtsMinBits" class="form-control" value="50" min="0">
-                <div class="form-help">Cualquier mensaje con al menos esta cantidad de bits se leerá en directo.</div>
-              </div>
-
-              <div
-                style="margin-top: 24px; padding: 20px; background: rgba(0,0,0,0.3); border-radius: var(--radius-md);">
-                <h4 style="font-size: 14px; margin-bottom: 12px; color: var(--cyan-accent);">📢 Probar Síntesis de Voz
-                  Ahora</h4>
-                <div class="form-group">
-                  <input type="text" id="testTtsInput" class="form-control"
-                    placeholder="Escribe lo que quieras que diga el bot...">
+              <div class="voice-filter-wrap">
+                <div class="voice-filter-pills">
+                  <button class="voice-filter-btn active" data-category="popular">Más populares</button>
+                  <button class="voice-filter-btn" data-category="recent">Añadidas recientemente</button>
+                  <button class="voice-filter-btn" data-category="trending">En tendencia</button>
+                  <button class="voice-filter-btn" data-category="all">Todas</button>
                 </div>
-                <button id="btnTestTtsPlay" class="btn btn-primary" style="width: 100%;">
-                  ▶️ Reproducir Mensaje de Prueba
-                </button>
+                <span id="voiceLibraryTotalCount" class="voice-total-count">0 voces</span>
+              </div>
+            </div>
+
+            <!-- Cuadrícula de Voces del Catálogo General -->
+            <div id="voiceLibraryGrid" class="voice-catalog-grid">
+              <div style="text-align: center; grid-column: 1 / -1; padding: 40px 20px; color: var(--text-secondary);">
+                <i class="fas fa-spinner fa-spin" style="font-size: 24px; color: #a3e635; margin-bottom: 12px; display: block;"></i>
+                Cargando biblioteca de voces...
+              </div>
+            </div>
+          </div>
+
+          <!-- 3. SUB-PESTAÑA: MODERACIÓN -->
+          <div id="tts-subtab-moderation" class="tts-subtab-content">
+            <div class="grid-2">
+              <div class="card">
+                <div class="card-header">
+                  <span class="card-title">🛡️ Filtro de Palabras y Seguridad</span>
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Palabras Prohibidas (separadas por coma)</label>
+                  <textarea id="cfgTtsBannedWords" class="form-control" rows="4"
+                    placeholder="palabra1, palabra2, insulto, spam"></textarea>
+                  <div class="form-help">Estas palabras serán reemplazadas automáticamente con asteriscos (***) antes de reproducir la voz en el directo.</div>
+                </div>
+
+                <div class="form-group">
+                  <label class="form-label">Límite Máximo de Caracteres por Mensaje</label>
+                  <input type="number" id="cfgTtsMaxLength" class="form-control" value="250" min="50" max="600">
+                  <div class="form-help">Previene que los espectadores envíen textos excesivamente largos.</div>
+                </div>
               </div>
 
-              <div
-                style="margin-top: 20px; padding: 14px; background: rgba(145, 70, 255, 0.1); border-radius: var(--radius-md); border-left: 3px solid var(--twitch-purple);">
-                <div style="font-size: 13px; font-weight: 700; color: #fff;">🔊 Audio en OBS:</div>
-                <p style="font-size: 12px; color: var(--text-secondary); margin-top: 4px;">
-                  Para que tus espectadores escuchen el TTS en streaming, agrega la fuente de navegador <strong>TTS
-                    Audio Player</strong> en OBS desde la pestaña de Widgets.
-                </p>
+              <div class="card">
+                <div class="card-header">
+                  <span class="card-title">⚡ Umbral de Activación y Bits</span>
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Bits Mínimos para Activar TTS</label>
+                  <input type="number" id="cfgTtsMinBits" class="form-control" value="50" min="0">
+                  <div class="form-help">Cualquier mensaje acompañado con al menos esta cantidad de Bits se leerá con la voz TTS en vivo.</div>
+                </div>
+
+                <div class="form-group">
+                  <label class="switch-label">
+                    <span>Permitir comando general de chat (<code>!tts &lt;texto&gt;</code>)</span>
+                    <input type="checkbox" id="cfgTtsAllowCommand" class="switch-input" checked>
+                    <span class="switch-slider"></span>
+                  </label>
+                  <div class="form-help">Permite que el comando general <code>!tts</code> o comandos individuales funcionen desde el chat.</div>
+                </div>
+
+                <div class="form-group">
+                  <label class="form-label">Prefijo del Comando General</label>
+                  <input type="text" id="cfgTtsCommand" class="form-control" value="!tts">
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 4. SUB-PESTAÑA: CONFIGURACIÓN GENERAL & PROBADOR -->
+          <div id="tts-subtab-settings" class="tts-subtab-content">
+            <div class="grid-2">
+              <div class="card">
+                <div class="card-header">
+                  <span class="card-title">⚙️ Motor y Parámetros Globales</span>
+                </div>
+
+                <div class="form-group">
+                  <label class="switch-label">
+                    <span style="font-weight: 700;">Activar Text-to-Speech (TTS) Maestro</span>
+                    <input type="checkbox" id="cfgTtsEnabled" class="switch-input" checked>
+                    <span class="switch-slider"></span>
+                  </label>
+                </div>
+
+                <div class="form-group">
+                  <label class="form-label">Voz Predeterminada del Sistema</label>
+                  <select id="cfgTtsVoice" class="form-control">
+                    <optgroup label="⭐ Voces Famosas & IA">
+                      <option value="es_ar_messi">⭐ Lionel Messi - IA Fish Audio 🇦🇷</option>
+                      <option value="es_mx_homero">⭐ Homero Simpson - IA Fish Audio 🍩</option>
+                      <option value="es_dross">⭐ Dross Rotzank - IA Fish Audio 🦇</option>
+                      <option value="es_badbunny">⭐ Bad Bunny - IA Fish Audio 🐰</option>
+                      <option value="es_rubius">⭐ ElRubius - IA Fish Audio 🎮</option>
+                      <option value="es_tiktok">⭐ Voz TikTok - IA Fish Audio 🎵</option>
+                      <option value="es_ve_maduro">⭐ Nicolás Maduro - IA Fish Audio 🇻🇪</option>
+                    </optgroup>
+                    <optgroup label="Español Latino">
+                      <option value="es_mx_mia">Mia - Español Latino (Femenino)</option>
+                      <option value="es_us_miguel">Miguel - Español Latino (Masculino)</option>
+                      <option value="es_us_lupe">Lupe - Español US (Femenino)</option>
+                      <option value="es_us_penelope">Penélope - Español Neutro (Femenino)</option>
+                    </optgroup>
+                    <optgroup label="Español España / Castellano">
+                      <option value="es_es_enrique">Enrique - Castellano (Masculino Pro)</option>
+                      <option value="es_es_conchita">Conchita - Castellano (Femenino Pro)</option>
+                      <option value="es_es_lucia">Lucía - Castellano (Natural)</option>
+                    </optgroup>
+                    <optgroup label="English">
+                      <option value="en_brian">Brian - English UK (Streamer Meme Clásica)</option>
+                      <option value="en_emma">Emma - English UK (Femenino)</option>
+                      <option value="en_joey">Joey - English US (Masculino)</option>
+                      <option value="en_matthew">Matthew - English US (Masculino)</option>
+                      <option value="en_kendra">Kendra - English US (Femenino)</option>
+                      <option value="en_justin">Justin - English US (Joven)</option>
+                      <option value="en_russell">Russell - English Australia</option>
+                    </optgroup>
+                  </select>
+                </div>
+
+                <div class="form-group" id="groupFishApiKey" style="background: rgba(0, 242, 254, 0.05); border: 1px solid rgba(0, 242, 254, 0.2); border-radius: 10px; padding: 12px 14px; margin-bottom: 16px;">
+                  <label class="form-label" style="display: flex; justify-content: space-between; align-items: center;">
+                    <span><i class="fas fa-key" style="color: #00f2fe; margin-right: 6px;"></i> Clave API Fish Audio (Voces IA)</span>
+                    <a href="https://fish.audio" target="_blank" style="color: #00f2fe; font-size: 11px; text-decoration: underline;">Obtener API Key</a>
+                  </label>
+                  <input type="password" id="cfgTtsFishApiKey" class="form-control" placeholder="sk-fish-..." value="sk-fish-rOpXPwPZLXZAk5SPYaeSKBue6QfPM3l4i6Q3VG8ZbGI">
+                  <small style="color: var(--text-secondary); font-size: 11px; margin-top: 5px; display: block;">
+                    Permite síntesis neural con clonación de voz exacta.
+                  </small>
+                </div>
+
+                <div class="form-group">
+                  <label class="form-label">Volumen Global: <span id="valTtsVolume">90%</span></label>
+                  <input type="range" id="cfgTtsVolume" min="0" max="100" value="90">
+                </div>
+
+                <div class="grid-2">
+                  <div class="form-group">
+                    <label class="form-label">Velocidad: <span id="valTtsRate">1.0x</span></label>
+                    <input type="range" id="cfgTtsRate" min="0.5" max="2.0" step="0.1" value="1.0">
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label">Tono (Pitch): <span id="valTtsPitch">1.0</span></label>
+                    <input type="range" id="cfgTtsPitch" min="0.5" max="1.5" step="0.1" value="1.0">
+                  </div>
+                </div>
+              </div>
+
+              <div class="card">
+                <div class="card-header">
+                  <span class="card-title">📢 Probar Síntesis y Enlace para OBS</span>
+                </div>
+
+                <div style="padding: 16px; background: rgba(0,0,0,0.3); border-radius: var(--radius-md); margin-bottom: 20px;">
+                  <h4 style="font-size: 14px; margin-bottom: 10px; color: var(--cyan-accent); font-weight: 700;">
+                    🗣️ Probar Mensaje en Directo (Soporta Multi-Voces)
+                  </h4>
+                  <div class="form-group">
+                    <input type="text" id="testTtsInput" class="form-control"
+                      placeholder="Ej: !messi Hola chat !homero qué onda muchachos">
+                    <small style="color: var(--text-secondary); font-size: 11px; margin-top: 4px; display: block;">
+                      Tip: Escribe múltiples comandos (ej: <code>!messi Hola !esponja estamos listos</code>) para probar el diálogo multi-voz.
+                    </small>
+                  </div>
+                  <button id="btnTestTtsPlay" class="btn btn-primary" style="width: 100%;">
+                    ▶️ Reproducir Mensaje de Prueba en OBS
+                  </button>
+                </div>
+
+                <div style="padding: 16px; background: rgba(145, 70, 255, 0.1); border-radius: var(--radius-md); border-left: 3px solid var(--twitch-purple);">
+                  <div style="font-size: 13px; font-weight: 700; color: #fff;">🔊 Receptor Invisible para OBS Studio:</div>
+                  <p style="font-size: 12px; color: var(--text-secondary); margin: 6px 0 12px 0;">
+                    Agrega la fuente de navegador <strong>TTS Audio Player</strong> en OBS para que tus espectadores escuchen todas las voces.
+                  </p>
+                  <a href="./overlays/tts.html" target="_blank" class="btn btn-secondary btn-sm" style="display: inline-block;">
+                    Abrir Receptor TTS en pestaña ↗
+                  </a>
+                </div>
               </div>
             </div>
           </div>

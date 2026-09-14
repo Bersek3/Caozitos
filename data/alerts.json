@@ -3,7 +3,7 @@
     "enabled": true,
     "title": "Nuevo Seguidor",
     "message": "¡{user} ahora sigue el canal!",
-    "sound": "./assets/sounds/campana_alerta.wav",
+    "sound": "/assets/sounds/custom/faaah.mp3",
     "duration": 6,
     "image": "https://i.giphy.com/media/artj92V8o75VPL7AeQ/giphy.gif",
     "textColor": "#ffffff",

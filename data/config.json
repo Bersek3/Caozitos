@@ -1,27 +1,31 @@
 {
   "security": {
-    "widgetToken": ""
+    "widgetToken": "sec_cb04c456356689d198f80b1d3c9d86ff"
   },
   "twitch": {
-    "channel": "",
-    "botUsername": "",
-    "oauthToken": "",
+    "channel": "bersek___",
+    "botUsername": "bersek___",
+    "oauthToken": "jutbd9jjk91qw965w4scfpx5a7ondj",
     "clientId": "yw1vr664ichms8an2x5lhji58v7ozk",
-    "connected": false
+    "connected": true,
+    "userId": "226055830",
+    "displayName": "Bersek___",
+    "profileImage": "https://static-cdn.jtvnw.net/jtv_user_pictures/92a6561b-8e64-4f5f-a5fe-af7782347288-profile_image-300x300.jpeg"
   },
   "kick": {
-    "channel": "",
-    "username": "",
-    "profile_picture": "",
-    "userId": "",
-    "accessToken": "",
-    "refreshToken": "",
+    "channel": "bersek",
+    "username": "Bersek",
+    "profile_picture": "https://files.kick.com/images/user/2984464/profile_image/conversion/8b4e7fba-64d9-469b-b1eb-da87178f4fab-medium.webp",
+    "userId": "2984464",
+    "accessToken": "MTI2OTLJZTUTNZRHNY0ZMTY4LTG5NTCTMTHIOTLMZJU4ZWU2",
+    "refreshToken": "ZDEYY2Q4OWITZTC4ZS01NTU2LWFJN2ETMDJMMZY4NJI4ZJC3",
     "clientId": "01M0VT0JC58YQEVGRHM8JFXQX3",
-    "connected": false
+    "connected": true
   },
   "chatPlatforms": {
     "twitch": true,
-    "kick": true
+    "kick": false,
+    "id": "evt_1788977727436_3boc9"
   },
   "songRequest": {
     "prefix": "!sr",
@@ -33,22 +37,37 @@
     "autoplay": true
   },
   "tts": {
-    "enabled": true,
+    "enabled": false,
     "engine": "streamelements",
-    "voice": "es_mx_mia",
+    "voice": "es_tiktok",
     "volume": 90,
     "rate": 1,
-    "pitch": 1,
+    "pitch": 0.8,
     "minBits": 50,
     "allowChatCommand": true,
     "chatCommand": "!tts",
     "bannedWords": [],
-    "maxLength": 250
+    "maxLength": 250,
+    "channelPointsRewardName": "TTS",
+    "fishApiKey": "sk-fish-rOpXPwPZLXZAk5SPYaeSKBue6QfPM3l4i6Q3VG8ZbGI"
   },
-  "goals": [],
+  "goals": [
+    {
+      "id": "goal_1788923778947_clff2",
+      "title": "NUEVO SETUP",
+      "type": "custom",
+      "current": 0,
+      "target": 50,
+      "color": "#9146ff",
+      "color2": "#00f2fe",
+      "enabled": true,
+      "createdAt": "2026-09-09T03:16:18.947Z",
+      "updatedAt": "2026-09-09T03:16:36.960Z"
+    }
+  ],
   "widgetStyles": {
     "alerts": {
-      "imageSize": 119,
+      "imageSize": 178,
       "fontFamily": "'Outfit', sans-serif",
       "bgColor": "#0b0e14",
       "bgOpacity": 88,
@@ -60,22 +79,36 @@
       "borderRadius": 24,
       "customCSS": "",
       "customJS": "",
-      "generatedCSS": "/* OrbiBot Custom Styles - Alert Box */\n.alert-card {\n  font-family: 'Outfit', sans-serif !important;\n  background: rgba(11,14,20,0.88) !important;\n  border-radius: 24px !important;\n  border-color: #9146ff !important;\n  box-shadow: 0 10px 40px rgba(0,0,0,0.6), 0 0 35px #9146ff50 !important;\n}\n.alert-title {\n  font-family: 'Outfit', sans-serif !important;\n  color: #ffffff !important;\n  font-size: 32px !important;\n}\n.alert-message {\n  font-family: 'Outfit', sans-serif !important;\n  color: #cbd5e1 !important;\n  font-size: 20px !important;\n}\n.alert-badge {\n  font-family: 'Outfit', sans-serif !important;\n  background: linear-gradient(135deg, #9146ff, #00f2fe) !important;\n}\n.alert-media {\n  max-height: 119px !important;\n}\n",
-      "finalCSS": "/* OrbiBot Custom Styles - Alert Box */\n.alert-card {\n  font-family: 'Outfit', sans-serif !important;\n  background: rgba(11,14,20,0.88) !important;\n  border-radius: 24px !important;\n  border-color: #9146ff !important;\n  box-shadow: 0 10px 40px rgba(0,0,0,0.6), 0 0 35px #9146ff50 !important;\n}\n.alert-title {\n  font-family: 'Outfit', sans-serif !important;\n  color: #ffffff !important;\n  font-size: 32px !important;\n}\n.alert-message {\n  font-family: 'Outfit', sans-serif !important;\n  color: #cbd5e1 !important;\n  font-size: 20px !important;\n}\n.alert-badge {\n  font-family: 'Outfit', sans-serif !important;\n  background: linear-gradient(135deg, #9146ff, #00f2fe) !important;\n}\n.alert-media {\n  max-height: 119px !important;\n}\n",
+      "generatedCSS": "/* OrbiBot Custom Styles - Alert Box */\n.alert-card {\n  font-family: 'Outfit', sans-serif !important;\n  background: rgba(11,14,20,0.88) !important;\n  border-radius: 24px !important;\n  border-color: #9146ff !important;\n  box-shadow: 0 10px 40px rgba(0,0,0,0.6), 0 0 35px #9146ff50 !important;\n}\n.alert-title {\n  font-family: 'Outfit', sans-serif !important;\n  color: #ffffff !important;\n  font-size: 32px !important;\n}\n.alert-message {\n  font-family: 'Outfit', sans-serif !important;\n  color: #cbd5e1 !important;\n  font-size: 20px !important;\n}\n.alert-badge {\n  font-family: 'Outfit', sans-serif !important;\n  background: linear-gradient(135deg, #9146ff, #00f2fe) !important;\n}\n.alert-media {\n  max-height: 178px !important;\n}\n",
+      "finalCSS": "/* OrbiBot Custom Styles - Alert Box */\n.alert-card {\n  font-family: 'Outfit', sans-serif !important;\n  background: rgba(11,14,20,0.88) !important;\n  border-radius: 24px !important;\n  border-color: #9146ff !important;\n  box-shadow: 0 10px 40px rgba(0,0,0,0.6), 0 0 35px #9146ff50 !important;\n}\n.alert-title {\n  font-family: 'Outfit', sans-serif !important;\n  color: #ffffff !important;\n  font-size: 32px !important;\n}\n.alert-message {\n  font-family: 'Outfit', sans-serif !important;\n  color: #cbd5e1 !important;\n  font-size: 20px !important;\n}\n.alert-badge {\n  font-family: 'Outfit', sans-serif !important;\n  background: linear-gradient(135deg, #9146ff, #00f2fe) !important;\n}\n.alert-media {\n  max-height: 178px !important;\n}\n",
       "images": {
         "follower": "https://i.giphy.com/media/artj92V8o75VPL7AeQ/giphy.gif",
         "sub": "https://i.giphy.com/media/IwAZ6dvvvaNN6/giphy.gif",
-        "bits": "https://i.giphy.com/media/LdOyjZ7io5MFUvcKs2/giphy.gif",
-        "raid": "https://i.giphy.com/media/blSTtZehjAZ8I/giphy.gif",
-        "channel_points": "https://i.giphy.com/media/111ebonMs90YLu/giphy.gif"
+        "bits": "https://media.giphy.com/media/26FPJGjhefSJuaRhu/giphy.gif",
+        "raid": "https://media.giphy.com/media/l41lI4bYmcsPJX9Go/giphy.gif",
+        "channel_points": "https://media.giphy.com/media/l3q2K5jinAlChoCLS/giphy.gif"
       },
       "sounds": {
-        "follower": "./assets/sounds/campana_alerta.wav",
+        "follower": "/assets/sounds/custom/faaah.mp3",
         "sub": "./assets/sounds/campana_alerta.wav",
-        "bits": "./assets/sounds/notificacion_puntos.wav",
-        "raid": "./assets/sounds/airhorn.mp3",
-        "channel_points": "./assets/sounds/notificacion_puntos.wav"
+        "bits": "/assets/sounds/bits.mp3",
+        "raid": "/assets/sounds/raid.mp3",
+        "channel_points": "/assets/sounds/points.mp3"
       }
+    },
+    "nowplaying": {
+      "bgColor": "#0f121a",
+      "customJS": "",
+      "finalCSS": "/* OrbiBot Custom Styles - Now Playing */\n.np-card {\n  font-family: 'Outfit', sans-serif !important;\n  background: rgba(15,18,26,0.9) !important;\n  border-radius: 18px !important;\n}\n.np-title {\n  font-family: 'Outfit', sans-serif !important;\n  color: #ffffff !important;\n  font-size: 16px !important;\n}\n.np-requester {\n  font-family: 'Outfit', sans-serif !important;\n}\n.np-requester strong {\n  color: #00ff91 !important;\n}\n.np-thumb-wrapper {\n  width: 64px !important;\n  height: 64px !important;\n}\n",
+      "bgOpacity": 90,
+      "customCSS": "",
+      "thumbSize": 64,
+      "titleSize": 16,
+      "fontFamily": "'Outfit', sans-serif",
+      "titleColor": "#ffffff",
+      "borderRadius": 18,
+      "generatedCSS": "/* OrbiBot Custom Styles - Now Playing */\n.np-card {\n  font-family: 'Outfit', sans-serif !important;\n  background: rgba(15,18,26,0.9) !important;\n  border-radius: 18px !important;\n}\n.np-title {\n  font-family: 'Outfit', sans-serif !important;\n  color: #ffffff !important;\n  font-size: 16px !important;\n}\n.np-requester {\n  font-family: 'Outfit', sans-serif !important;\n}\n.np-requester strong {\n  color: #00ff91 !important;\n}\n.np-thumb-wrapper {\n  width: 64px !important;\n  height: 64px !important;\n}\n",
+      "requesterColor": "#00ff91"
     }
   }
 }

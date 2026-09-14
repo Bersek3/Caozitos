@@ -21,6 +21,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   connectWebSocket();
   initDashboardMqtt();
   updatePlatformLinkingUI();
+  initTTSMultiVoiceSystem();
 });
 
 // ================= SUPABASE AUTH & CONFIGURATION =================
@@ -1731,6 +1732,11 @@ function handleSocketMessage(msg) {
     showToast(`🔔 Alerta en OBS: ${alertType} de ${data.user || 'Espectador'}`, 'info');
   } else if (event === 'tts') {
     console.log('TTS triggered in dashboard:', data);
+  } else if (event === 'tts_commands_updated') {
+    if (Array.isArray(data)) {
+      cachedTTSCommands = data;
+      renderTTSCommands(data);
+    }
   } else if (event === 'goal_update' || event === 'goals_updated') {
     if (event === 'goals_updated' && Array.isArray(data)) {
       localStorage.setItem('orbibot_goals', JSON.stringify(data));
@@ -3531,6 +3537,78 @@ const VOICE_PROFILES = {
   ja_mizuki: { id: 'ja_mizuki', name: 'Mizuki', lang: 'ja-JP', gender: 'female', pitch: 1.25, rate: 1.05 },
   mizuki: { id: 'ja_mizuki', name: 'Mizuki', lang: 'ja-JP', gender: 'female', pitch: 1.25, rate: 1.05 },
 
+  // Voces Catálogo & Comandos
+  es_anub: { id: 'es_anub', name: 'Anub', lang: 'es-ES', gender: 'male', pitch: 0.6, rate: 0.95 },
+  anub: { id: 'es_anub', name: 'Anub', lang: 'es-ES', gender: 'male', pitch: 0.6, rate: 0.95 },
+  es_anuel: { id: 'es_anuel', name: 'Anuel', lang: 'es-PR', gender: 'male', pitch: 0.75, rate: 1.05 },
+  anuel: { id: 'es_anuel', name: 'Anuel', lang: 'es-PR', gender: 'male', pitch: 0.75, rate: 1.05 },
+  es_ari: { id: 'es_ari', name: 'Ari', lang: 'es-MX', gender: 'female', pitch: 1.25, rate: 1.05 },
+  ari: { id: 'es_ari', name: 'Ari', lang: 'es-MX', gender: 'female', pitch: 1.25, rate: 1.05 },
+  es_arturito: { id: 'es_arturito', name: 'Arturito', lang: 'es-MX', gender: 'male', pitch: 1.1, rate: 1.1 },
+  arturito: { id: 'es_arturito', name: 'Arturito', lang: 'es-MX', gender: 'male', pitch: 1.1, rate: 1.1 },
+  es_babidi: { id: 'es_babidi', name: 'Babidi', lang: 'es-MX', gender: 'male', pitch: 1.35, rate: 1.15 },
+  babidi: { id: 'es_babidi', name: 'Babidi', lang: 'es-MX', gender: 'male', pitch: 1.35, rate: 1.15 },
+  es_balanar: { id: 'es_balanar', name: 'Balanar', lang: 'es-ES', gender: 'male', pitch: 0.55, rate: 0.9 },
+  bala: { id: 'es_balanar', name: 'Balanar', lang: 'es-ES', gender: 'male', pitch: 0.55, rate: 0.9 },
+  es_bart: { id: 'es_bart', name: 'Bart Simpson', lang: 'es-MX', gender: 'male', pitch: 1.3, rate: 1.05 },
+  bart: { id: 'es_bart', name: 'Bart Simpson', lang: 'es-MX', gender: 'male', pitch: 1.3, rate: 1.05 },
+  es_esponja: { id: 'es_esponja', name: 'Bob Esponja', lang: 'es-MX', gender: 'male', pitch: 1.35, rate: 1.1 },
+  esponja: { id: 'es_esponja', name: 'Bob Esponja', lang: 'es-MX', gender: 'male', pitch: 1.35, rate: 1.1 },
+  en_us_spongebob: { id: 'en_us_spongebob', name: 'Spongebob', lang: 'en-US', gender: 'male', pitch: 1.35, rate: 1.1 },
+  spongebob: { id: 'en_us_spongebob', name: 'Spongebob', lang: 'en-US', gender: 'male', pitch: 1.35, rate: 1.1 },
+  en_us_trump: { id: 'en_us_trump', name: 'Donald Trump', lang: 'en-US', gender: 'male', pitch: 0.85, rate: 0.95 },
+  trump: { id: 'en_us_trump', name: 'Donald Trump', lang: 'en-US', gender: 'male', pitch: 0.85, rate: 0.95 },
+  en_us_peter: { id: 'en_us_peter', name: 'Peter Griffin', lang: 'en-US', gender: 'male', pitch: 0.95, rate: 1.0 },
+  peter: { id: 'en_us_peter', name: 'Peter Griffin', lang: 'en-US', gender: 'male', pitch: 0.95, rate: 1.0 },
+  es_mx_goku: { id: 'es_mx_goku', name: 'Goku Latino', lang: 'es-MX', gender: 'male', pitch: 1.05, rate: 1.0 },
+  goku: { id: 'es_mx_goku', name: 'Goku Latino', lang: 'es-MX', gender: 'male', pitch: 1.05, rate: 1.0 },
+  es_pe_melcochita: { id: 'es_pe_melcochita', name: 'Melcochita', lang: 'es-PE', gender: 'male', pitch: 1.15, rate: 1.1 },
+  melcochita: { id: 'es_pe_melcochita', name: 'Melcochita', lang: 'es-PE', gender: 'male', pitch: 1.15, rate: 1.1 },
+  en_us_drphil: { id: 'en_us_drphil', name: 'Dr Phil', lang: 'en-US', gender: 'male', pitch: 0.8, rate: 0.95 },
+  drphil: { id: 'en_us_drphil', name: 'Dr Phil', lang: 'en-US', gender: 'male', pitch: 0.8, rate: 0.95 },
+  en_us_morgan: { id: 'en_us_morgan', name: 'Morgan Freeman', lang: 'en-US', gender: 'male', pitch: 0.6, rate: 0.9 },
+  freeman: { id: 'en_us_morgan', name: 'Morgan Freeman', lang: 'en-US', gender: 'male', pitch: 0.6, rate: 0.9 },
+  es_pe_cholo: { id: 'es_pe_cholo', name: 'El Cholo Juanito', lang: 'es-PE', gender: 'male', pitch: 1.1, rate: 1.05 },
+  cholo: { id: 'es_pe_cholo', name: 'El Cholo Juanito', lang: 'es-PE', gender: 'male', pitch: 1.1, rate: 1.05 },
+  en_us_tate: { id: 'en_us_tate', name: 'Andrew Tate', lang: 'en-US', gender: 'male', pitch: 0.8, rate: 1.05 },
+  tate: { id: 'en_us_tate', name: 'Andrew Tate', lang: 'en-US', gender: 'male', pitch: 0.8, rate: 1.05 },
+  en_us_biden: { id: 'en_us_biden', name: 'Joe Biden', lang: 'en-US', gender: 'male', pitch: 0.9, rate: 0.85 },
+  biden: { id: 'en_us_biden', name: 'Joe Biden', lang: 'en-US', gender: 'male', pitch: 0.9, rate: 0.85 },
+  pt_br_cristiano: { id: 'pt_br_cristiano', name: 'Cristiano Ronaldo', lang: 'pt-BR', gender: 'male', pitch: 0.7, rate: 1.0 },
+  cr7: { id: 'pt_br_cristiano', name: 'Cristiano Ronaldo', lang: 'pt-BR', gender: 'male', pitch: 0.7, rate: 1.0 },
+  en_us_kermit: { id: 'en_us_kermit', name: 'Kermit la Rana', lang: 'en-US', gender: 'male', pitch: 1.25, rate: 1.0 },
+  kermit: { id: 'en_us_kermit', name: 'Kermit', lang: 'en-US', gender: 'male', pitch: 1.25, rate: 1.0 },
+  en_us_snoop: { id: 'en_us_snoop', name: 'Snoop Dogg', lang: 'en-US', gender: 'male', pitch: 0.7, rate: 0.92 },
+  snoop: { id: 'en_us_snoop', name: 'Snoop Dogg', lang: 'en-US', gender: 'male', pitch: 0.7, rate: 0.92 },
+  es_mx_girl: { id: 'es_mx_girl', name: 'Girl', lang: 'es-MX', gender: 'female', pitch: 1.3, rate: 1.05 },
+  girl: { id: 'es_mx_girl', name: 'Girl', lang: 'es-MX', gender: 'female', pitch: 1.3, rate: 1.05 },
+  es_mx_vegeta: { id: 'es_mx_vegeta', name: 'Vegeta Latino', lang: 'es-MX', gender: 'male', pitch: 0.8, rate: 1.05 },
+  vegeta: { id: 'es_mx_vegeta', name: 'Vegeta Latino', lang: 'es-MX', gender: 'male', pitch: 0.8, rate: 1.05 },
+  en_us_arnold: { id: 'en_us_arnold', name: 'Arnold Schwarzenegger', lang: 'en-US', gender: 'male', pitch: 0.65, rate: 0.95 },
+  arnold: { id: 'en_us_arnold', name: 'Arnold Schwarzenegger', lang: 'en-US', gender: 'male', pitch: 0.65, rate: 0.95 },
+  es_pe_makanaky: { id: 'es_pe_makanaky', name: 'Makanaky', lang: 'es-PE', gender: 'male', pitch: 1.2, rate: 1.15 },
+  makanaky: { id: 'es_pe_makanaky', name: 'Makanaky', lang: 'es-PE', gender: 'male', pitch: 1.2, rate: 1.15 },
+  en_us_thrall: { id: 'en_us_thrall', name: 'Thrall', lang: 'en-US', gender: 'male', pitch: 0.58, rate: 0.9 },
+  thrall: { id: 'en_us_thrall', name: 'Thrall', lang: 'en-US', gender: 'male', pitch: 0.58, rate: 0.9 },
+  en_us_drake: { id: 'en_us_drake', name: 'Drake', lang: 'en-US', gender: 'male', pitch: 0.78, rate: 0.95 },
+  drake: { id: 'en_us_drake', name: 'Drake', lang: 'en-US', gender: 'male', pitch: 0.78, rate: 0.95 },
+  en_us_adin: { id: 'en_us_adin', name: 'Adin Ross', lang: 'en-US', gender: 'male', pitch: 1.1, rate: 1.1 },
+  adin: { id: 'en_us_adin', name: 'Adin Ross', lang: 'en-US', gender: 'male', pitch: 1.1, rate: 1.1 },
+  en_us_alexjones: { id: 'en_us_alexjones', name: 'Alex Jones', lang: 'en-US', gender: 'male', pitch: 0.85, rate: 1.15 },
+  alexjones: { id: 'en_us_alexjones', name: 'Alex Jones', lang: 'en-US', gender: 'male', pitch: 0.85, rate: 1.15 },
+  en_us_rogan: { id: 'en_us_rogan', name: 'Joe Rogan', lang: 'en-US', gender: 'male', pitch: 0.75, rate: 0.98 },
+  rogan: { id: 'en_us_rogan', name: 'Joe Rogan', lang: 'en-US', gender: 'male', pitch: 0.75, rate: 0.98 },
+  en_us_kanye: { id: 'en_us_kanye', name: 'Kanye West', lang: 'en-US', gender: 'male', pitch: 0.8, rate: 1.0 },
+  kanye: { id: 'en_us_kanye', name: 'Kanye West', lang: 'en-US', gender: 'male', pitch: 0.8, rate: 1.0 },
+  es_pe_faraon: { id: 'es_pe_faraon', name: 'Faraon Love Shady', lang: 'es-PE', gender: 'male', pitch: 0.9, rate: 1.05 },
+  faraon: { id: 'es_pe_faraon', name: 'Faraon Love Shady', lang: 'es-PE', gender: 'male', pitch: 0.9, rate: 1.05 },
+  en_us_eddie: { id: 'en_us_eddie', name: 'Eddie', lang: 'en-US', gender: 'male', pitch: 0.9, rate: 1.0 },
+  eddie: { id: 'en_us_eddie', name: 'Eddie', lang: 'en-US', gender: 'male', pitch: 0.9, rate: 1.0 },
+  en_us_musk: { id: 'en_us_musk', name: 'Elon Musk', lang: 'en-US', gender: 'male', pitch: 0.88, rate: 0.95 },
+  elon: { id: 'en_us_musk', name: 'Elon Musk', lang: 'en-US', gender: 'male', pitch: 0.88, rate: 0.95 },
+  en_us_orco: { id: 'en_us_orco', name: 'Orco Guerrero', lang: 'es-ES', gender: 'male', pitch: 0.5, rate: 0.88 },
+  orco: { id: 'en_us_orco', name: 'Orco Guerrero', lang: 'es-ES', gender: 'male', pitch: 0.5, rate: 0.88 },
+
   // Fallbacks
   es_001: { id: 'es_mx_mia', name: 'Mia', lang: 'es-MX', gender: 'female', pitch: 1.15, rate: 1.0 },
   es_female: { id: 'es_mx_mia', name: 'Mia', lang: 'es-MX', gender: 'female', pitch: 1.15, rate: 1.0 },
@@ -3653,23 +3731,67 @@ async function triggerTestTTS() {
   }
   const input = document.getElementById('testTtsInput');
   const text = (input ? input.value.trim() : '') || '¡Hola streamer! Este es un mensaje de prueba con Text to Speech en OBS.';
-  const voice = document.getElementById('cfgTtsVoice')?.value || 'es_mx_mia';
+  const defaultVoice = document.getElementById('cfgTtsVoice')?.value || 'es_mx_mia';
   const volume = Number(document.getElementById('cfgTtsVolume')?.value || 90) / 100;
   const rate = Number(document.getElementById('cfgTtsRate')?.value || 1.0);
   const pitch = Number(document.getElementById('cfgTtsPitch')?.value || 1.0);
 
-  const ttsAudioUrl = getTTSAudioUrl(text, voice);
+  // Detección multi-voz en la prueba local
+  const commands = cachedTTSCommands.length ? cachedTTSCommands : (storage?.getTtsCommands ? storage.getTtsCommands() : []);
+  const words = text.split(/\s+/);
+  const triggerMap = new Map();
+  commands.forEach(c => {
+    if (c.command) triggerMap.set(c.command.toLowerCase().trim(), c);
+  });
+
+  const segments = [];
+  let curVoice = defaultVoice;
+  let curVoiceName = 'Voz';
+  let curWords = [];
+
+  for (const word of words) {
+    const cleanW = word.toLowerCase().trim();
+    const matched = triggerMap.get(cleanW) || triggerMap.get(cleanW.startsWith('!') ? cleanW : `!${cleanW}`);
+    if (matched) {
+      if (curWords.length > 0) {
+        segments.push({
+          voice: curVoice,
+          voiceName: curVoiceName,
+          text: curWords.join(' '),
+          audioUrl: getTTSAudioUrl(curWords.join(' '), curVoice)
+        });
+        curWords = [];
+      }
+      curVoice = matched.voiceId || curVoice;
+      curVoiceName = matched.name || 'Voz';
+    } else {
+      curWords.push(word);
+    }
+  }
+
+  if (curWords.length > 0) {
+    segments.push({
+      voice: curVoice,
+      voiceName: curVoiceName,
+      text: curWords.join(' '),
+      audioUrl: getTTSAudioUrl(curWords.join(' '), curVoice)
+    });
+  }
+
+  const primaryVoice = segments[0]?.voice || defaultVoice;
+  const primaryAudioUrl = segments[0]?.audioUrl || getTTSAudioUrl(text, primaryVoice);
   const eventId = 'tts_' + Date.now() + '_' + Math.random().toString(36).substring(2, 7);
 
   const ttsData = {
     id: eventId,
     user: 'StreamerTest',
     text,
-    voice,
+    voice: primaryVoice,
+    segments: segments.length > 0 ? segments : [{ voice: primaryVoice, text, audioUrl: primaryAudioUrl }],
     volume,
     rate,
     pitch,
-    audioUrl: ttsAudioUrl,
+    audioUrl: primaryAudioUrl,
     timestamp: Date.now()
   };
 
@@ -3677,16 +3799,470 @@ async function triggerTestTTS() {
   broadcastEvent('tts', ttsData);
   showToast('🗣️ Mensaje TTS enviado a OBS Studio', 'success');
 
-  // Preview local directo en el navegador con la voz exacta seleccionada
-  playTTSAudioLocal(text, voice, volume);
+  // Preview local secuencial si hay múltiples segmentos
+  if (segments.length > 1) {
+    let segIdx = 0;
+    function playNextLocalSeg() {
+      if (segIdx >= segments.length) return;
+      const seg = segments[segIdx++];
+      playTTSAudioLocal(seg.text, seg.voice, volume, playNextLocalSeg);
+    }
+    playNextLocalSeg();
+  } else {
+    playTTSAudioLocal(text, primaryVoice, volume);
+  }
 
   try {
     const room = getActiveStreamerRoom();
     await fetch('/api/tts/test', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ id: eventId, text, user: 'StreamerTest', voice, room })
+      body: JSON.stringify({ id: eventId, text, user: 'StreamerTest', voice: primaryVoice, room })
     });
+  } catch (e) { }
+}
+
+// ================= TTS MULTI-VOICE SYSTEM & VOICE LIBRARY =================
+let cachedTTSCommands = [];
+let cachedVoiceLibrary = [];
+let activeVoiceCategory = 'popular';
+let activeTTSPreviewAudio = null;
+
+function initTTSMultiVoiceSystem() {
+  // 1. Sub-tabs switching
+  const subtabBtns = document.querySelectorAll('.tts-subtab-btn');
+  subtabBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      const targetSubtab = btn.getAttribute('data-subtab');
+      subtabBtns.forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+
+      document.querySelectorAll('.tts-subtab-content').forEach(pane => {
+        pane.classList.remove('active');
+      });
+      const targetPane = document.getElementById(targetSubtab);
+      if (targetPane) targetPane.classList.add('active');
+
+      if (targetSubtab === 'tts-subtab-library') {
+        loadVoiceLibrary('', activeVoiceCategory);
+      }
+    });
+  });
+
+  // 2. Switch to Voice Library button in header
+  const btnSwitch = document.getElementById('btnSwitchToVoiceLib');
+  if (btnSwitch) {
+    btnSwitch.addEventListener('click', () => {
+      const libTabBtn = document.querySelector('.tts-subtab-btn[data-subtab="tts-subtab-library"]');
+      if (libTabBtn) libTabBtn.click();
+    });
+  }
+
+  // 3. Voice Library Search
+  const searchInput = document.getElementById('voiceLibrarySearch');
+  if (searchInput) {
+    let debounceTimer;
+    searchInput.addEventListener('input', () => {
+      clearTimeout(debounceTimer);
+      debounceTimer = setTimeout(() => {
+        loadVoiceLibrary(searchInput.value.trim(), activeVoiceCategory);
+      }, 200);
+    });
+  }
+
+  // 4. Voice Library Category Filters
+  const filterBtns = document.querySelectorAll('.voice-filter-btn');
+  filterBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      filterBtns.forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      activeVoiceCategory = btn.getAttribute('data-category') || 'all';
+      const q = searchInput ? searchInput.value.trim() : '';
+      loadVoiceLibrary(q, activeVoiceCategory);
+    });
+  });
+
+  // 5. Sort Select for Commands
+  const sortSelect = document.getElementById('ttsSortSelect');
+  if (sortSelect) {
+    sortSelect.addEventListener('change', () => {
+      renderTTSCommands(cachedTTSCommands);
+    });
+  }
+
+  // 6. Cargar comandos iniciales
+  loadTTSCommands();
+}
+
+async function loadTTSCommands() {
+  try {
+    const res = await fetch('/api/tts/commands');
+    if (res.ok) {
+      cachedTTSCommands = await res.json();
+    }
+  } catch (err) {
+    console.warn('Error loading TTS commands from API:', err);
+  }
+
+  if (!cachedTTSCommands || cachedTTSCommands.length === 0) {
+    try {
+      const local = localStorage.getItem('orbibot_tts_commands');
+      if (local) cachedTTSCommands = JSON.parse(local);
+    } catch (e) { }
+  }
+
+  renderTTSCommands(cachedTTSCommands);
+}
+
+function renderTTSCommands(commands) {
+  const container = document.getElementById('ttsCommandsList');
+  const countBadge = document.getElementById('ttsCmdCountBadge');
+  if (!container) return;
+
+  if (!Array.isArray(commands)) commands = [];
+  cachedTTSCommands = commands;
+
+  try {
+    localStorage.setItem('orbibot_tts_commands', JSON.stringify(commands));
+  } catch (e) { }
+
+  // Actualizar contador
+  if (countBadge) {
+    countBadge.innerText = `${commands.length} ${commands.length === 1 ? 'comando' : 'comandos'}`;
+  }
+
+  // Aplicar ordenamiento
+  const sortSelect = document.getElementById('ttsSortSelect');
+  const sortMode = sortSelect ? sortSelect.value : 'az';
+  let sorted = [...commands];
+
+  if (sortMode === 'az') {
+    sorted.sort((a, b) => (a.name || '').localeCompare(b.name || ''));
+  } else if (sortMode === 'za') {
+    sorted.sort((a, b) => (b.name || '').localeCompare(a.name || ''));
+  } else if (sortMode === 'enabled') {
+    sorted = sorted.filter(c => c.enabled !== false);
+  }
+
+  if (sorted.length === 0) {
+    container.innerHTML = `
+      <div style="text-align: center; padding: 40px 20px; background: #111522; border-radius: 12px; border: 1px dashed rgba(255,255,255,0.1);">
+        <p style="color: var(--text-secondary); margin-bottom: 14px; font-size: 14px;">No tienes comandos de voz configurados todavía.</p>
+        <button class="btn btn-primary btn-sm" onclick="document.querySelector('.tts-subtab-btn[data-subtab=\\'tts-subtab-library\\']').click()">
+          <i class="fas fa-plus"></i> Explorar Biblioteca de Voces
+        </button>
+      </div>
+    `;
+    return;
+  }
+
+  container.innerHTML = sorted.map(cmd => {
+    const isEnabled = cmd.enabled !== false;
+    const permissions = Array.isArray(cmd.permissions) && cmd.permissions.length ? cmd.permissions : ['todos'];
+    const isAll = permissions.includes('todos') || permissions.includes('all');
+    const isVip = permissions.includes('vip');
+    const isSub = permissions.includes('sub');
+    const isMod = permissions.includes('mod');
+    const avatar = cmd.avatar || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=120&auto=format&fit=crop&q=80';
+
+    return `
+      <div class="tts-cmd-row ${isEnabled ? '' : 'disabled'}" id="row_${cmd.id}" data-id="${cmd.id}">
+        <!-- Izquierda: Avatar, Nombre, Previa y Trigger -->
+        <div class="tts-cmd-left">
+          <img src="${escapeHtml(avatar)}" class="tts-cmd-avatar" alt="${escapeHtml(cmd.name)}" onerror="this.src='https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=120&auto=format&fit=crop&q=80'">
+          <div class="tts-cmd-info">
+            <div class="tts-cmd-name-row">
+              <span class="tts-cmd-name">${escapeHtml(cmd.name)}</span>
+              <button class="btn-audio-preview" title="Escuchar previa" onclick="handleTTSVoicePreview('${escapeHtml(cmd.voiceId || cmd.command)}', '${escapeHtml(cmd.name)}', this)">
+                <i class="fas fa-volume-up"></i>
+              </button>
+            </div>
+            <div class="tts-cmd-trigger-wrap">
+              <span class="tts-cmd-label">COMANDO</span>
+              <input type="text" class="tts-cmd-input" value="${escapeHtml(cmd.command || '')}" 
+                onchange="handleUpdateTTSCommandTrigger('${cmd.id}', this.value)"
+                placeholder="!comando">
+            </div>
+          </div>
+        </div>
+
+        <!-- Centro: Selector de Roles QUIÉN PUEDE USARLA -->
+        <div class="tts-cmd-center">
+          <span class="tts-roles-label">QUIÉN PUEDE USARLA</span>
+          <div class="role-badges">
+            <button class="role-pill ${isAll ? 'active' : ''}" data-role="todos" onclick="handleToggleTTSCommandRole('${cmd.id}', 'todos')">Todos</button>
+            <button class="role-pill ${isVip ? 'active' : ''}" data-role="vip" onclick="handleToggleTTSCommandRole('${cmd.id}', 'vip')">VIP</button>
+            <button class="role-pill ${isSub ? 'active' : ''}" data-role="sub" onclick="handleToggleTTSCommandRole('${cmd.id}', 'sub')">Sub</button>
+            <button class="role-pill ${isMod ? 'active' : ''}" data-role="mod" onclick="handleToggleTTSCommandRole('${cmd.id}', 'mod')">Mod</button>
+          </div>
+        </div>
+
+        <!-- Derecha: Switch de Activación y Botón Eliminar -->
+        <div class="tts-cmd-right">
+          <label class="lime-switch" title="Activar/Desactivar">
+            <input type="checkbox" ${isEnabled ? 'checked' : ''} onchange="handleToggleTTSCommandEnabled('${cmd.id}', this.checked)">
+            <span class="lime-slider"></span>
+          </label>
+          <button class="btn-delete-cmd" title="Eliminar de mis comandos" onclick="handleDeleteTTSCommand('${cmd.id}', '${escapeHtml(cmd.name)}')">
+            <i class="fas fa-trash-alt"></i>
+          </button>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+async function loadVoiceLibrary(query = '', category = 'popular') {
+  const grid = document.getElementById('voiceLibraryGrid');
+  const countBadge = document.getElementById('voiceLibraryTotalCount');
+  if (!grid) return;
+
+  try {
+    const res = await fetch(`/api/tts/library?q=${encodeURIComponent(query)}&category=${encodeURIComponent(category)}`);
+    if (res.ok) {
+      const data = await res.json();
+      cachedVoiceLibrary = data.voices || [];
+      if (countBadge) {
+        countBadge.innerText = `${data.total || cachedVoiceLibrary.length} voces`;
+      }
+      renderVoiceLibrary(cachedVoiceLibrary);
+      return;
+    }
+  } catch (err) {
+    console.warn('Error fetching voice library:', err);
+  }
+
+  // Fallback a voces por defecto
+  renderVoiceLibrary(cachedVoiceLibrary);
+}
+
+function renderVoiceLibrary(voices) {
+  const grid = document.getElementById('voiceLibraryGrid');
+  if (!grid) return;
+
+  if (!voices || voices.length === 0) {
+    grid.innerHTML = `
+      <div style="text-align: center; grid-column: 1 / -1; padding: 40px 20px; color: var(--text-secondary);">
+        <i class="fas fa-search" style="font-size: 24px; margin-bottom: 12px; display: block; opacity: 0.5;"></i>
+        No se encontraron voces coincidentes con tu búsqueda.
+      </div>
+    `;
+    return;
+  }
+
+  const existingVoiceIds = new Set(cachedTTSCommands.map(c => (c.voiceId || c.command || '').toLowerCase().trim()));
+
+  grid.innerHTML = voices.map(v => {
+    const isAdded = existingVoiceIds.has(v.id.toLowerCase().trim()) || existingVoiceIds.has((v.defaultCommand || '').toLowerCase().trim());
+    const stats = v.stats || { uses: '100k', downloads: '1k' };
+    const avatar = v.avatar || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=120&auto=format&fit=crop&q=80';
+
+    return `
+      <div class="voice-catalog-card" data-voice-id="${v.id}">
+        <div class="voice-card-left">
+          <img src="${escapeHtml(avatar)}" class="voice-card-avatar" alt="${escapeHtml(v.name)}" onerror="this.src='https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=120&auto=format&fit=crop&q=80'">
+          <div class="voice-card-info">
+            <span class="voice-card-name" title="${escapeHtml(v.name)}">${escapeHtml(v.name)}</span>
+            <div class="voice-card-stats">
+              <span><i class="fas fa-bolt" style="color: #a3e635;"></i> ${stats.uses || '50k'}</span>
+              <span><i class="fas fa-download"></i> ${stats.downloads || '1k'}</span>
+            </div>
+          </div>
+        </div>
+        <div class="voice-card-actions">
+          <button class="btn-card-play" title="Escuchar previa" onclick="handleTTSVoicePreview('${escapeHtml(v.id)}', '${escapeHtml(v.name)}', this)">
+            <i class="fas fa-play"></i>
+          </button>
+          <button class="btn-card-add ${isAdded ? 'added' : ''}" onclick="handleAddVoiceFromLibrary('${escapeHtml(v.id)}', '${escapeHtml(v.name)}', '${escapeHtml(avatar)}', '${escapeHtml(v.defaultCommand || '')}', this)">
+            ${isAdded ? '<i class="fas fa-check"></i> Añadido' : '+ Añadir'}
+          </button>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+function handleTTSVoicePreview(voiceId, voiceName, btnEl) {
+  if (activeTTSPreviewAudio) {
+    try {
+      activeTTSPreviewAudio.pause();
+      activeTTSPreviewAudio = null;
+    } catch (e) { }
+  }
+
+  // Quitar estado activo de otros botones
+  document.querySelectorAll('.btn-audio-preview.playing, .btn-card-play.playing').forEach(b => {
+    b.classList.remove('playing');
+    const icon = b.querySelector('i');
+    if (icon && icon.classList.contains('fa-stop')) {
+      icon.className = b.classList.contains('btn-card-play') ? 'fas fa-play' : 'fas fa-volume-up';
+    }
+  });
+
+  if (btnEl) {
+    btnEl.classList.add('playing');
+    const icon = btnEl.querySelector('i');
+    if (icon) icon.className = 'fas fa-stop';
+  }
+
+  const sampleText = `¡Hola! Soy la voz de ${voiceName || 'TTS'} para el stream.`;
+  const url = getTTSAudioUrl(sampleText, voiceId);
+
+  const audio = new Audio(url);
+  activeTTSPreviewAudio = audio;
+  audio.volume = Number(document.getElementById('cfgTtsVolume')?.value || 90) / 100;
+
+  function onEnd() {
+    if (btnEl) {
+      btnEl.classList.remove('playing');
+      const icon = btnEl.querySelector('i');
+      if (icon) icon.className = btnEl.classList.contains('btn-card-play') ? 'fas fa-play' : 'fas fa-volume-up';
+    }
+    activeTTSPreviewAudio = null;
+  }
+
+  audio.onended = onEnd;
+  audio.onerror = () => {
+    // Fallback con síntesis local
+    playTTSAudioLocal(sampleText, voiceId, audio.volume, onEnd);
+  };
+
+  audio.play().catch(() => {
+    playTTSAudioLocal(sampleText, voiceId, audio.volume, onEnd);
+  });
+}
+
+async function handleAddVoiceFromLibrary(voiceId, voiceName, avatar, defaultCommand, btnEl) {
+  const trigger = defaultCommand || `!${voiceId.replace(/^es_|^en_|^pt_|^ja_/, '')}`;
+  const newCmd = {
+    voiceId,
+    name: voiceName,
+    avatar,
+    command: trigger,
+    permissions: ['todos'],
+    enabled: true
+  };
+
+  try {
+    const res = await fetch('/api/tts/commands/add', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(newCmd)
+    });
+
+    if (res.ok) {
+      const data = await res.json();
+      cachedTTSCommands = data.commands || cachedTTSCommands;
+      if (btnEl) {
+        btnEl.classList.add('added');
+        btnEl.innerHTML = '<i class="fas fa-check"></i> Añadido';
+      }
+      renderTTSCommands(cachedTTSCommands);
+      showToast(`✨ Voz "${voiceName}" agregada a tus comandos con "${trigger}"`, 'success');
+      return;
+    }
+  } catch (err) {
+    console.warn('Error adding voice from library:', err);
+  }
+
+  // Fallback local
+  cachedTTSCommands.unshift({ ...newCmd, id: 'tts_cmd_' + Date.now() });
+  renderTTSCommands(cachedTTSCommands);
+  if (btnEl) {
+    btnEl.classList.add('added');
+    btnEl.innerHTML = '<i class="fas fa-check"></i> Añadido';
+  }
+  showToast(`✨ Voz "${voiceName}" agregada a tus comandos`, 'success');
+}
+
+async function handleToggleTTSCommandRole(commandId, role) {
+  const cmd = cachedTTSCommands.find(c => c.id === commandId);
+  if (!cmd) return;
+
+  let permissions = Array.isArray(cmd.permissions) ? [...cmd.permissions] : ['todos'];
+
+  if (role === 'todos') {
+    if (permissions.includes('todos')) {
+      permissions = ['vip'];
+    } else {
+      permissions = ['todos'];
+    }
+  } else {
+    // Si tenía 'todos', removerlo
+    permissions = permissions.filter(p => p !== 'todos' && p !== 'all');
+    if (permissions.includes(role)) {
+      permissions = permissions.filter(p => p !== role);
+      if (permissions.length === 0) permissions = ['todos'];
+    } else {
+      permissions.push(role);
+    }
+  }
+
+  cmd.permissions = permissions;
+  renderTTSCommands(cachedTTSCommands);
+
+  try {
+    await fetch(`/api/tts/commands/${encodeURIComponent(commandId)}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ permissions })
+    });
+  } catch (e) { }
+}
+
+async function handleToggleTTSCommandEnabled(commandId, isChecked) {
+  const cmd = cachedTTSCommands.find(c => c.id === commandId);
+  if (!cmd) return;
+
+  cmd.enabled = Boolean(isChecked);
+  const row = document.getElementById(`row_${commandId}`);
+  if (row) {
+    if (isChecked) row.classList.remove('disabled');
+    else row.classList.add('disabled');
+  }
+
+  try {
+    await fetch(`/api/tts/commands/${encodeURIComponent(commandId)}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ enabled: Boolean(isChecked) })
+    });
+  } catch (e) { }
+}
+
+async function handleUpdateTTSCommandTrigger(commandId, newTrigger) {
+  const cleanTrigger = (newTrigger || '').trim();
+  if (!cleanTrigger) return;
+  const formatted = cleanTrigger.startsWith('!') ? cleanTrigger : `!${cleanTrigger}`;
+
+  const cmd = cachedTTSCommands.find(c => c.id === commandId);
+  if (cmd) {
+    cmd.command = formatted;
+  }
+
+  try {
+    await fetch(`/api/tts/commands/${encodeURIComponent(commandId)}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ command: formatted })
+    });
+    showToast(`Comando actualizado a "${formatted}"`, 'success');
+  } catch (e) { }
+}
+
+async function handleDeleteTTSCommand(commandId, voiceName) {
+  if (!confirm(`¿Estás seguro de que deseas eliminar el comando de voz para "${voiceName || 'esta voz'}"?`)) {
+    return;
+  }
+
+  cachedTTSCommands = cachedTTSCommands.filter(c => c.id !== commandId);
+  renderTTSCommands(cachedTTSCommands);
+
+  try {
+    await fetch(`/api/tts/commands/${encodeURIComponent(commandId)}`, {
+      method: 'DELETE'
+    });
+    showToast(`Comando de voz eliminado`, 'info');
   } catch (e) { }
 }
 

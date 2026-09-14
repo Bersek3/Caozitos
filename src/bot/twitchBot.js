@@ -370,19 +370,54 @@ class TwitchBot {
         return;
       }
 
-      // Check !tts command
-      const ttsCmd = (config.tts.chatCommand || '!tts').toLowerCase();
-      if (config.tts.enabled && config.tts.allowChatCommand && trimmed.toLowerCase().startsWith(ttsCmd)) {
-        const ttsText = trimmed.slice(ttsCmd.length).trim();
-        if (ttsText) {
-          ttsService.processRequest({
-            user: username,
-            text: ttsText,
-            source: 'chat',
-            channel: channel ? channel.toLowerCase().replace(/^#/, '') : null
-          });
+      // Check TTS Commands (Generic !tts or Specific Voice Commands ej: !anub, !esponja, !messi, !homero)
+      const ttsConfig = config.tts || {};
+      const ttsCmd = (ttsConfig.chatCommand || '!tts').toLowerCase();
+      const ttsVoiceCommands = storage.getTtsCommands() || [];
+      const firstWord = trimmed.split(' ')[0].toLowerCase();
+      const matchedVoiceCmd = ttsVoiceCommands.find(c => c.enabled && c.command && c.command.toLowerCase() === firstWord);
+
+      if (ttsConfig.enabled && ttsConfig.allowChatCommand) {
+        if (trimmed.toLowerCase().startsWith(ttsCmd)) {
+          const ttsText = trimmed.slice(ttsCmd.length).trim();
+          if (ttsText) {
+            ttsService.processRequest({
+              user: username,
+              text: ttsText,
+              source: 'chat',
+              channel: channel ? channel.toLowerCase().replace(/^#/, '') : null,
+              userBadges: {
+                isMod,
+                isSub,
+                vip: Boolean(tags.vip || tags.badges?.vip),
+                broadcaster: tags.badges?.broadcaster === '1'
+              }
+            });
+            return;
+          }
+        } else if (matchedVoiceCmd) {
+          // Permisos de rol para comando de voz
+          const userBadges = {
+            isMod,
+            isSub,
+            vip: Boolean(tags.vip || tags.badges?.vip),
+            broadcaster: tags.badges?.broadcaster === '1'
+          };
+          if (ttsService.hasPermission(matchedVoiceCmd, userBadges)) {
+            const voiceText = trimmed.slice(matchedVoiceCmd.command.length).trim();
+            if (voiceText) {
+              ttsService.processRequest({
+                user: username,
+                text: `${matchedVoiceCmd.command} ${voiceText}`,
+                source: 'chat',
+                voiceOverride: matchedVoiceCmd.voiceId,
+                channel: channel ? channel.toLowerCase().replace(/^#/, '') : null,
+                userBadges
+              });
+              return;
+            }
+          }
         }
-        return;
       }
 
       // Check Custom Commands

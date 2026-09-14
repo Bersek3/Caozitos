@@ -1,4 +1,5 @@
 const storage = require('./storage');
+const voiceCatalog = require('./voiceCatalog');
 
 class TTSService {
   constructor() {
@@ -26,7 +27,7 @@ class TTSService {
     let cleaned = text.trim();
 
     // Limit length
-    const maxLength = config.maxLength || 250;
+    const maxLength = config.maxLength || 300;
     if (cleaned.length > maxLength) {
       cleaned = cleaned.substring(0, maxLength);
     }
@@ -49,7 +50,7 @@ class TTSService {
     if (!voiceId) return 'es_mx_mia';
     const v = voiceId.toString().toLowerCase().trim().replace(/^[-@/]/, '').replace(/^voice:/, '');
     const aliases = {
-      // Voces IA (Fish Audio S2.1 Pro Free)
+      // Voces Famosas / IA
       messi: 'es_ar_messi',
       lionel_messi: 'es_ar_messi',
       'lionel messi': 'es_ar_messi',
@@ -98,6 +99,64 @@ class TTSService {
       'el rubius': 'es_rubius',
       rubiuh: 'es_rubius',
       es_rubius: 'es_rubius',
+
+      // Voces del catálogo general y comandos
+      anub: 'es_anub',
+      anuel: 'es_anuel',
+      ari: 'es_ari',
+      arturito: 'es_arturito',
+      babidi: 'es_babidi',
+      balanar: 'es_balanar',
+      bala: 'es_balanar',
+      bart: 'es_bart',
+      bart_simpson: 'es_bart',
+      'bart simpson': 'es_bart',
+      esponja: 'es_esponja',
+      bob_esponja: 'es_esponja',
+      'bob esponja': 'es_esponja',
+      spongebob: 'en_us_spongebob',
+      trump: 'en_us_trump',
+      donald_trump: 'en_us_trump',
+      'donald trump': 'en_us_trump',
+      peter: 'en_us_peter',
+      peter_griffin: 'en_us_peter',
+      goku: 'es_mx_goku',
+      goku_latino: 'es_mx_goku',
+      melcochita: 'es_pe_melcochita',
+      drphil: 'en_us_drphil',
+      freeman: 'en_us_morgan',
+      morgan_freeman: 'en_us_morgan',
+      cholo: 'es_pe_cholo',
+      cholojuanito: 'es_pe_cholo',
+      tate: 'en_us_tate',
+      andrew_tate: 'en_us_tate',
+      biden: 'en_us_biden',
+      joe_biden: 'en_us_biden',
+      cr7: 'pt_br_cristiano',
+      kermit: 'en_us_kermit',
+      snoop: 'en_us_snoop',
+      snoop_dogg: 'en_us_snoop',
+      girl: 'es_mx_girl',
+      vegeta: 'es_mx_vegeta',
+      vegeta_latino: 'es_mx_vegeta',
+      arnold: 'en_us_arnold',
+      makanaky: 'es_pe_makanaky',
+      thrall: 'en_us_thrall',
+      drake: 'en_us_drake',
+      adin: 'en_us_adin',
+      adin_ross: 'en_us_adin',
+      alexjones: 'en_us_alexjones',
+      rogan: 'en_us_rogan',
+      joe_rogan: 'en_us_rogan',
+      kanye: 'en_us_kanye',
+      kanye_west: 'en_us_kanye',
+      faraon: 'es_pe_faraon',
+      faraon_love_shady: 'es_pe_faraon',
+      eddie: 'en_us_eddie',
+      elon: 'en_us_musk',
+      elon_musk: 'en_us_musk',
+      musk: 'en_us_musk',
+      orco: 'en_us_orco',
 
       // Direct names
       mia: 'es_mx_mia',
@@ -155,34 +214,6 @@ class TTSService {
     return aliases[v] || v;
   }
 
-  getStreamElementsVoiceName(voiceId) {
-    const normalized = this.normalizeVoice(voiceId);
-    const map = {
-      es_ar_messi: 'Mia',
-      es_mx_mia: 'Mia',
-      es_us_miguel: 'Miguel',
-      es_us_lupe: 'Lupe',
-      es_us_penelope: 'Penelope',
-      es_es_enrique: 'Enrique',
-      es_es_conchita: 'Conchita',
-      es_es_lucia: 'Lucia',
-      en_brian: 'Brian',
-      en_emma: 'Emma',
-      en_joey: 'Joey',
-      en_matthew: 'Matthew',
-      en_kendra: 'Kendra',
-      en_justin: 'Justin',
-      en_russell: 'Russell',
-      pt_cristiano: 'Cristiano',
-      fr_mathieu: 'Mathieu',
-      it_giorgio: 'Giorgio',
-      de_hans: 'Hans',
-      ja_takumi: 'Takumi',
-      ja_mizuki: 'Mizuki'
-    };
-    return map[normalized] || 'Mia';
-  }
-
   isFishAudioVoice(voiceId) {
     const normalized = this.normalizeVoice(voiceId);
     return ['es_ar_messi', 'es_ve_maduro', 'es_tiktok', 'es_mx_homero', 'es_dross', 'es_badbunny', 'es_rubius'].includes(normalized);
@@ -198,7 +229,99 @@ class TTSService {
     return `https://translate.google.com/translate_tts?ie=UTF-8&q=${encoded}&tl=${encodeURIComponent(lang)}&client=tw-ob`;
   }
 
-  processRequest({ user, text, source = 'chat', bits = 0, voiceOverride = null, channel = null }) {
+  /**
+   * Valida si un espectador tiene permiso para usar un comando de voz TTS.
+   */
+  hasPermission(cmdObj, userBadges = {}) {
+    if (!cmdObj || !cmdObj.enabled) return false;
+    const permissions = Array.isArray(cmdObj.permissions) && cmdObj.permissions.length ? cmdObj.permissions : ['todos'];
+
+    if (permissions.includes('todos') || permissions.includes('all')) return true;
+
+    const isMod = Boolean(userBadges.mod || userBadges.broadcaster || userBadges.isMod);
+    const isSub = Boolean(userBadges.subscriber || userBadges.sub || userBadges.isSub || isMod);
+    const isVip = Boolean(userBadges.vip || userBadges.isVip || isMod);
+
+    if (permissions.includes('mod') && isMod) return true;
+    if (permissions.includes('vip') && (isVip || isMod)) return true;
+    if (permissions.includes('sub') && (isSub || isMod)) return true;
+
+    return false;
+  }
+
+  /**
+   * Parser Multi-Voz en Chat: Detecta comandos de voz individuales o múltiples voces en un mensaje.
+   * Ejemplo: "!messi Hola amigos !homero qué onda !dross perturbador"
+   */
+  parseMultiVoiceText(rawText, userBadges = {}) {
+    if (!rawText || typeof rawText !== 'string') return [];
+    const commands = storage.getTtsCommands();
+    const config = storage.getConfig().tts || {};
+    const defaultVoice = config.voice || 'es_mx_mia';
+
+    // Mapeo rápido de prefijos a comandos
+    const triggerMap = new Map();
+    for (const cmd of commands) {
+      if (cmd.enabled !== false && cmd.command) {
+        const cleanTrigger = cmd.command.toLowerCase().trim();
+        triggerMap.set(cleanTrigger, cmd);
+        // Soporte sin signo de exclamación si viene con prefijo
+        triggerMap.set(cleanTrigger.replace(/^!/, ''), cmd);
+      }
+    }
+
+    // Buscar tokens como !comando o [nombre_voz]
+    const words = rawText.trim().split(/\s+/);
+    const segments = [];
+    let currentVoiceCmd = null;
+    let currentVoiceId = null;
+    let currentVoiceName = null;
+    let currentTextWords = [];
+
+    for (let i = 0; i < words.length; i++) {
+      const word = words[i];
+      const cleanWord = word.toLowerCase().replace(/^[\[\(]/, '').replace(/[\]\)]$/, '');
+      const matchedCmd = triggerMap.get(cleanWord) || triggerMap.get(cleanWord.startsWith('!') ? cleanWord : `!${cleanWord}`);
+
+      if (matchedCmd) {
+        // Si ya teníamos texto acumulado, guardar segmento anterior
+        if (currentTextWords.length > 0) {
+          segments.push({
+            voice: currentVoiceId || defaultVoice,
+            voiceName: currentVoiceName || (voiceCatalog.getVoiceById(currentVoiceId)?.name || 'Voz'),
+            text: currentTextWords.join(' ')
+          });
+          currentTextWords = [];
+        }
+
+        // Validar permisos del nuevo comando
+        if (this.hasPermission(matchedCmd, userBadges)) {
+          currentVoiceCmd = matchedCmd;
+          currentVoiceId = matchedCmd.voiceId || this.normalizeVoice(matchedCmd.command);
+          currentVoiceName = matchedCmd.name;
+        } else {
+          // Si no tiene permiso, usar voz por defecto
+          currentVoiceCmd = null;
+          currentVoiceId = defaultVoice;
+          currentVoiceName = 'Voz Estándar';
+        }
+      } else {
+        currentTextWords.push(word);
+      }
+    }
+
+    if (currentTextWords.length > 0) {
+      segments.push({
+        voice: currentVoiceId || defaultVoice,
+        voiceName: currentVoiceName || (voiceCatalog.getVoiceById(currentVoiceId)?.name || 'Voz'),
+        text: currentTextWords.join(' ')
+      });
+    }
+
+    return segments;
+  }
+
+  processRequest({ user, text, source = 'chat', bits = 0, voiceOverride = null, channel = null, userBadges = {} }) {
     const config = storage.getConfig().tts;
     if (!config.enabled) {
       return { success: false, reason: 'TTS está deshabilitado en la configuración' };
@@ -215,52 +338,48 @@ class TTSService {
     }
 
     let rawText = (text || '').trim();
-    let selectedVoice = voiceOverride ? this.normalizeVoice(voiceOverride) : (this.normalizeVoice(config.voice) || 'es_mx_mia');
-
-    // Detección automática de voz en el comando de chat (ej: "!tts messi Hola" o "!tts dross Hola streamer" o "!tts voz homero")
-    if (source === 'chat' && rawText) {
-      const parts = rawText.split(/\s+/);
-      let possibleVoiceToken = parts[0].toLowerCase().replace(/^[-@/]/, '').replace(/^voice:/, '');
-      let hasText = parts.length > 1;
-
-      if ((possibleVoiceToken === 'voz' || possibleVoiceToken === 'voice') && parts.length > 1) {
-        possibleVoiceToken = parts[1].toLowerCase().replace(/^[-@/]/, '');
-        hasText = parts.length > 2;
-        if (hasText) {
-          rawText = parts.slice(2).join(' ');
-        } else {
-          rawText = `Voz TTS cambiada a ${possibleVoiceToken}`;
-        }
-      }
-
-      const detectedVoice = this.normalizeVoice(possibleVoiceToken);
-      if (detectedVoice && (this.isFishAudioVoice(detectedVoice) || detectedVoice.startsWith('es_') || detectedVoice.startsWith('en_') || detectedVoice.startsWith('pt_') || detectedVoice.startsWith('fr_') || detectedVoice.startsWith('it_') || detectedVoice.startsWith('de_') || detectedVoice.startsWith('ja_'))) {
-        selectedVoice = detectedVoice;
-        if (hasText && !(parts[0].toLowerCase().replace(/^[-@/]/, '') === 'voz' || parts[0].toLowerCase().replace(/^[-@/]/, '') === 'voice')) {
-          rawText = parts.slice(1).join(' ');
-        }
-      }
-    }
-
-    // Mantener fija la última voz escogida en la configuración activa hasta que el usuario decida cambiarla
-    try {
-      const currentCfg = storage.getConfig();
-      if (currentCfg.tts && currentCfg.tts.voice !== selectedVoice) {
-        currentCfg.tts.voice = selectedVoice;
-        storage.saveConfig({ tts: currentCfg.tts });
-      }
-    } catch (e) { }
-
-    const cleanText = this.sanitizeText(rawText, config);
-    if (!cleanText || cleanText.length < 2) {
+    if (!rawText) {
       return { success: false, reason: 'Texto vacío o inválido' };
     }
 
+    // 1. Detección y procesamiento Multi-Voz
+    const multiSegments = this.parseMultiVoiceText(rawText, userBadges);
+    let selectedVoice = voiceOverride ? this.normalizeVoice(voiceOverride) : (this.normalizeVoice(config.voice) || 'es_mx_mia');
+
+    if (multiSegments.length > 0 && !voiceOverride) {
+      selectedVoice = multiSegments[0].voice || selectedVoice;
+    }
+
+    const cleanText = this.sanitizeText(rawText, config);
+    if (!cleanText || cleanText.length < 2) {
+      return { success: false, reason: 'Texto vacío o inválido tras sanitización' };
+    }
+
+    // Preparar segmentos procesados
+    const processedSegments = (multiSegments.length > 0 ? multiSegments : [{ voice: selectedVoice, text: cleanText }])
+      .map(seg => {
+        const cleanSegText = this.sanitizeText(seg.text, config);
+        const normVoice = this.normalizeVoice(seg.voice);
+        const isFish = this.isFishAudioVoice(normVoice);
+        return {
+          voice: normVoice,
+          voiceName: seg.voiceName || (voiceCatalog.getVoiceById(normVoice)?.name || 'Voz'),
+          text: cleanSegText,
+          engine: isFish ? 'fish_audio' : 'audio_stream',
+          audioUrl: this.generateAudioUrl(cleanSegText, normVoice)
+        };
+      })
+      .filter(s => s.text && s.text.length > 0);
+
+    if (processedSegments.length === 0) {
+      return { success: false, reason: 'No hay texto válido para reproducir' };
+    }
+
     const isFish = this.isFishAudioVoice(selectedVoice);
-    const audioUrl = this.generateAudioUrl(cleanText, selectedVoice);
+    const primaryAudioUrl = processedSegments[0]?.audioUrl || this.generateAudioUrl(cleanText, selectedVoice);
     const fallbackUrl = isFish
       ? `https://translate.google.com/translate_tts?ie=UTF-8&q=${encodeURIComponent(cleanText)}&tl=es-ES&client=tw-ob`
-      : audioUrl;
+      : primaryAudioUrl;
 
     const cleanChannel = channel ? channel.toLowerCase().replace(/^#/, '').trim() : null;
     const ttsItem = {
@@ -273,10 +392,11 @@ class TTSService {
       bits,
       engine: isFish ? 'fish_audio' : 'audio_stream',
       voice: selectedVoice,
+      segments: processedSegments,
       volume: (config.volume || 90) / 100,
       rate: config.rate || 1.0,
       pitch: config.pitch || 1.0,
-      audioUrl,
+      audioUrl: primaryAudioUrl,
       fallbackUrl,
       timestamp: Date.now()
     };
@@ -291,35 +411,7 @@ class TTSService {
   }
 
   getVoices() {
-    return [
-      { id: 'es_ar_messi', name: '⭐ Lionel Messi - IA Fish Audio 🇦🇷', lang: 'es-AR', isAI: true, referenceId: 'e3ded66586764591a457fcdaba8a268b' },
-      { id: 'es_ve_maduro', name: '⭐ Nicolás Maduro - IA Fish Audio 🇻🇪', lang: 'es-VE', isAI: true, referenceId: 'b011ad1198284358b766a597f6fdd171' },
-      { id: 'es_tiktok', name: '⭐ Voz TikTok - IA Fish Audio 🎵', lang: 'es-MX', isAI: true, referenceId: '1505e291ec504760a285fd163a78b5eb' },
-      { id: 'es_mx_homero', name: '⭐ Homero Simpson - IA Fish Audio 🍩', lang: 'es-MX', isAI: true, referenceId: '134d19eda4c64cb0b2a84d93e327be3b' },
-      { id: 'es_dross', name: '⭐ Dross Rotzank - IA Fish Audio 🦇', lang: 'es-VE', isAI: true, referenceId: 'd9f0d3d3fe734af6acb5ecc9129bc49a' },
-      { id: 'es_badbunny', name: '⭐ Bad Bunny - IA Fish Audio 🐰', lang: 'es-PR', isAI: true, referenceId: '9b30f7190dbe49acb731345e70366cf7' },
-      { id: 'es_rubius', name: '⭐ ElRubius - IA Fish Audio 🎮', lang: 'es-ES', isAI: true, referenceId: '39382efbc7584d428f0f789d882cd3b8' },
-      { id: 'es_mx_mia', name: 'Mia - Español Latino (Femenino)', lang: 'es-MX' },
-      { id: 'es_us_miguel', name: 'Miguel - Español Latino (Masculino)', lang: 'es-US' },
-      { id: 'es_us_lupe', name: 'Lupe - Español US (Femenino)', lang: 'es-US' },
-      { id: 'es_us_penelope', name: 'Penélope - Español Neutro (Femenino)', lang: 'es-US' },
-      { id: 'es_es_enrique', name: 'Enrique - Castellano (Masculino Pro)', lang: 'es-ES' },
-      { id: 'es_es_conchita', name: 'Conchita - Castellano (Femenino Pro)', lang: 'es-ES' },
-      { id: 'es_es_lucia', name: 'Lucía - Castellano (Natural)', lang: 'es-ES' },
-      { id: 'en_brian', name: 'Brian - English UK (Voz Meme / Classic)', lang: 'en-GB' },
-      { id: 'en_emma', name: 'Emma - English UK (Femenino)', lang: 'en-GB' },
-      { id: 'en_joey', name: 'Joey - English US (Masculino)', lang: 'en-US' },
-      { id: 'en_matthew', name: 'Matthew - English US (Masculino)', lang: 'en-US' },
-      { id: 'en_kendra', name: 'Kendra - English US (Femenino)', lang: 'en-US' },
-      { id: 'en_justin', name: 'Justin - English US (Joven)', lang: 'en-US' },
-      { id: 'en_russell', name: 'Russell - English Australia', lang: 'en-AU' },
-      { id: 'pt_cristiano', name: 'Cristiano - Português', lang: 'pt-BR' },
-      { id: 'fr_mathieu', name: 'Mathieu - Français', lang: 'fr-FR' },
-      { id: 'it_giorgio', name: 'Giorgio - Italiano', lang: 'it-IT' },
-      { id: 'de_hans', name: 'Hans - Deutsch', lang: 'de-DE' },
-      { id: 'ja_takumi', name: 'Takumi - 日本語 (Japonés Anime)', lang: 'ja-JP' },
-      { id: 'ja_mizuki', name: 'Mizuki - 日本語 (Japonés Femenino)', lang: 'ja-JP' }
-    ];
+    return voiceCatalog.getAllVoices();
   }
 }
 

@@ -12,6 +12,7 @@ const twitchBot = require('./src/bot/twitchBot');
 const kickBot = require('./src/bot/kickBot');
 const songRequest = require('./src/services/songRequest');
 const ttsService = require('./src/services/ttsService');
+const voiceCatalog = require('./src/services/voiceCatalog');
 
 const app = express();
 const server = http.createServer(app);
@@ -1040,6 +1041,49 @@ app.post('/api/sr/playback-state', (req, res) => {
 // TTS API
 app.get('/api/tts/voices', (req, res) => {
   res.json(ttsService.getVoices());
+});
+
+app.get('/api/tts/library', (req, res) => {
+  const query = (req.query.q || '').toString();
+  const category = (req.query.category || 'all').toString();
+  const voices = voiceCatalog.searchVoices(query, category);
+  res.json({
+    success: true,
+    total: voices.length,
+    voices
+  });
+});
+
+app.get('/api/tts/commands', (req, res) => {
+  res.json(storage.getTtsCommands());
+});
+
+app.post('/api/tts/commands', (req, res) => {
+  const commands = storage.saveTtsCommands(req.body);
+  broadcast('tts_commands_updated', commands);
+  res.json({ success: true, commands });
+});
+
+app.post('/api/tts/commands/add', (req, res) => {
+  const result = storage.addTtsCommand(req.body);
+  if (!result) return res.status(400).json({ success: false, message: 'Datos de comando inválidos.' });
+  const allCommands = storage.getTtsCommands();
+  broadcast('tts_commands_updated', allCommands);
+  res.json({ success: true, command: result, commands: allCommands });
+});
+
+app.put('/api/tts/commands/:id', (req, res) => {
+  const updated = storage.updateTtsCommand(req.params.id, req.body);
+  if (!updated) return res.status(404).json({ success: false, message: 'Comando no encontrado.' });
+  const allCommands = storage.getTtsCommands();
+  broadcast('tts_commands_updated', allCommands);
+  res.json({ success: true, command: updated, commands: allCommands });
+});
+
+app.delete('/api/tts/commands/:id', (req, res) => {
+  const remaining = storage.deleteTtsCommand(req.params.id);
+  broadcast('tts_commands_updated', remaining);
+  res.json({ success: true, commands: remaining });
 });
 
 app.get('/api/tts/audio', async (req, res) => {
