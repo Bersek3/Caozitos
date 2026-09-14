@@ -422,7 +422,6 @@ class TwitchBot {
 
       // Check Custom Commands
       const commands = storage.getCommands();
-      const firstWord = trimmed.split(' ')[0].toLowerCase();
       const matchedCmd = commands.find(c => c.enabled && c.name.toLowerCase() === firstWord);
 
       if (matchedCmd) {
