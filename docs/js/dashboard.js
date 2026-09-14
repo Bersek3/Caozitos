@@ -3971,9 +3971,8 @@ function renderTTSCommands(commands) {
 
     return `
       <div class="tts-cmd-row ${isEnabled ? '' : 'disabled'}" id="row_${cmd.id}" data-id="${cmd.id}">
-        <!-- Izquierda: Avatar, Nombre, Previa y Trigger -->
+        <!-- Izquierda: Nombre, Previa y Trigger -->
         <div class="tts-cmd-left">
-          <img src="${escapeHtml(avatar)}" class="tts-cmd-avatar" alt="${escapeHtml(cmd.name)}" onerror="this.src='https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=120&auto=format&fit=crop&q=80'">
           <div class="tts-cmd-info">
             <div class="tts-cmd-name-row">
               <span class="tts-cmd-name">${escapeHtml(cmd.name)}</span>
@@ -4016,7 +4015,7 @@ function renderTTSCommands(commands) {
   }).join('');
 }
 
-async function loadVoiceLibrary(query = '', category = 'popular') {
+async function loadVoiceLibrary(query = '', category = 'all') {
   const grid = document.getElementById('voiceLibraryGrid');
   const countBadge = document.getElementById('voiceLibraryTotalCount');
   if (!grid) return;
@@ -4059,12 +4058,10 @@ function renderVoiceLibrary(voices) {
   grid.innerHTML = voices.map(v => {
     const isAdded = existingVoiceIds.has(v.id.toLowerCase().trim()) || existingVoiceIds.has((v.defaultCommand || '').toLowerCase().trim());
     const stats = v.stats || { uses: '100k', downloads: '1k' };
-    const avatar = v.avatar || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=120&auto=format&fit=crop&q=80';
 
     return `
       <div class="voice-catalog-card" data-voice-id="${v.id}">
         <div class="voice-card-left">
-          <img src="${escapeHtml(avatar)}" class="voice-card-avatar" alt="${escapeHtml(v.name)}" onerror="this.src='https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=120&auto=format&fit=crop&q=80'">
           <div class="voice-card-info">
             <span class="voice-card-name" title="${escapeHtml(v.name)}">${escapeHtml(v.name)}</span>
             <div class="voice-card-stats">
@@ -4077,7 +4074,7 @@ function renderVoiceLibrary(voices) {
           <button class="btn-card-play" title="Escuchar previa" onclick="handleTTSVoicePreview('${escapeHtml(v.id)}', '${escapeHtml(v.name)}', this)">
             <i class="fas fa-play"></i>
           </button>
-          <button class="btn-card-add ${isAdded ? 'added' : ''}" onclick="handleAddVoiceFromLibrary('${escapeHtml(v.id)}', '${escapeHtml(v.name)}', '${escapeHtml(avatar)}', '${escapeHtml(v.defaultCommand || '')}', this)">
+          <button class="btn-card-add ${isAdded ? 'added' : ''}" onclick="handleAddVoiceFromLibrary('${escapeHtml(v.id)}', '${escapeHtml(v.name)}', '${escapeHtml(v.defaultCommand || '')}', this)">
             ${isAdded ? '<i class="fas fa-check"></i> Añadido' : '+ Añadir'}
           </button>
         </div>
@@ -4136,12 +4133,11 @@ function handleTTSVoicePreview(voiceId, voiceName, btnEl) {
   });
 }
 
-async function handleAddVoiceFromLibrary(voiceId, voiceName, avatar, defaultCommand, btnEl) {
+async function handleAddVoiceFromLibrary(voiceId, voiceName, defaultCommand, btnEl) {
   const trigger = defaultCommand || `!${voiceId.replace(/^es_|^en_|^pt_|^ja_/, '')}`;
   const newCmd = {
     voiceId,
     name: voiceName,
-    avatar,
     command: trigger,
     permissions: ['todos'],
     enabled: true

@@ -3412,23 +3412,13 @@ input[type=range]::-webkit-slider-thumb {
   display: flex;
   align-items: center;
   gap: 14px;
-  min-width: 260px;
-}
-
-.tts-cmd-avatar {
-  width: 44px;
-  height: 44px;
-  border-radius: 8px;
-  object-fit: cover;
-  background: #1e2438;
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  flex-shrink: 0;
+  min-width: 240px;
 }
 
 .tts-cmd-info {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 6px;
 }
 
 .tts-cmd-name-row {
@@ -3743,16 +3733,6 @@ input[type=range]::-webkit-slider-thumb {
   align-items: center;
   gap: 12px;
   min-width: 0;
-}
-
-.voice-card-avatar {
-  width: 42px;
-  height: 42px;
-  border-radius: 8px;
-  object-fit: cover;
-  background: #1e2438;
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  flex-shrink: 0;
 }
 
 .voice-card-info {
