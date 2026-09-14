@@ -191,37 +191,78 @@
         'es_illojuan', 'illojuan', 'illo_juan', 'juan'
       ];
 
+      let audioCtx = null;
+      function getAudioContext() {
+        if (!audioCtx) {
+          const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+          if (AudioContextClass) audioCtx = new AudioContextClass();
+        }
+        if (audioCtx && audioCtx.state === 'suspended') {
+          audioCtx.resume().catch(() => {});
+        }
+        return audioCtx;
+      }
+
+      document.addEventListener('DOMContentLoaded', () => { getAudioContext(); });
+      window.addEventListener('load', () => { getAudioContext(); });
+      document.body.addEventListener('click', () => { getAudioContext(); });
+
       function playTTSAudio(text, voiceKey, volume = 0.9, onEnd = null) {
         const cleanKey = (voiceKey || '').toString().toLowerCase().trim().replace(/^[-@/]/, '').replace(/^voice:/, '');
         const profile = VOICE_PROFILES[cleanKey] || VOICE_PROFILES[voiceKey] || VOICE_PROFILES['es_mx_mia'];
         const targetLang = (profile.lang || 'es-ES').split('-')[0].toLowerCase();
+        const ctx = getAudioContext();
 
+        let audioUrl = '';
         if (fishAudioKeys.includes(cleanKey)) {
-          const directUrl = `/api/tts/audio?text=${encodeURIComponent(text)}&voice=${encodeURIComponent(cleanKey)}`;
-          const a = new Audio(directUrl);
-          a.volume = volume;
-          if (onEnd) a.onended = onEnd;
-          a.onerror = () => {
-            fallbackSpeechSynth();
-          };
-          a.play().catch(() => {
-            fallbackSpeechSynth();
+          audioUrl = `/api/tts/audio?text=${encodeURIComponent(text)}&voice=${encodeURIComponent(cleanKey)}`;
+        } else {
+          audioUrl = `https://translate.google.com/translate_tts?ie=UTF-8&q=${encodeURIComponent(text)}&tl=${encodeURIComponent(targetLang)}&client=tw-ob`;
+        }
+
+        const audio = new Audio();
+        audio.crossOrigin = 'anonymous';
+        audio.src = audioUrl;
+        audio.volume = Math.max(0, Math.min(1, volume));
+
+        if (ctx) {
+          try {
+            const source = ctx.createMediaElementSource(audio);
+            source.connect(ctx.destination);
+          } catch(e) {}
+        }
+
+        let finished = false;
+        function done() {
+          if (finished) return;
+          finished = true;
+          if (onEnd) onEnd();
+        }
+
+        audio.onended = done;
+        audio.onerror = () => {
+          // Si falla la URL, intentar con Web Speech API
+          fallbackSpeechSynth();
+        };
+
+        const playPromise = audio.play();
+        if (playPromise !== undefined) {
+          playPromise.catch(() => {
+            if (ctx && ctx.resume) {
+              ctx.resume().then(() => {
+                audio.play().catch(() => fallbackSpeechSynth());
+              }).catch(() => fallbackSpeechSynth());
+            } else {
+              fallbackSpeechSynth();
+            }
           });
-          return;
         }
-
-        if (!('speechSynthesis' in window)) {
-          const audioUrl = `https://translate.google.com/translate_tts?ie=UTF-8&q=${encodeURIComponent(text)}&tl=${encodeURIComponent(targetLang)}&client=tw-ob`;
-          const a = new Audio(audioUrl);
-          a.volume = volume;
-          if (onEnd) a.onended = onEnd;
-          a.play().catch(() => { if (onEnd) onEnd(); });
-          return;
-        }
-
-        fallbackSpeechSynth();
 
         function fallbackSpeechSynth() {
+          if (!('speechSynthesis' in window)) {
+            done();
+            return;
+          }
           try {
             window.speechSynthesis.cancel();
             const utterance = new SpeechSynthesisUtterance(text);
@@ -231,46 +272,15 @@
             utterance.lang = profile.lang || 'es-ES';
 
             const voices = window.speechSynthesis.getVoices() || [];
-            let matchedVoice = null;
+            let matchedVoice = voices.find(v => v.lang.toLowerCase().startsWith(targetLang));
+            if (!matchedVoice) matchedVoice = voices.find(v => v.lang.toLowerCase().startsWith('es') || v.lang.toLowerCase().startsWith('en'));
+            if (matchedVoice) utterance.voice = matchedVoice;
 
-            if (profile.gender === 'male') {
-              matchedVoice = voices.find(v => {
-                const vLang = v.lang.toLowerCase();
-                const vName = v.name.toLowerCase();
-                return (vLang.startsWith(targetLang) || (targetLang === 'es' && vLang.startsWith('es'))) &&
-                  (vName.includes('male') || vName.includes('david') || vName.includes('raul') || vName.includes('pablo') ||
-                   vName.includes('jorge') || vName.includes('alvaro') || vName.includes('enrique') || vName.includes('carlos') ||
-                   vName.includes('miguel') || vName.includes('george') || vName.includes('mark') || vName.includes('stefan') ||
-                   vName.includes('guy') || vName.includes('cosimo') || vName.includes('keita'));
-              });
-            } else {
-              matchedVoice = voices.find(v => {
-                const vLang = v.lang.toLowerCase();
-                const vName = v.name.toLowerCase();
-                return (vLang.startsWith(targetLang) || (targetLang === 'es' && vLang.startsWith('es'))) &&
-                  (vName.includes('female') || vName.includes('zira') || vName.includes('sabina') || vName.includes('helena') ||
-                   vName.includes('laura') || vName.includes('monica') || vName.includes('mia') || vName.includes('lucia') ||
-                   vName.includes('conchita') || vName.includes('susan') || vName.includes('hazel'));
-              });
-            }
-
-            if (!matchedVoice) {
-              matchedVoice = voices.find(v => v.lang.toLowerCase().startsWith(targetLang));
-            }
-            if (!matchedVoice) {
-              matchedVoice = voices.find(v => v.lang.toLowerCase().startsWith('es') || v.lang.toLowerCase().startsWith('en'));
-            }
-
-            if (matchedVoice) {
-              utterance.voice = matchedVoice;
-            }
-
-            utterance.onend = () => { if (onEnd) onEnd(); };
-            utterance.onerror = () => { if (onEnd) onEnd(); };
-
+            utterance.onend = done;
+            utterance.onerror = done;
             window.speechSynthesis.speak(utterance);
           } catch (e) {
-            if (onEnd) onEnd();
+            done();
           }
         }
       }
@@ -299,8 +309,19 @@
         const isFish = seg.engine === 'fish_audio' || fishAudioKeys.includes(seg.voice) || (segAudioUrl && segAudioUrl.includes('/api/tts/audio'));
 
         if (isFish && segAudioUrl) {
-          const directAudio = new Audio(segAudioUrl);
+          const ctx = getAudioContext();
+          const directAudio = new Audio();
+          directAudio.crossOrigin = 'anonymous';
+          directAudio.src = segAudioUrl;
           directAudio.volume = item.volume !== undefined ? item.volume : 0.9;
+
+          if (ctx) {
+            try {
+              const source = ctx.createMediaElementSource(directAudio);
+              source.connect(ctx.destination);
+            } catch(e) {}
+          }
+
           let segEnded = false;
           const handleEnd = () => {
             if (segEnded) return;

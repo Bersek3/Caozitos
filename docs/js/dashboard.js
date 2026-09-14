@@ -2414,7 +2414,9 @@ function bindConfigToUI(cfg) {
 
   // TTS
   if (cfg.tts) {
-    document.getElementById('cfgTtsEnabled').checked = cfg.tts.enabled !== false;
+    if (document.getElementById('cfgTtsEnabled')) {
+      document.getElementById('cfgTtsEnabled').checked = cfg.tts.enabled !== false;
+    }
     const savedActiveVoice = localStorage.getItem('orbibot_active_tts_voice');
     let vVal = savedActiveVoice || cfg.tts.voice || 'es_mx_mia';
     if (vVal === 'es_001' || vVal === 'es_female') vVal = 'es_mx_mia';
@@ -2432,17 +2434,23 @@ function bindConfigToUI(cfg) {
         localStorage.setItem('orbibot_active_tts_voice', voiceSelect.value);
       }
     }
-    document.getElementById('cfgTtsVolume').value = cfg.tts.volume !== undefined ? cfg.tts.volume : 90;
-    document.getElementById('valTtsVolume').innerText = `${document.getElementById('cfgTtsVolume').value}%`;
-    document.getElementById('cfgTtsRate').value = cfg.tts.rate || 1.0;
-    document.getElementById('valTtsRate').innerText = `${document.getElementById('cfgTtsRate').value}x`;
-    document.getElementById('cfgTtsPitch').value = cfg.tts.pitch || 1.0;
-    document.getElementById('valTtsPitch').innerText = document.getElementById('cfgTtsPitch').value;
-    document.getElementById('cfgTtsMaxLength').value = cfg.tts.maxLength || 250;
-    document.getElementById('cfgTtsBannedWords').value = (cfg.tts.bannedWords || []).join(', ');
-    document.getElementById('cfgTtsAllowCommand').checked = cfg.tts.allowChatCommand !== false;
-    document.getElementById('cfgTtsCommand').value = cfg.tts.chatCommand || '!tts';
-    document.getElementById('cfgTtsMinBits').value = cfg.tts.minBits !== undefined ? cfg.tts.minBits : 50;
+    if (document.getElementById('cfgTtsVolume')) {
+      document.getElementById('cfgTtsVolume').value = cfg.tts.volume !== undefined ? cfg.tts.volume : 90;
+      if (document.getElementById('valTtsVolume')) document.getElementById('valTtsVolume').innerText = `${document.getElementById('cfgTtsVolume').value}%`;
+    }
+    if (document.getElementById('cfgTtsRate')) {
+      document.getElementById('cfgTtsRate').value = cfg.tts.rate || 1.0;
+      if (document.getElementById('valTtsRate')) document.getElementById('valTtsRate').innerText = `${document.getElementById('cfgTtsRate').value}x`;
+    }
+    if (document.getElementById('cfgTtsPitch')) {
+      document.getElementById('cfgTtsPitch').value = cfg.tts.pitch || 1.0;
+      if (document.getElementById('valTtsPitch')) document.getElementById('valTtsPitch').innerText = document.getElementById('cfgTtsPitch').value;
+    }
+    if (document.getElementById('cfgTtsMaxLength')) document.getElementById('cfgTtsMaxLength').value = cfg.tts.maxLength || 250;
+    if (document.getElementById('cfgTtsBannedWords')) document.getElementById('cfgTtsBannedWords').value = (cfg.tts.bannedWords || []).join(', ');
+    if (document.getElementById('cfgTtsAllowCommand')) document.getElementById('cfgTtsAllowCommand').checked = cfg.tts.allowChatCommand !== false;
+    if (document.getElementById('cfgTtsCommand')) document.getElementById('cfgTtsCommand').value = cfg.tts.chatCommand || '!tts';
+    if (document.getElementById('cfgTtsMinBits')) document.getElementById('cfgTtsMinBits').value = cfg.tts.minBits !== undefined ? cfg.tts.minBits : 50;
     if (document.getElementById('cfgTtsFishApiKey')) {
       document.getElementById('cfgTtsFishApiKey').value = cfg.tts.fishApiKey || 'sk-fish-rOpXPwPZLXZAk5SPYaeSKBue6QfPM3l4i6Q3VG8ZbGI';
     }
@@ -2459,9 +2467,9 @@ function setupRangeInputs() {
   const rate = document.getElementById('cfgTtsRate');
   const pitch = document.getElementById('cfgTtsPitch');
 
-  vol.addEventListener('input', () => { document.getElementById('valTtsVolume').innerText = `${vol.value}%`; });
-  rate.addEventListener('input', () => { document.getElementById('valTtsRate').innerText = `${rate.value}x`; });
-  pitch.addEventListener('input', () => { document.getElementById('valTtsPitch').innerText = pitch.value; });
+  if (vol) vol.addEventListener('input', () => { if (document.getElementById('valTtsVolume')) document.getElementById('valTtsVolume').innerText = `${vol.value}%`; });
+  if (rate) rate.addEventListener('input', () => { if (document.getElementById('valTtsRate')) document.getElementById('valTtsRate').innerText = `${rate.value}x`; });
+  if (pitch) pitch.addEventListener('input', () => { if (document.getElementById('valTtsPitch')) document.getElementById('valTtsPitch').innerText = pitch.value; });
 }
 
 // ================= BOT STATUS =================
@@ -5698,17 +5706,17 @@ async function saveAllConfig(showNotification = true) {
       enabled: Boolean(document.getElementById('cfgSrEnabled')?.checked)
     },
     tts: {
-      enabled: Boolean(document.getElementById('cfgTtsEnabled')?.checked),
+      enabled: document.getElementById('cfgTtsEnabled') ? Boolean(document.getElementById('cfgTtsEnabled')?.checked) : (appConfig?.tts?.enabled !== false),
       voice: chosenVoice,
-      volume: Number(document.getElementById('cfgTtsVolume')?.value ?? 90),
-      rate: Number(document.getElementById('cfgTtsRate')?.value ?? 1),
-      pitch: Number(document.getElementById('cfgTtsPitch')?.value ?? 1),
-      maxLength: Number(document.getElementById('cfgTtsMaxLength')?.value ?? 250),
+      volume: Number(document.getElementById('cfgTtsVolume')?.value ?? (appConfig?.tts?.volume ?? 90)),
+      rate: Number(document.getElementById('cfgTtsRate')?.value ?? (appConfig?.tts?.rate ?? 1)),
+      pitch: Number(document.getElementById('cfgTtsPitch')?.value ?? (appConfig?.tts?.pitch ?? 1)),
+      maxLength: Number(document.getElementById('cfgTtsMaxLength')?.value ?? (appConfig?.tts?.maxLength ?? 250)),
       bannedWords,
-      allowChatCommand: Boolean(document.getElementById('cfgTtsAllowCommand')?.checked),
-      chatCommand: document.getElementById('cfgTtsCommand')?.value.trim() || '!tts',
-      minBits: Number(document.getElementById('cfgTtsMinBits')?.value ?? 50),
-      fishApiKey: document.getElementById('cfgTtsFishApiKey')?.value?.trim() || 'sk-fish-rOpXPwPZLXZAk5SPYaeSKBue6QfPM3l4i6Q3VG8ZbGI'
+      allowChatCommand: document.getElementById('cfgTtsAllowCommand') ? Boolean(document.getElementById('cfgTtsAllowCommand')?.checked) : (appConfig?.tts?.allowChatCommand !== false),
+      chatCommand: document.getElementById('cfgTtsCommand')?.value.trim() || appConfig?.tts?.chatCommand || '!tts',
+      minBits: Number(document.getElementById('cfgTtsMinBits')?.value ?? (appConfig?.tts?.minBits ?? 50)),
+      fishApiKey: document.getElementById('cfgTtsFishApiKey')?.value?.trim() || appConfig?.tts?.fishApiKey || 'sk-fish-rOpXPwPZLXZAk5SPYaeSKBue6QfPM3l4i6Q3VG8ZbGI'
     }
   };
 
@@ -6264,7 +6272,10 @@ function setupEventListeners() {
   });
 
   // TTS Test
-  document.getElementById('btnTestTtsPlay').addEventListener('click', triggerTestTTS);
+  const btnTestTtsPlay = document.getElementById('btnTestTtsPlay');
+  if (btnTestTtsPlay) {
+    btnTestTtsPlay.addEventListener('click', triggerTestTTS);
+  }
 
   // Save or Update Command
   document.getElementById('btnSaveNewCommand').addEventListener('click', async () => {

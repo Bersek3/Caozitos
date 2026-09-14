@@ -34,8 +34,8 @@
     </div>
   </div>
 
-  <!-- Reproductor oculto de YouTube para emitir audio directamente en OBS -->
-  <div id="obsYtContainer" style="position: fixed; top: -9999px; left: -9999px; width: 1px; height: 1px; opacity: 0; pointer-events: none;">
+  <!-- Reproductor visible para OBS / Chromium pero sutil en pantalla -->
+  <div id="obsYtContainer" style="position: absolute; bottom: 0; right: 0; width: 200px; height: 200px; opacity: 0.95; z-index: -1; pointer-events: none; overflow: hidden;">
     <div id="obsYtPlayer"></div>
   </div>
 
@@ -75,9 +75,25 @@
     let ytPlayer = null;
     let ytApiReady = false;
     let pendingVideoId = null;
+    let audioCtx = null;
+
+    function unlockAudio() {
+      if (!audioCtx) {
+        const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+        if (AudioContextClass) audioCtx = new AudioContextClass();
+      }
+      if (audioCtx && audioCtx.state === 'suspended') {
+        audioCtx.resume().catch(() => {});
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', unlockAudio);
+    window.addEventListener('load', unlockAudio);
 
     window.onYouTubeIframeAPIReady = function() {
       if (!enableAudio) return;
+      unlockAudio();
+      const validOrigin = (window.location.origin && window.location.origin !== 'null' && !window.location.origin.startsWith('file')) ? window.location.origin : 'https://www.youtube.com';
       ytPlayer = new YT.Player('obsYtPlayer', {
         height: '200',
         width: '200',
@@ -86,17 +102,32 @@
           controls: 0,
           disablekb: 1,
           fs: 0,
-          rel: 0
+          rel: 0,
+          playsinline: 1,
+          enablejsapi: 1,
+          iv_load_policy: 3,
+          origin: validOrigin,
+          widget_referrer: window.location.href
         },
         events: {
           onReady: (event) => {
             ytApiReady = true;
+            try {
+              event.target.unMute();
+              event.target.setVolume(100);
+            } catch(e) {}
             if (pendingVideoId) {
               playYouTubeVideo(pendingVideoId);
               pendingVideoId = null;
             }
           },
           onStateChange: (event) => {
+            if (event.data === 1 || event.data === 3) {
+              try {
+                event.target.unMute();
+                event.target.setVolume(100);
+              } catch(e) {}
+            }
             // Solo notificar fin si el audio está activo en este widget y realmente se reprodujo
             if (enableAudio && event.data === 0) {
               const curTime = (event.target && event.target.getCurrentTime) ? event.target.getCurrentTime() : 0;
@@ -120,9 +151,16 @@
 
     function playYouTubeVideo(videoId) {
       if (!enableAudio || !videoId) return;
+      unlockAudio();
       if (ytPlayer && ytApiReady && ytPlayer.loadVideoById) {
         try {
-          ytPlayer.loadVideoById(videoId);
+          ytPlayer.loadVideoById({
+            videoId: videoId,
+            startSeconds: 0,
+            suggestedQuality: 'small'
+          });
+          if (ytPlayer.unMute) ytPlayer.unMute();
+          if (ytPlayer.setVolume) ytPlayer.setVolume(100);
           ytPlayer.playVideo();
         } catch(e) {}
       } else {

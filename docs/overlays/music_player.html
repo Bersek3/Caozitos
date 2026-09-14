@@ -116,17 +116,18 @@
       right: 6px;
       width: 200px;
       height: 200px;
-      opacity: 0.01;
+      opacity: 0.95;
       pointer-events: none;
       overflow: hidden;
-      z-index: -1;
+      z-index: 0;
+      border-radius: 8px;
     }
   </style>
 </head>
 
 <body>
 
-  <div class="player-card" id="playerCard" style="position: relative;">
+  <div class="player-card" id="playerCard" style="position: relative; z-index: 10;">
     <div id="autoplayBanner" style="display: none; position: absolute; inset: 0; background: rgba(10, 10, 20, 0.92); backdrop-filter: blur(6px); border-radius: 16px; align-items: center; justify-content: center; z-index: 50; cursor: pointer; text-align: center; padding: 12px;">
       <div style="font-size: 13px; font-weight: 700; color: #38bdf8; display: flex; align-items: center; gap: 8px;">
         <span style="font-size: 20px;">🔊</span> Haz clic para activar audio
@@ -146,7 +147,7 @@
     </div>
   </div>
 
-  <!-- Contenedor para YouTube IFrame API -->
+  <!-- Contenedor para YouTube IFrame API (con permisos de audio para OBS) -->
   <div id="ytContainer">
     <div id="ytPlayer"></div>
   </div>
@@ -168,19 +169,37 @@
     let ytApiReady = false;
     let pendingVideoId = null;
     let currentSongData = null;
+    let audioCtx = null;
 
-    // Desbloqueo de audio al hacer clic en cualquier parte (política de navegadores)
+    function unlockAudio() {
+      if (!audioCtx) {
+        const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+        if (AudioContextClass) audioCtx = new AudioContextClass();
+      }
+      if (audioCtx && audioCtx.state === 'suspended') {
+        audioCtx.resume().catch(() => {});
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', unlockAudio);
+    window.addEventListener('load', unlockAudio);
+
+    // Desbloqueo de audio al hacer clic en cualquier parte (política de navegadores y OBS)
     document.body.addEventListener('click', () => {
+      unlockAudio();
       if (ytPlayer) {
         if (ytPlayer.unMute) ytPlayer.unMute();
+        if (ytPlayer.setVolume) ytPlayer.setVolume(100);
         if (ytPlayer.playVideo) ytPlayer.playVideo();
       }
       if (autoplayBanner) autoplayBanner.style.display = 'none';
     });
 
-    // Inicializar YouTube IFrame Player
+    // Inicializar YouTube IFrame Player con soporte completo para OBS Mixer
     window.onYouTubeIframeAPIReady = function () {
+      unlockAudio();
       const initVideoId = pendingVideoId || (currentSongData && currentSongData.videoId) || undefined;
+      const validOrigin = (window.location.origin && window.location.origin !== 'null' && !window.location.origin.startsWith('file')) ? window.location.origin : 'https://www.youtube.com';
       const playerConfig = {
         height: '200',
         width: '200',
@@ -190,14 +209,18 @@
           disablekb: 1,
           fs: 0,
           rel: 0,
+          playsinline: 1,
           enablejsapi: 1,
-          origin: window.location.origin
+          iv_load_policy: 3,
+          origin: validOrigin,
+          widget_referrer: window.location.href
         },
         events: {
           onReady: (event) => {
             ytApiReady = true;
             statusText.innerText = 'Audio Player Conectado';
             try {
+              event.target.unMute();
               event.target.setVolume(100);
             } catch(e) {}
 
@@ -213,6 +236,17 @@
               statusText.innerText = 'Reproduciendo Audio';
               statusDot.style.background = '#00ff88';
               if (autoplayBanner) autoplayBanner.style.display = 'none';
+              try {
+                event.target.unMute();
+                event.target.setVolume(100);
+              } catch(e) {}
+            }
+            // YT.PlayerState.BUFFERING === 3
+            else if (event.data === 3) {
+              try {
+                event.target.unMute();
+                event.target.setVolume(100);
+              } catch(e) {}
             }
             // YT.PlayerState.PAUSED === 2
             else if (event.data === 2) {
@@ -221,13 +255,15 @@
               // Si el navegador pausó automáticamente al inicio (bloqueo de autoplay):
               const curTime = (event.target && event.target.getCurrentTime) ? event.target.getCurrentTime() : 0;
               if (curTime < 1) {
-                if (autoplayBanner) autoplayBanner.style.display = 'flex';
-                statusText.innerText = 'Autoplay bloqueado - Haz clic para activar';
+                try {
+                  event.target.unMute();
+                  event.target.setVolume(100);
+                  event.target.playVideo();
+                } catch(e) {}
               }
             }
             // YT.PlayerState.ENDED === 0
             else if (event.data === 0) {
-              // PREVENIR SALTO FALSO EN F5: Solo saltar si el video realmente se reprodujo al menos 5 segundos
               const curTime = (event.target && event.target.getCurrentTime) ? event.target.getCurrentTime() : 0;
               if (currentSongData && curTime > 5) {
                 statusText.innerText = 'Canción Finalizada';
@@ -237,8 +273,6 @@
           },
           onError: (event) => {
             console.warn('YouTube Audio Player error:', event.data);
-            // Solo saltar si es un error irrecuperable de video (100: no encontrado, 101/150: no permitido embeber)
-            // NO saltar en error 2 (parámetro de inicio) ni error 5 (error transitorio de HTML5)
             if (currentSongData && (event.data === 100 || event.data === 101 || event.data === 150)) {
               statusText.innerText = 'Video no reproducible en stream - Saltando...';
               setTimeout(() => {
@@ -258,10 +292,16 @@
 
     function playYouTubeVideo(videoId) {
       if (!videoId) return;
+      unlockAudio();
       if (ytPlayer && ytApiReady && ytPlayer.loadVideoById) {
         try {
-          ytPlayer.loadVideoById(videoId);
+          ytPlayer.loadVideoById({
+            videoId: videoId,
+            startSeconds: 0,
+            suggestedQuality: 'small'
+          });
           if (ytPlayer.unMute) ytPlayer.unMute();
+          if (ytPlayer.setVolume) ytPlayer.setVolume(100);
           ytPlayer.playVideo();
         } catch (e) {
           console.error('Error al reproducir en YT:', e);
