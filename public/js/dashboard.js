@@ -2287,9 +2287,12 @@ async function handleBrowserChannelPointRedemption(customRewardId, username, mes
     }
   }
 
-  // Si la recompensa requiere texto del usuario (Song Request o TTS) y viene vacía
+  // Si la recompensa requiere texto del usuario (Song Request o TTS sin plantilla fija) y viene vacía
   // (típico del evento USERNOTICE previo a PRIVMSG), NO deduplicar ni procesar: esperamos al evento PRIVMSG
-  const isTextAction = matchedReward && (matchedReward.action === 'song_request' || matchedReward.action === 'tts');
+  const isTextAction = matchedReward && (
+    matchedReward.action === 'song_request' || 
+    (matchedReward.action === 'tts' && !matchedReward.customMessage)
+  );
   const cleanMsg = (message || '').trim();
   if (isTextAction && !cleanMsg) {
     console.log(`[Dashboard] ⏳ Canje de "${matchedReward.rewardName}" detectado sin texto aún. Esperando mensaje del chat...`);
@@ -2321,8 +2324,18 @@ async function handleBrowserChannelPointRedemption(customRewardId, username, mes
         console.log('[Dashboard] TTS desactivado en la configuración. Omitiendo TTS de canje.');
         return;
       }
-      const voice = ttsConfig.voice || 'es_mx_mia';
-      const textToSpeak = cleanMsg;
+      const voice = matchedReward.voiceId || matchedReward.voice || ttsConfig.voice || 'es_mx_mia';
+
+      let textToSpeak = (matchedReward.customMessage || '').trim();
+      if (textToSpeak) {
+        textToSpeak = textToSpeak
+          .replace(/\{user\}|\{usuario\}|\{name\}/gi, username)
+          .replace(/\{message\}|\{mensaje\}|\{input\}|\{texto\}/gi, cleanMsg || '')
+          .replace(/\{reward\}|\{recompensa\}/gi, matchedReward.rewardName || 'Recompensa')
+          .trim();
+      } else {
+        textToSpeak = cleanMsg || `¡${username} ha canjeado ${matchedReward.rewardName}!`;
+      }
       if (!textToSpeak) return;
 
       const ttsData = {
@@ -2330,12 +2343,19 @@ async function handleBrowserChannelPointRedemption(customRewardId, username, mes
         user: username,
         text: textToSpeak,
         voice,
+        voiceOverride: voice,
+        source: 'channel_points',
         volume: Number(ttsConfig.volume !== undefined ? ttsConfig.volume : 90) / 100,
         audioUrl: getTTSAudioUrl(textToSpeak, voice),
         timestamp: Date.now()
       };
       broadcastEvent('tts', ttsData);
-      // No emitir alerta visual para TTS (solo lee el mensaje)
+      broadcastEvent('alert', {
+        type: 'channel_points',
+        user: username,
+        reward: matchedReward.rewardName || 'Puntos de Canal',
+        message: textToSpeak
+      });
       return;
     } else if (matchedReward.action === 'song_request') {
       const songQuery = cleanMsg;
@@ -3552,6 +3572,10 @@ function populateWidgetUrls() {
   if (document.getElementById('urlTtsWidget')) document.getElementById('urlTtsWidget').value = ttsUrl;
   if (document.getElementById('urlChatWidget')) document.getElementById('urlChatWidget').value = chatUrl;
 
+  // URLs en la pestaña de Puntos de Canal
+  if (document.getElementById('urlPointsTtsWidget')) document.getElementById('urlPointsTtsWidget').value = ttsUrl;
+  if (document.getElementById('urlPointsAlertsWidget')) document.getElementById('urlPointsAlertsWidget').value = alertsUrl;
+
   // Actualizar enlaces de vista previa
   if (document.getElementById('btnPreviewAlerts')) document.getElementById('btnPreviewAlerts').href = alertsUrl;
   if (document.getElementById('btnPreviewNowPlaying')) document.getElementById('btnPreviewNowPlaying').href = npUrl;
@@ -3559,8 +3583,8 @@ function populateWidgetUrls() {
   if (document.getElementById('btnPreviewMusicPlayer')) document.getElementById('btnPreviewMusicPlayer').href = musicPlayerUrl;
   if (document.getElementById('btnPreviewTts')) document.getElementById('btnPreviewTts').href = ttsUrl;
   if (document.getElementById('btnPreviewChat')) document.getElementById('btnPreviewChat').href = chatUrl;
-  if (document.getElementById('btnPreviewTts')) document.getElementById('btnPreviewTts').href = ttsUrl;
-  if (document.getElementById('btnPreviewChat')) document.getElementById('btnPreviewChat').href = chatUrl;
+  if (document.getElementById('btnPreviewPointsTts')) document.getElementById('btnPreviewPointsTts').href = ttsUrl;
+  if (document.getElementById('btnPreviewPointsAlerts')) document.getElementById('btnPreviewPointsAlerts').href = alertsUrl;
 
   const appBaseUrl = `${baseUrl}/`;
   if (document.getElementById('displayRedirectUri')) {
@@ -5999,7 +6023,13 @@ function renderRewards(rewards) {
   deduped.forEach(r => {
     const tr = document.createElement('tr');
     let actionBadge = `<span class="btn btn-secondary btn-sm">${r.action}</span>`;
-    if (r.action === 'tts') actionBadge = `<span class="btn btn-primary btn-sm" style="font-weight: 600;">🗣️ Voz TTS</span>`;
+    if (r.action === 'tts') {
+      const allVoices = mergeVoiceCatalogs(DEFAULT_VOICE_CATALOG, cachedVoiceLibrary || []);
+      const matchedV = r.voiceId ? allVoices.find(v => v.id === r.voiceId) : null;
+      const vName = matchedV ? matchedV.name : (r.voiceId || 'Voz por defecto');
+      const msgPreview = r.customMessage ? `<div style="font-size: 11.5px; color: #94a3b8; margin-top: 4px; max-width: 260px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${escapeHtml(r.customMessage)}">💬 "${escapeHtml(r.customMessage)}"</div>` : '';
+      actionBadge = `<div><span class="btn btn-primary btn-sm" style="font-weight: 600;">🗣️ Voz TTS (${escapeHtml(vName)})</span>${msgPreview}</div>`;
+    }
     if (r.action === 'song_request') actionBadge = `<span class="btn btn-accent btn-sm" style="font-weight: 600;">🎶 Canción (VIP)</span>`;
     if (r.action === 'sound') {
       const soundName = r.soundUrl ? (r.soundUrl.startsWith('data:') ? 'Audio Personalizado' : r.soundUrl.split('/').pop()) : 'Default';
@@ -6281,6 +6311,68 @@ async function syncTwitchRewardsUI() {
   }
 }
 
+function populateRewardVoicesSelect(currentSelected = '') {
+  const select = document.getElementById('rewardVoiceSelect');
+  if (!select) return;
+
+  const voices = mergeVoiceCatalogs(DEFAULT_VOICE_CATALOG, cachedVoiceLibrary || []);
+  const aiVoices = voices.filter(v => v.isAI || (v.tags && v.tags.includes('ia')));
+  const stdVoices = voices.filter(v => !v.isAI && (!v.tags || !v.tags.includes('ia')));
+
+  select.innerHTML = '<option value="">✨ -- Voz predeterminada del bot --</option>';
+
+  if (aiVoices.length > 0) {
+    const optgroupAI = document.createElement('optgroup');
+    optgroupAI.label = '⭐ Voces de IA Famosas y Streamers';
+    aiVoices.forEach(v => {
+      const opt = document.createElement('option');
+      opt.value = v.id;
+      opt.innerText = `🤖 ${v.name} (${v.lang || 'es'})`;
+      optgroupAI.appendChild(opt);
+    });
+    select.appendChild(optgroupAI);
+  }
+
+  if (stdVoices.length > 0) {
+    const optgroupStd = document.createElement('optgroup');
+    optgroupStd.label = '🌐 Voces Estándar y Multilingües';
+    stdVoices.forEach(v => {
+      const opt = document.createElement('option');
+      opt.value = v.id;
+      opt.innerText = `🗣️ ${v.name} (${v.lang || 'es'})`;
+      optgroupStd.appendChild(opt);
+    });
+    select.appendChild(optgroupStd);
+  }
+
+  if (currentSelected) {
+    select.value = currentSelected;
+  }
+}
+
+function previewRewardTTS() {
+  const select = document.getElementById('rewardVoiceSelect');
+  const msgInput = document.getElementById('rewardCustomMessageInput');
+  const nameInput = document.getElementById('rewardNameInput');
+  const voiceId = select?.value || (appConfig?.tts?.voice) || 'es_mx_mia';
+  const rawMsg = (msgInput?.value || '').trim() || `¡{user} ha canjeado ${nameInput?.value || 'esta recompensa'}!`;
+
+  const sampleText = rawMsg
+    .replace(/\{user\}|\{usuario\}|\{name\}/gi, 'Espectador')
+    .replace(/\{message\}|\{mensaje\}|\{input\}|\{texto\}/gi, 'un gran saludo streamer')
+    .replace(/\{reward\}|\{recompensa\}/gi, nameInput?.value || 'Recompensa')
+    .trim();
+
+  showToast(`🔊 Probando voz de IA: "${voiceId}"...`, 'info');
+  const audioUrl = getTTSAudioUrl(sampleText, voiceId);
+  const audio = new Audio(audioUrl);
+  audio.volume = Number(document.getElementById('cfgTtsVolume')?.value || 90) / 100;
+  audio.play().catch(() => {
+    playTTSAudioLocal(sampleText, voiceId, audio.volume);
+  });
+}
+window.previewRewardTTS = previewRewardTTS;
+
 function toggleRewardForm(show) {
   const form = document.getElementById('rewardFormCard');
   if (!form) return;
@@ -6293,13 +6385,23 @@ function toggleRewardForm(show) {
     loadSounds();
     setupRewardAutocomplete();
     syncTwitchRewardsUI();
+    populateRewardVoicesSelect();
+    const currentAction = document.getElementById('rewardActionSelect')?.value || 'tts';
+    handleRewardActionChange(currentAction);
   }
 }
 
 function handleRewardActionChange(action) {
-  const group = document.getElementById('rewardSoundGroup');
-  if (group) {
-    group.style.display = action === 'sound' ? 'block' : 'none';
+  const soundGroup = document.getElementById('rewardSoundGroup');
+  const ttsGroup = document.getElementById('rewardTtsGroup');
+  if (soundGroup) {
+    soundGroup.style.display = action === 'sound' ? 'block' : 'none';
+  }
+  if (ttsGroup) {
+    ttsGroup.style.display = action === 'tts' ? 'block' : 'none';
+    if (action === 'tts') {
+      populateRewardVoicesSelect();
+    }
   }
 }
 
@@ -6630,6 +6732,8 @@ async function saveRewardUI() {
   const name = (inputEl?.value || '').trim();
   const action = document.getElementById('rewardActionSelect').value;
   const soundUrl = document.getElementById('rewardSoundSelect')?.value || null;
+  const voiceId = document.getElementById('rewardVoiceSelect')?.value || null;
+  const customMessage = (document.getElementById('rewardCustomMessageInput')?.value || '').trim() || null;
   const editId = document.getElementById('editRewardId').value;
 
   if (!name) {
@@ -6659,6 +6763,8 @@ async function saveRewardUI() {
     rewardId: rewardIdFromHelix,
     rewardName: name,
     action,
+    voiceId: action === 'tts' ? voiceId : null,
+    customMessage: action === 'tts' ? customMessage : null,
     soundUrl: action === 'sound' ? soundUrl : null,
     enabled: true
   };
@@ -6727,6 +6833,10 @@ async function saveRewardUI() {
   }
   const quickSel = document.getElementById('rewardQuickSelect');
   if (quickSel) quickSel.value = '';
+  const voiceSel = document.getElementById('rewardVoiceSelect');
+  if (voiceSel) voiceSel.value = '';
+  const customMsgInput = document.getElementById('rewardCustomMessageInput');
+  if (customMsgInput) customMsgInput.value = '';
 
   showToast(`Recompensa "${name}" guardada`, 'success');
 }
@@ -6763,6 +6873,12 @@ async function editReward(rewardId) {
 
   document.getElementById('rewardActionSelect').value = r.action;
   handleRewardActionChange(r.action);
+
+  if (r.action === 'tts') {
+    populateRewardVoicesSelect(r.voiceId || r.voice || '');
+    const msgInput = document.getElementById('rewardCustomMessageInput');
+    if (msgInput) msgInput.value = r.customMessage || '';
+  }
 
   if (r.soundUrl) {
     const soundSel = document.getElementById('rewardSoundSelect');
@@ -6830,15 +6946,50 @@ async function testReward(rewardId) {
 
   showToast(`Probando canje: ${r.rewardName}...`, 'info');
 
+  const currentCfg = (typeof appConfig !== 'undefined' && appConfig) ? appConfig : {};
+  const activeUser = currentCfg.streamerUser || currentCfg.twitch?.channel || 'Streamer';
+  const ttsCfg = currentCfg.tts || {};
+
   if (r.action === 'tts') {
-    const testText = '¡Hola streamer! Este es un mensaje de prueba de voz TTS.';
+    const rawTemplate = (r.customMessage || '').trim() || '¡{user} ha canjeado {recompensa}!';
+    const testText = rawTemplate
+      .replace(/\{user\}|\{usuario\}|\{name\}/gi, 'EspectadorVIP')
+      .replace(/\{message\}|\{mensaje\}|\{input\}|\{texto\}/gi, '¡Muchas gracias por el stream!')
+      .replace(/\{reward\}|\{recompensa\}/gi, r.rewardName || 'Recompensa')
+      .trim();
+
+    const selectedVoice = r.voiceId || r.voice || ttsCfg.voice || 'es_mx_mia';
+
+    // 1. Enviar al backend vía API
+    try {
+      await fetch('/api/tts/test', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          text: testText,
+          user: 'EspectadorVIP',
+          voice: selectedVoice,
+          room: activeUser,
+          channel: activeUser
+        })
+      });
+    } catch (e) { }
+
+    // 2. Broadcast local para widgets en navegador
+    const audioUrl = getTTSAudioUrl(testText, selectedVoice);
     broadcastEvent('tts', {
-      user: 'VisorDePrueba',
+      id: 'tts_reward_' + Date.now(),
+      user: 'EspectadorVIP',
       text: testText,
-      source: 'channel_points',
-      audioUrl: `https://api.streamelements.com/kappa/v2/speech?voice=Mia&text=${encodeURIComponent(testText)}`
+      voice: selectedVoice,
+      volume: Number(ttsCfg.volume !== undefined ? ttsCfg.volume : 90) / 100,
+      rate: Number(ttsCfg.rate || 1.0),
+      pitch: Number(ttsCfg.pitch || 1.0),
+      audioUrl: audioUrl,
+      source: 'channel_points'
     });
-    // No emitir alerta visual para TTS
+
+    showToast(`🗣️ Reproduciendo TTS con voz "${selectedVoice}" en OBS`, 'success');
   } else if (r.action === 'song_request') {
     await fetch('/api/sr/add', {
       method: 'POST',
@@ -6856,6 +7007,76 @@ async function testReward(rewardId) {
     previewSound(r.soundUrl || './assets/sounds/airhorn.mp3');
   }
 }
+
+async function testTtsRewardLive() {
+  const currentCfg = (typeof appConfig !== 'undefined' && appConfig) ? appConfig : {};
+  const activeUser = currentCfg.streamerUser || currentCfg.twitch?.channel || 'Streamer';
+  const ttsCfg = currentCfg.tts || {};
+  const voice = ttsCfg.voice || 'es_mx_mia';
+  const testText = '¡Prueba de voz en OBS! El sistema de Puntos de Canal y TTS está funcionando correctamente.';
+
+  showToast('🗣️ Enviando prueba de voz TTS a OBS...', 'info');
+
+  try {
+    await fetch('/api/tts/test', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        text: testText,
+        user: activeUser,
+        voice: voice,
+        room: activeUser,
+        channel: activeUser
+      })
+    });
+  } catch (e) { }
+
+  const audioUrl = getTTSAudioUrl(testText, voice);
+  broadcastEvent('tts', {
+    id: 'tts_test_' + Date.now(),
+    user: activeUser,
+    text: testText,
+    voice: voice,
+    volume: Number(ttsCfg.volume !== undefined ? ttsCfg.volume : 90) / 100,
+    rate: Number(ttsCfg.rate || 1.0),
+    pitch: Number(ttsCfg.pitch || 1.0),
+    audioUrl: audioUrl,
+    source: 'test'
+  });
+  showToast('✅ Prueba de TTS enviada a OBS', 'success');
+}
+window.testTtsRewardLive = testTtsRewardLive;
+
+async function testAlertRewardLive() {
+  const currentCfg = (typeof appConfig !== 'undefined' && appConfig) ? appConfig : {};
+  const activeUser = currentCfg.streamerUser || currentCfg.twitch?.channel || 'Streamer';
+
+  showToast('🔔 Enviando alerta de prueba a OBS...', 'info');
+  try {
+    await fetch('/api/alert/test', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        type: 'channel_points',
+        user: 'EspectadorVIP',
+        reward: 'Hidrátate',
+        message: '¡Tómate un vaso de agua!',
+        room: activeUser,
+        channel: activeUser
+      })
+    });
+  } catch (e) { }
+
+  broadcastEvent('alert', {
+    type: 'channel_points',
+    user: 'EspectadorVIP',
+    reward: 'Hidrátate',
+    message: '¡Tómate un vaso de agua!'
+  });
+  showToast('✅ Alerta de prueba enviada a OBS', 'success');
+}
+window.testAlertRewardLive = testAlertRewardLive;
+
 
 // ================= AUTO-SAVE SYSTEM =================
 let autoSaveTimer = null;

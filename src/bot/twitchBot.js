@@ -641,10 +641,13 @@ class TwitchBot {
       }
     }
 
-    // Si la recompensa requiere texto del usuario (Song Request o TTS) y viene vacía
+    // Si la recompensa requiere texto del usuario (Song Request o TTS sin plantilla fija) y viene vacía
     // (típico del evento USERNOTICE que Twitch dispara antes del mensaje de chat),
     // NO registramos deduplicación ni ejecutamos nada: esperamos al evento PRIVMSG del chat.
-    const isTextAction = matchedReward && (matchedReward.action === 'song_request' || matchedReward.action === 'tts');
+    const isTextAction = matchedReward && (
+      matchedReward.action === 'song_request' || 
+      (matchedReward.action === 'tts' && !matchedReward.customMessage)
+    );
     const cleanMsg = (message || '').trim();
     if (isTextAction && !cleanMsg) {
       console.log(`[TwitchBot] ⏳ Canje de "${matchedReward.rewardName}" detectado sin texto aún. Esperando mensaje del espectador...`);
@@ -670,16 +673,34 @@ class TwitchBot {
         });
         return;
       } else if (matchedReward.action === 'tts') {
-        const ttsText = cleanMsg;
+        let ttsText = (matchedReward.customMessage || '').trim();
         if (ttsText) {
+          ttsText = ttsText
+            .replace(/\{user\}|\{usuario\}|\{name\}/gi, username)
+            .replace(/\{message\}|\{mensaje\}|\{input\}|\{texto\}/gi, cleanMsg || '')
+            .replace(/\{reward\}|\{recompensa\}/gi, matchedReward.rewardName || 'Recompensa')
+            .trim();
+        } else {
+          ttsText = cleanMsg || `¡${username} ha canjeado ${matchedReward.rewardName}!`;
+        }
+
+        if (ttsText) {
+          const selectedVoice = matchedReward.voiceId || matchedReward.voice || null;
           ttsService.processRequest({
             user: username,
             text: ttsText,
+            voiceOverride: selectedVoice,
             source: 'channel_points',
             channel: channel ? channel.toLowerCase().replace(/^#/, '') : null
           });
         }
-        // No emitir alerta visual de widget para canjes de TTS: solo lee el mensaje
+
+        this.broadcast('alert', {
+          type: 'channel_points',
+          user: username,
+          reward: matchedReward.rewardName || 'Puntos de Canal',
+          message: ttsText
+        });
         return;
       } else if (matchedReward.action === 'song_request') {
         const srCfg = storage.getConfig().songRequest;

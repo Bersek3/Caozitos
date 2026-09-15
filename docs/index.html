@@ -1579,6 +1579,57 @@
 
         <!-- ================= TAB 6: PUNTOS DE CANAL ================= -->
         <section id="tab-points" class="tab-pane">
+          <!-- Widget Link para OBS Studio en Puntos de Canal -->
+          <div class="card" style="margin-bottom: 24px; border: 1.5px solid rgba(0, 242, 254, 0.4); background: radial-gradient(circle at top left, rgba(0, 242, 254, 0.08), rgba(13, 17, 23, 0.95));">
+            <div class="card-header" style="border-bottom: 1px solid rgba(0, 242, 254, 0.2); padding-bottom: 14px;">
+              <div style="display: flex; align-items: center; gap: 10px;">
+                <span style="font-size: 22px;">🔌</span>
+                <div>
+                  <span class="card-title" style="color: #ffffff; font-size: 16px;">Widgets para OBS Studio (Puntos de Canal y TTS)</span>
+                  <div style="font-size: 12px; color: #94a3b8; margin-top: 2px;">Agrega estos enlaces como <strong>Fuentes de Navegador</strong> en OBS Studio para que las alertas y voces de IA se escuchen y vean en directo.</div>
+                </div>
+              </div>
+              <div style="display: flex; gap: 8px;">
+                <button type="button" class="btn btn-secondary btn-sm" onclick="testTtsRewardLive()" title="Probar envío de TTS a OBS">🗣️ Probar TTS</button>
+                <button type="button" class="btn btn-secondary btn-sm" onclick="testAlertRewardLive()" title="Probar alerta visual en OBS">🔔 Probar Alerta</button>
+              </div>
+            </div>
+
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 16px; margin-top: 14px;">
+              <!-- Widget TTS Audio -->
+              <div style="background: rgba(0,0,0,0.35); border: 1px solid rgba(145, 70, 255, 0.3); border-radius: 10px; padding: 14px;">
+                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
+                  <strong style="font-size: 13px; color: #c084fc; display: flex; align-items: center; gap: 6px;">
+                    <span>🗣️</span> Widget de Audio TTS (Voces de IA)
+                  </strong>
+                  <span style="font-size: 10px; background: rgba(145, 70, 255, 0.2); color: #e9d5ff; padding: 2px 8px; border-radius: 4px; font-weight: 700;">Audio OBS</span>
+                </div>
+                <div style="display: flex; gap: 8px;">
+                  <input type="password" id="urlPointsTtsWidget" class="form-control" readonly style="font-size: 12px; font-family: monospace; background: #07090e;">
+                  <button type="button" class="btn btn-secondary btn-sm" onclick="toggleWidgetUrlVisibility('urlPointsTtsWidget', this)" title="Mostrar / Ocultar">👁️</button>
+                  <button type="button" class="btn btn-primary btn-sm" onclick="copyWidgetUrl('urlPointsTtsWidget')" title="Copiar URL">📋 Copiar</button>
+                  <a id="btnPreviewPointsTts" href="overlays/tts.html" target="_blank" class="btn btn-secondary btn-sm" title="Abrir y visualizar en el navegador">🌐 Abrir</a>
+                </div>
+              </div>
+
+              <!-- Widget Alertas Visuales -->
+              <div style="background: rgba(0,0,0,0.35); border: 1px solid rgba(0, 242, 254, 0.3); border-radius: 10px; padding: 14px;">
+                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
+                  <strong style="font-size: 13px; color: #38bdf8; display: flex; align-items: center; gap: 6px;">
+                    <span>🔔</span> Widget de Alertas y Sonidos
+                  </strong>
+                  <span style="font-size: 10px; background: rgba(0, 242, 254, 0.2); color: #bae6fd; padding: 2px 8px; border-radius: 4px; font-weight: 700;">Visual + Audio</span>
+                </div>
+                <div style="display: flex; gap: 8px;">
+                  <input type="password" id="urlPointsAlertsWidget" class="form-control" readonly style="font-size: 12px; font-family: monospace; background: #07090e;">
+                  <button type="button" class="btn btn-secondary btn-sm" onclick="toggleWidgetUrlVisibility('urlPointsAlertsWidget', this)" title="Mostrar / Ocultar">👁️</button>
+                  <button type="button" class="btn btn-primary btn-sm" onclick="copyWidgetUrl('urlPointsAlertsWidget')" title="Copiar URL">📋 Copiar</button>
+                  <a id="btnPreviewPointsAlerts" href="overlays/alerts.html" target="_blank" class="btn btn-secondary btn-sm" title="Abrir y visualizar en el navegador">🌐 Abrir</a>
+                </div>
+              </div>
+            </div>
+          </div>
+
           <div class="grid-2" style="margin-bottom: 24px;">
             <!-- Gestor de Recompensas -->
             <div class="card">
@@ -1593,8 +1644,7 @@
               </div>
 
               <p style="font-size: 13px; color: var(--text-secondary); margin-bottom: 16px;">
-                Crea recompensas en tu panel de Twitch que requieran texto del espectador. OrbiBot las detectará
-                automáticamente y ejecutará su acción en stream:
+                Crea recompensas en tu panel de Twitch. OrbiBot las detectará automáticamente y ejecutará su acción y voz de IA en stream:
               </p>
 
               <!-- Formulario de Recompensa (Oculto / Toggle) -->
@@ -1636,7 +1686,7 @@
                     </label>
                     <input type="text" id="rewardNameInput" class="form-control"
                       style="font-size: 14px; font-weight: 600; color: #ffffff; background: #070a12; border: 1.5px solid var(--primary-purple); padding: 10px 14px; border-radius: 8px;"
-                      placeholder="Escribe o edita el nombre exacto de Twitch (ej: Canción VIP, Voz TTS)..."
+                      placeholder="Escribe o edita el nombre exacto de Twitch (ej: Hidrátate, Canción VIP, Voz TTS)..."
                       autocomplete="off">
                     <datalist id="twitchRewardsDatalist"></datalist>
                     <!-- Contenedor flotante de sugerencias -->
@@ -1656,10 +1706,37 @@
                 <div class="form-group">
                   <label class="form-label" style="font-weight: 600; color: #ffffff;">⚡ Acción a Ejecutar en Stream</label>
                   <select id="rewardActionSelect" class="form-control" onchange="handleRewardActionChange(this.value)" style="font-size: 13.5px;">
-                    <option value="tts">🗣️ Voz TTS (Lee en voz alta en OBS el texto que escriba el espectador)</option>
+                    <option value="tts">🗣️ Voz TTS de IA (Lee en voz alta en OBS con voz y mensaje personalizado)</option>
                     <option value="song_request">🎶 Pedir Canción (Prioridad VIP: entra en puesto #1 de la cola de música)</option>
                     <option value="sound">🔊 Efecto de Sonido Personalizado (Reproduce un audio en OBS Studio)</option>
                   </select>
+                </div>
+
+                <!-- Grupo de Configuración TTS de IA (Voz + Mensaje Personalizado) -->
+                <div class="form-group" id="rewardTtsGroup" style="background: rgba(145, 70, 255, 0.08); padding: 16px; border-radius: 10px; border: 1.5px solid rgba(145, 70, 255, 0.35); margin-bottom: 16px;">
+                  <label class="form-label" style="font-weight: 700; color: #ffffff; font-size: 13.5px; display: flex; align-items: center; gap: 8px; margin-bottom: 10px;">
+                    <span>🤖 Voz de IA para esta Recompensa</span>
+                  </label>
+                  <div style="margin-bottom: 12px;">
+                    <select id="rewardVoiceSelect" class="form-control" style="font-size: 13.5px; background: #070a12; color: #fff; border: 1px solid rgba(145, 70, 255, 0.5);">
+                      <option value="">✨ -- Voz predeterminada del bot --</option>
+                    </select>
+                  </div>
+
+                  <label class="form-label" style="font-weight: 700; color: #ffffff; font-size: 13.5px; display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px;">
+                    <span>💬 Mensaje de Voz Personalizado (Plantilla)</span>
+                    <span style="font-size: 11px; font-weight: 600; color: #a855f7;">Opcional</span>
+                  </label>
+                  <textarea id="rewardCustomMessageInput" class="form-control" rows="2" style="font-size: 13.5px; background: #070a12; color: #fff; border: 1px solid rgba(145, 70, 255, 0.5);" placeholder="Ej: ¡{user} ha canjeado Hidrátate! Tómate un vaso de agua ahora mismo."></textarea>
+                  
+                  <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px; margin-top: 8px;">
+                    <div style="font-size: 11.5px; color: #94a3b8;">
+                      Variables: <code style="color: #38bdf8; background: rgba(0,242,254,0.1); padding: 2px 6px; border-radius: 4px;">{user}</code> (usuario) • <code style="color: #38bdf8; background: rgba(0,242,254,0.1); padding: 2px 6px; border-radius: 4px;">{mensaje}</code> (texto escrito por espectador)
+                    </div>
+                    <button type="button" class="btn btn-secondary btn-sm" onclick="previewRewardTTS()" style="font-size: 12px; padding: 4px 12px; display: inline-flex; align-items: center; gap: 6px;">
+                      🔊 Probar Voz
+                    </button>
+                  </div>
                 </div>
 
                 <div class="form-group" id="rewardSoundGroup" style="display: none; background: rgba(0,0,0,0.25); padding: 12px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.1);">
