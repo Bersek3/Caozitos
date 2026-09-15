@@ -1,5 +1,18 @@
 [
   {
+    "id": "tts_cmd_1789437015375_2rhb",
+    "voiceId": "es_auronplay",
+    "name": "Auronplay",
+    "command": "!auron",
+    "permissions": [
+      "todos"
+    ],
+    "enabled": true,
+    "volume": 90,
+    "rate": 1,
+    "pitch": 1
+  },
+  {
     "id": "tts_cmd_1789434880533_tp68",
     "voiceId": "es_maradona",
     "name": "Diego Maradona",

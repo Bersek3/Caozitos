@@ -16,6 +16,7 @@ const VOICE_CATALOG = [
     previewText: 'Hola gente del stream, ¿qué mirás bobo? Andá pa allá.',
     gender: 'male',
     isAI: true,
+    model: 's2.1-pro-free',
     referenceId: 'e3ded66586764591a457fcdaba8a268b',
     sampleAudio: '/assets/sounds/messi_sample.mp3'
   },
@@ -30,6 +31,7 @@ const VOICE_CATALOG = [
     previewText: 'Compatriotas, los saludo a todos en el stream.',
     gender: 'male',
     isAI: true,
+    model: 's2.1-pro-free',
     referenceId: 'b011ad1198284358b766a597f6fdd171',
     sampleAudio: '/assets/sounds/maduro_sample.mp3'
   },
@@ -44,6 +46,7 @@ const VOICE_CATALOG = [
     previewText: 'Esta es la clásica voz que escuchas en todos los videos de TikTok.',
     gender: 'female',
     isAI: true,
+    model: 's2.1-pro-free',
     referenceId: '1505e291ec504760a285fd163a78b5eb',
     sampleAudio: '/assets/sounds/tiktok_sample.mp3'
   },
@@ -58,6 +61,7 @@ const VOICE_CATALOG = [
     previewText: '¡Ouch! ¡Mmm, rosquillas! Hola muchachos del chat.',
     gender: 'male',
     isAI: true,
+    model: 's2.1-pro-free',
     referenceId: '134d19eda4c64cb0b2a84d93e327be3b',
     sampleAudio: '/assets/sounds/homero_sample.mp3'
   },
@@ -72,6 +76,7 @@ const VOICE_CATALOG = [
     previewText: 'Mi libro Luna de Plutón ya está disponible. Te ha hablado Dross y te deseo buenas noches.',
     gender: 'male',
     isAI: true,
+    model: 's2.1-pro-free',
     referenceId: 'd9f0d3d3fe734af6acb5ecc9129bc49a',
     sampleAudio: '/assets/sounds/dross_sample.mp3'
   },
@@ -86,6 +91,7 @@ const VOICE_CATALOG = [
     previewText: 'Ey, Benito en el stream. La noche de anoche fue una noche de locura.',
     gender: 'male',
     isAI: true,
+    model: 's2.1-pro-free',
     referenceId: '9b30f7190dbe49acb731345e70366cf7',
     sampleAudio: '/assets/sounds/badbunny_sample.mp3'
   },
@@ -100,6 +106,7 @@ const VOICE_CATALOG = [
     previewText: '¡Muy buenas criaturitas del señor! Bienvenidos al stream.',
     gender: 'male',
     isAI: true,
+    model: 's2.1-pro-free',
     referenceId: '39382efbc7584d428f0f789d882cd3b8',
     sampleAudio: '/assets/sounds/rubius_sample.mp3'
   },
@@ -114,6 +121,7 @@ const VOICE_CATALOG = [
     previewText: 'Las cosas no pasan por algo, pasan para algo. Saludos a todos en el stream.',
     gender: 'male',
     isAI: true,
+    model: 's2.1-pro-free',
     referenceId: 'dfa5b230c8054f429e434f4a6e9bbdec'
   },
   {
@@ -127,6 +135,7 @@ const VOICE_CATALOG = [
     previewText: '¡Qué hubo pues parceros! Bienvenidos a la transmisión.',
     gender: 'male',
     isAI: true,
+    model: 's2.1-pro-free',
     referenceId: '1e5d99568ab847f499bb1d65be15afd6'
   },
   {
@@ -140,6 +149,7 @@ const VOICE_CATALOG = [
     previewText: '¡Siuuu! Aquí el bicho mandando un saludo a toda la gente del chat.',
     gender: 'male',
     isAI: true,
+    model: 's2.1-pro-free',
     referenceId: '3521525edb80495e9ad276fc86c7a5e9'
   },
   {
@@ -153,6 +163,7 @@ const VOICE_CATALOG = [
     previewText: '¡Hola, soy Goku! ¡Levanten las manos para darme su energía!',
     gender: 'male',
     isAI: true,
+    model: 's2.1-pro-free',
     referenceId: '9f850ee9ada24b20a6866825eaefd3f8'
   },
   {
@@ -166,6 +177,7 @@ const VOICE_CATALOG = [
     previewText: 'Eeee... la pelota no se mancha. Saludos a todo el stream.',
     gender: 'male',
     isAI: true,
+    model: 's2.1-pro-free',
     referenceId: '51f0a7c29e5f4743a84e41250898d293'
   },
   {
@@ -179,6 +191,7 @@ const VOICE_CATALOG = [
     previewText: '¡Esto es una locura! Soy el número uno y nadie me supera.',
     gender: 'male',
     isAI: true,
+    model: 's2.1-pro-free',
     referenceId: '8f23453397d14e4d9a579bad5aab41a8'
   },
   {
@@ -192,6 +205,7 @@ const VOICE_CATALOG = [
     previewText: '¡Illo qué pasa cabeza! Un abrazo muy fuerte pa toda la gente del stream.',
     gender: 'male',
     isAI: true,
+    model: 's2.1-pro-free',
     referenceId: '97582f301e1c4f93a514ceda15e23e26'
   },
   {
@@ -205,6 +219,7 @@ const VOICE_CATALOG = [
     previewText: '¡Hey, muy buenas a todos! Saludos a toda la gente del chat.',
     gender: 'male',
     isAI: true,
+    model: 's2.1-pro-free',
     referenceId: 'cfc4b2bd851a49538201d20205ba9052'
   },
 
