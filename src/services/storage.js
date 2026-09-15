@@ -72,6 +72,94 @@ const DEFAULT_COMMANDS = [];
 
 const DEFAULT_TTS_COMMANDS = [
   {
+    id: 'tts_cmd_auron',
+    voiceId: 'es_auronplay',
+    name: 'Auronplay',
+    command: '!auron',
+    permissions: ['todos'],
+    enabled: true,
+    volume: 90,
+    rate: 1.0,
+    pitch: 1.0
+  },
+  {
+    id: 'tts_cmd_farid',
+    voiceId: 'es_farid',
+    name: 'Farid Dieck',
+    command: '!farid',
+    permissions: ['todos'],
+    enabled: true,
+    volume: 90,
+    rate: 1.0,
+    pitch: 1.0
+  },
+  {
+    id: 'tts_cmd_westcol',
+    voiceId: 'es_westcol',
+    name: 'WestCol',
+    command: '!westcol',
+    permissions: ['todos'],
+    enabled: true,
+    volume: 90,
+    rate: 1.0,
+    pitch: 1.0
+  },
+  {
+    id: 'tts_cmd_cr7',
+    voiceId: 'es_cr7',
+    name: 'Cristiano Ronaldo',
+    command: '!cr7',
+    permissions: ['todos'],
+    enabled: true,
+    volume: 90,
+    rate: 1.0,
+    pitch: 1.0
+  },
+  {
+    id: 'tts_cmd_goku',
+    voiceId: 'es_goku',
+    name: 'Goku (Latino)',
+    command: '!goku',
+    permissions: ['todos'],
+    enabled: true,
+    volume: 90,
+    rate: 1.0,
+    pitch: 1.0
+  },
+  {
+    id: 'tts_cmd_xokas',
+    voiceId: 'es_xokas',
+    name: 'El Xokas',
+    command: '!xokas',
+    permissions: ['todos'],
+    enabled: true,
+    volume: 90,
+    rate: 1.0,
+    pitch: 1.0
+  },
+  {
+    id: 'tts_cmd_illojuan',
+    voiceId: 'es_illojuan',
+    name: 'IlloJuan',
+    command: '!illojuan',
+    permissions: ['todos'],
+    enabled: true,
+    volume: 90,
+    rate: 1.0,
+    pitch: 1.0
+  },
+  {
+    id: 'tts_cmd_maradona',
+    voiceId: 'es_maradona',
+    name: 'Diego Maradona',
+    command: '!maradona',
+    permissions: ['todos'],
+    enabled: true,
+    volume: 90,
+    rate: 1.0,
+    pitch: 1.0
+  },
+  {
     id: 'tts_cmd_messi',
     voiceId: 'es_ar_messi',
     name: 'Lionel Messi',

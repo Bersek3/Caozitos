@@ -192,6 +192,11 @@ async function saveToAllSupabaseScopes(key, value) {
   if (session.email) scopes.add(session.email.toLowerCase().trim());
   if (session.id) scopes.add(session.id);
 
+  if (key === 'voice_catalog') {
+    scopes.add('system');
+    scopes.add('default');
+  }
+
   // Solo asociar al canal de Twitch si fue explícitamente vinculado por este usuario
   const localTwitch = localStorage.getItem('orbibot_twitch_auth');
   if (localTwitch) {
@@ -205,7 +210,7 @@ async function saveToAllSupabaseScopes(key, value) {
     if (chan) scopes.add(chan);
   }
 
-  // NUNCA agregar 'default'
+  // NUNCA agregar 'default' excepto para voice_catalog
 
   const promises = Array.from(scopes).filter(Boolean).map(streamerId => {
     return supabaseClient.from('orbibot_settings').upsert({
@@ -257,7 +262,7 @@ async function loadUserDataFromSupabase(userIdentifier) {
       localStorage.removeItem('orbibot_sr_state');
       localStorage.removeItem('orbibot_current_song');
       localStorage.removeItem('orbibot_song_history');
-      localStorage.removeItem('orbibot_tts_commands');
+      localStorage.setItem('orbibot_tts_commands', JSON.stringify(DEFAULT_TTS_COMMANDS));
       localStorage.removeItem('orbibot_active_tts_voice');
 
       currentSrState = { currentSong: null, queue: [], isPlaying: false, history: [] };
@@ -269,7 +274,7 @@ async function loadUserDataFromSupabase(userIdentifier) {
       bindConfigToUI(freshCfg);
       renderCommands([]);
       renderRewards([]);
-      renderTTSCommands([]);
+      renderTTSCommands(DEFAULT_TTS_COMMANDS);
       if (typeof renderGoals === 'function') renderGoals([]);
       updatePlatformLinkingUI();
       populateWidgetUrls();
@@ -281,7 +286,8 @@ async function loadUserDataFromSupabase(userIdentifier) {
       saveToAllSupabaseScopes('custom_sounds', []).catch(() => {});
       saveToAllSupabaseScopes('custom_images', []).catch(() => {});
       saveToAllSupabaseScopes('sr_state', currentSrState).catch(() => {});
-      saveToAllSupabaseScopes('tts_commands', []).catch(() => {});
+      saveToAllSupabaseScopes('tts_commands', DEFAULT_TTS_COMMANDS).catch(() => {});
+      saveToAllSupabaseScopes('voice_catalog', DEFAULT_VOICE_CATALOG).catch(() => {});
       const myToken = freshCfg?.security?.widgetToken || getEffectiveWidgetToken();
       saveToAllSupabaseScopes('widget_token', myToken).catch(() => {});
       return;
@@ -438,11 +444,22 @@ async function loadUserDataFromSupabase(userIdentifier) {
           }
         }
         if (item.key === 'tts_commands' && Array.isArray(item.value)) {
-          localStorage.setItem('orbibot_tts_commands', JSON.stringify(item.value));
-          cachedTTSCommands = item.value;
+          const cleanCmds = item.value.length > 0 ? item.value : DEFAULT_TTS_COMMANDS;
+          localStorage.setItem('orbibot_tts_commands', JSON.stringify(cleanCmds));
+          cachedTTSCommands = cleanCmds;
           renderTTSCommands(cachedTTSCommands);
         }
+        if (item.key === 'voice_catalog' && Array.isArray(item.value)) {
+          cachedVoiceLibrary = mergeVoiceCatalogs(DEFAULT_VOICE_CATALOG, item.value);
+          localStorage.setItem('orbibot_voice_catalog', JSON.stringify(cachedVoiceLibrary));
+          const searchEl = document.getElementById('voiceLibrarySearch');
+          renderVoiceLibrary(getFilteredVoicesLocal(searchEl ? searchEl.value : '', activeVoiceCategory));
+        }
       });
+      if (!cachedTTSCommands || cachedTTSCommands.length === 0) {
+        cachedTTSCommands = [...DEFAULT_TTS_COMMANDS];
+        renderTTSCommands(cachedTTSCommands);
+      }
       bindConfigToUI(appConfig);
       updatePlatformLinkingUI();
       populateWidgetUrls();
@@ -4275,7 +4292,216 @@ const DEFAULT_VOICE_CATALOG = [
   }
 ];
 
-let cachedTTSCommands = [];
+const DEFAULT_TTS_COMMANDS = [
+  {
+    id: 'tts_cmd_auron',
+    voiceId: 'es_auronplay',
+    name: 'Auronplay',
+    command: '!auron',
+    permissions: ['todos'],
+    enabled: true,
+    volume: 90,
+    rate: 1.0,
+    pitch: 1.0
+  },
+  {
+    id: 'tts_cmd_farid',
+    voiceId: 'es_farid',
+    name: 'Farid Dieck',
+    command: '!farid',
+    permissions: ['todos'],
+    enabled: true,
+    volume: 90,
+    rate: 1.0,
+    pitch: 1.0
+  },
+  {
+    id: 'tts_cmd_westcol',
+    voiceId: 'es_westcol',
+    name: 'WestCol',
+    command: '!westcol',
+    permissions: ['todos'],
+    enabled: true,
+    volume: 90,
+    rate: 1.0,
+    pitch: 1.0
+  },
+  {
+    id: 'tts_cmd_cr7',
+    voiceId: 'es_cr7',
+    name: 'Cristiano Ronaldo',
+    command: '!cr7',
+    permissions: ['todos'],
+    enabled: true,
+    volume: 90,
+    rate: 1.0,
+    pitch: 1.0
+  },
+  {
+    id: 'tts_cmd_goku',
+    voiceId: 'es_goku',
+    name: 'Goku (Latino)',
+    command: '!goku',
+    permissions: ['todos'],
+    enabled: true,
+    volume: 90,
+    rate: 1.0,
+    pitch: 1.0
+  },
+  {
+    id: 'tts_cmd_xokas',
+    voiceId: 'es_xokas',
+    name: 'El Xokas',
+    command: '!xokas',
+    permissions: ['todos'],
+    enabled: true,
+    volume: 90,
+    rate: 1.0,
+    pitch: 1.0
+  },
+  {
+    id: 'tts_cmd_illojuan',
+    voiceId: 'es_illojuan',
+    name: 'IlloJuan',
+    command: '!illojuan',
+    permissions: ['todos'],
+    enabled: true,
+    volume: 90,
+    rate: 1.0,
+    pitch: 1.0
+  },
+  {
+    id: 'tts_cmd_maradona',
+    voiceId: 'es_maradona',
+    name: 'Diego Maradona',
+    command: '!maradona',
+    permissions: ['todos'],
+    enabled: true,
+    volume: 90,
+    rate: 1.0,
+    pitch: 1.0
+  },
+  {
+    id: 'tts_cmd_messi',
+    voiceId: 'es_ar_messi',
+    name: 'Lionel Messi',
+    command: '!messi',
+    permissions: ['todos'],
+    enabled: true,
+    volume: 90,
+    rate: 0.98,
+    pitch: 0.78
+  },
+  {
+    id: 'tts_cmd_homero',
+    voiceId: 'es_mx_homero',
+    name: 'Homero Simpson',
+    command: '!homero',
+    permissions: ['todos'],
+    enabled: true,
+    volume: 90,
+    rate: 0.92,
+    pitch: 0.85
+  },
+  {
+    id: 'tts_cmd_dross',
+    voiceId: 'es_dross',
+    name: 'Dross Rotzank',
+    command: '!dross',
+    permissions: ['todos'],
+    enabled: true,
+    volume: 90,
+    rate: 0.95,
+    pitch: 0.7
+  },
+  {
+    id: 'tts_cmd_badbunny',
+    voiceId: 'es_badbunny',
+    name: 'Bad Bunny',
+    command: '!badbunny',
+    permissions: ['todos'],
+    enabled: true,
+    volume: 90,
+    rate: 0.95,
+    pitch: 0.75
+  },
+  {
+    id: 'tts_cmd_rubius',
+    voiceId: 'es_rubius',
+    name: 'ElRubius',
+    command: '!rubius',
+    permissions: ['todos'],
+    enabled: true,
+    volume: 90,
+    rate: 1.05,
+    pitch: 1.05
+  },
+  {
+    id: 'tts_cmd_maduro',
+    voiceId: 'es_ve_maduro',
+    name: 'Nicolás Maduro',
+    command: '!maduro',
+    permissions: ['todos'],
+    enabled: true,
+    volume: 90,
+    rate: 0.95,
+    pitch: 0.72
+  },
+  {
+    id: 'tts_cmd_tiktok',
+    voiceId: 'es_tiktok',
+    name: 'Voz TikTok',
+    command: '!tiktok',
+    permissions: ['todos'],
+    enabled: true,
+    volume: 90,
+    rate: 1.05,
+    pitch: 1.2
+  },
+  {
+    id: 'tts_cmd_mia',
+    voiceId: 'es_mx_mia',
+    name: 'Mia (Español Latino)',
+    command: '!mia',
+    permissions: ['todos'],
+    enabled: true,
+    volume: 90,
+    rate: 1.0,
+    pitch: 1.15
+  },
+  {
+    id: 'tts_cmd_brian',
+    voiceId: 'en_brian',
+    name: 'Brian (English Classic)',
+    command: '!brian',
+    permissions: ['todos'],
+    enabled: true,
+    volume: 90,
+    rate: 0.95,
+    pitch: 0.7
+  }
+];
+
+function mergeVoiceCatalogs(primaryList = [], secondaryList = []) {
+  const map = new Map();
+  for (const v of primaryList) {
+    if (v && v.id) map.set(v.id.toLowerCase().trim(), { ...v });
+  }
+  for (const v of secondaryList) {
+    if (v && v.id) {
+      const key = v.id.toLowerCase().trim();
+      const existing = map.get(key);
+      if (existing) {
+        map.set(key, { ...existing, ...v });
+      } else {
+        map.set(key, { ...v });
+      }
+    }
+  }
+  return Array.from(map.values());
+}
+
+let cachedTTSCommands = [...DEFAULT_TTS_COMMANDS];
 let cachedVoiceLibrary = [...DEFAULT_VOICE_CATALOG];
 let activeVoiceCategory = 'popular';
 let activeTTSPreviewAudio = null;
@@ -4352,7 +4578,10 @@ async function loadTTSCommands() {
   try {
     const res = await fetch('/api/tts/commands');
     if (res.ok) {
-      cachedTTSCommands = await res.json();
+      const data = await res.json();
+      if (Array.isArray(data) && data.length > 0) {
+        cachedTTSCommands = data;
+      }
     }
   } catch (err) {
     console.warn('Error loading TTS commands from API:', err);
@@ -4361,8 +4590,17 @@ async function loadTTSCommands() {
   if (!cachedTTSCommands || cachedTTSCommands.length === 0) {
     try {
       const local = localStorage.getItem('orbibot_tts_commands');
-      if (local) cachedTTSCommands = JSON.parse(local);
+      if (local) {
+        const parsed = JSON.parse(local);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          cachedTTSCommands = parsed;
+        }
+      }
     } catch (e) { }
+  }
+
+  if (!cachedTTSCommands || cachedTTSCommands.length === 0) {
+    cachedTTSCommands = [...DEFAULT_TTS_COMMANDS];
   }
 
   renderTTSCommands(cachedTTSCommands);
@@ -4373,7 +4611,9 @@ function renderTTSCommands(commands) {
   const countBadge = document.getElementById('ttsCmdCountBadge');
   if (!container) return;
 
-  if (!Array.isArray(commands)) commands = [];
+  if (!Array.isArray(commands) || commands.length === 0) {
+    commands = [...DEFAULT_TTS_COMMANDS];
+  }
   cachedTTSCommands = commands;
 
   try {
@@ -4417,7 +4657,6 @@ function renderTTSCommands(commands) {
     const isVip = permissions.includes('vip');
     const isSub = permissions.includes('sub');
     const isMod = permissions.includes('mod');
-    const avatar = cmd.avatar || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=120&auto=format&fit=crop&q=80';
 
     return `
       <div class="tts-cmd-row ${isEnabled ? '' : 'disabled'}" id="row_${cmd.id}" data-id="${cmd.id}">
@@ -4466,7 +4705,7 @@ function renderTTSCommands(commands) {
 }
 
 function getFilteredVoicesLocal(query = '', category = 'all') {
-  let list = (cachedVoiceLibrary && cachedVoiceLibrary.length > 0) ? cachedVoiceLibrary : DEFAULT_VOICE_CATALOG;
+  let list = mergeVoiceCatalogs(DEFAULT_VOICE_CATALOG, cachedVoiceLibrary || []);
   if (category && category !== 'all') {
     if (category === 'popular' || category === 'populares') {
       list = list.filter(v => (v.tags && v.tags.includes('popular')) || (v.stats && v.stats.uses && (v.stats.uses.includes('M') || parseInt(v.stats.uses) >= 300)));
@@ -4496,24 +4735,43 @@ async function loadVoiceLibrary(query = '', category = 'all') {
   const countBadge = document.getElementById('voiceLibraryTotalCount');
   if (!grid) return;
 
-  // 1. Mostrar de inmediato la lista filtrada local/por defecto (garantiza que Auronplay y todas las voces aparezcan siempre)
+  // 1. Mostrar de inmediato la lista filtrada combinando catálogo por defecto
+  cachedVoiceLibrary = mergeVoiceCatalogs(DEFAULT_VOICE_CATALOG, cachedVoiceLibrary);
   const localList = getFilteredVoicesLocal(query, category);
   if (countBadge) {
     countBadge.innerText = `${localList.length} voces`;
   }
   renderVoiceLibrary(localList);
 
-  // 2. Si hay servidor Node backend disponible, refrescar
+  // 2. Si hay cliente Supabase disponible, consultar voice_catalog directamente de la base de datos
+  if (supabaseClient) {
+    try {
+      const { data, error } = await supabaseClient
+        .from('orbibot_settings')
+        .select('value')
+        .eq('key', 'voice_catalog')
+        .limit(1);
+      if (!error && data && data.length > 0 && Array.isArray(data[0].value) && data[0].value.length > 0) {
+        cachedVoiceLibrary = mergeVoiceCatalogs(DEFAULT_VOICE_CATALOG, data[0].value);
+        const filtered = getFilteredVoicesLocal(query, category);
+        if (countBadge) countBadge.innerText = `${filtered.length} voces`;
+        renderVoiceLibrary(filtered);
+      }
+    } catch (e) { }
+  }
+
+  // 3. Si hay servidor Node backend disponible, refrescar
   try {
     const res = await fetch(`/api/tts/library?q=${encodeURIComponent(query)}&category=${encodeURIComponent(category)}`);
     if (res.ok) {
       const data = await res.json();
       if (Array.isArray(data.voices) && data.voices.length > 0) {
-        cachedVoiceLibrary = data.voices;
+        cachedVoiceLibrary = mergeVoiceCatalogs(DEFAULT_VOICE_CATALOG, data.voices);
+        const filtered = getFilteredVoicesLocal(query, category);
         if (countBadge) {
-          countBadge.innerText = `${data.total || data.voices.length} voces`;
+          countBadge.innerText = `${data.total || filtered.length} voces`;
         }
-        renderVoiceLibrary(data.voices);
+        renderVoiceLibrary(filtered);
       }
     }
   } catch (err) {

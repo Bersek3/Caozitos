@@ -1053,6 +1053,7 @@ app.get('/api/tts/voices', (req, res) => {
 app.get('/api/tts/library', (req, res) => {
   const query = (req.query.q || '').toString();
   const category = (req.query.category || 'all').toString();
+  storage.getVoiceCatalog();
   const voices = voiceCatalog.searchVoices(query, category);
   res.json({
     success: true,
