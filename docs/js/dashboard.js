@@ -2436,6 +2436,13 @@ async function handleBrowserChannelPointRedemption(customRewardId, username, mes
       }
       if (!textToSpeak) return;
 
+      // Si el servidor backend está activo, el servidor ya procesa el TTS
+      // No emitir desde el navegador para evitar doble reproducción en OBS
+      if (socket && socket.readyState === 1) {
+        console.log('[Dashboard] Canje de TTS procesado por el bot del servidor.');
+        return;
+      }
+
       const ttsData = {
         id: 'tts_' + Date.now(),
         user: username,
@@ -2448,12 +2455,6 @@ async function handleBrowserChannelPointRedemption(customRewardId, username, mes
         timestamp: Date.now()
       };
       broadcastEvent('tts', ttsData);
-      broadcastEvent('alert', {
-        type: 'channel_points',
-        user: username,
-        reward: matchedReward.rewardName || 'Puntos de Canal',
-        message: textToSpeak
-      });
       return;
     } else if (matchedReward.action === 'song_request') {
       const songQuery = cleanMsg;
@@ -7098,8 +7099,9 @@ async function testReward(rewardId) {
     const selectedVoice = r.voiceId || r.voice || ttsCfg.voice || 'es_mx_mia';
 
     // 1. Enviar al backend vía API
+    let sentToBackend = false;
     try {
-      await fetch('/api/tts/test', {
+      const res = await fetch('/api/tts/test', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -7110,21 +7112,24 @@ async function testReward(rewardId) {
           channel: activeUser
         })
       });
+      if (res.ok) sentToBackend = true;
     } catch (e) { }
 
-    // 2. Broadcast local para widgets en navegador
-    const audioUrl = getTTSAudioUrl(testText, selectedVoice);
-    broadcastEvent('tts', {
-      id: 'tts_reward_' + Date.now(),
-      user: 'EspectadorVIP',
-      text: testText,
-      voice: selectedVoice,
-      volume: Number(ttsCfg.volume !== undefined ? ttsCfg.volume : 90) / 100,
-      rate: Number(ttsCfg.rate || 1.0),
-      pitch: Number(ttsCfg.pitch || 1.0),
-      audioUrl: audioUrl,
-      source: 'channel_points'
-    });
+    // 2. Broadcast local para widgets en navegador solo si el backend no respondió
+    if (!sentToBackend) {
+      const audioUrl = getTTSAudioUrl(testText, selectedVoice);
+      broadcastEvent('tts', {
+        id: 'tts_reward_' + Date.now(),
+        user: 'EspectadorVIP',
+        text: testText,
+        voice: selectedVoice,
+        volume: Number(ttsCfg.volume !== undefined ? ttsCfg.volume : 90) / 100,
+        rate: Number(ttsCfg.rate || 1.0),
+        pitch: Number(ttsCfg.pitch || 1.0),
+        audioUrl: audioUrl,
+        source: 'channel_points'
+      });
+    }
 
     showToast(`🗣️ Reproduciendo TTS con voz "${selectedVoice}" en OBS`, 'success');
   } else if (r.action === 'song_request') {
@@ -7154,8 +7159,9 @@ async function testTtsRewardLive() {
 
   showToast('🗣️ Enviando prueba de voz TTS a OBS...', 'info');
 
+  let sentToBackend = false;
   try {
-    await fetch('/api/tts/test', {
+    const res = await fetch('/api/tts/test', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -7166,20 +7172,23 @@ async function testTtsRewardLive() {
         channel: activeUser
       })
     });
+    if (res.ok) sentToBackend = true;
   } catch (e) { }
 
-  const audioUrl = getTTSAudioUrl(testText, voice);
-  broadcastEvent('tts', {
-    id: 'tts_test_' + Date.now(),
-    user: activeUser,
-    text: testText,
-    voice: voice,
-    volume: Number(ttsCfg.volume !== undefined ? ttsCfg.volume : 90) / 100,
-    rate: Number(ttsCfg.rate || 1.0),
-    pitch: Number(ttsCfg.pitch || 1.0),
-    audioUrl: audioUrl,
-    source: 'test'
-  });
+  if (!sentToBackend) {
+    const audioUrl = getTTSAudioUrl(testText, voice);
+    broadcastEvent('tts', {
+      id: 'tts_test_' + Date.now(),
+      user: activeUser,
+      text: testText,
+      voice: voice,
+      volume: Number(ttsCfg.volume !== undefined ? ttsCfg.volume : 90) / 100,
+      rate: Number(ttsCfg.rate || 1.0),
+      pitch: Number(ttsCfg.pitch || 1.0),
+      audioUrl: audioUrl,
+      source: 'test'
+    });
+  }
   showToast('✅ Prueba de TTS enviada a OBS', 'success');
 }
 window.testTtsRewardLive = testTtsRewardLive;

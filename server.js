@@ -1252,7 +1252,16 @@ app.get('/api/tts/audio', async (req, res) => {
       'davo_xeneize': '51ea54dc9b7d46b49a58918742c1a2cd'
     };
 
-    const fishRefId = FISH_MODELS[voice];
+    let fishRefId = FISH_MODELS[voice];
+    if (!fishRefId) {
+      try {
+        const voiceCatalog = require('./src/services/voiceCatalog');
+        const dbVoice = voiceCatalog.getVoiceById(voice);
+        if (dbVoice && (dbVoice.referenceId || dbVoice.isAI)) {
+          fishRefId = dbVoice.referenceId;
+        }
+      } catch (e) { }
+    }
     if (fishRefId) {
       const config = storage.getConfig();
       const fishApiKey = config.tts?.fishApiKey || process.env.FISH_AUDIO_API_KEY || 'sk-fish-rOpXPwPZLXZAk5SPYaeSKBue6QfPM3l4i6Q3VG8ZbGI';

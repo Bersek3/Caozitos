@@ -723,13 +723,6 @@ class TwitchBot {
             channel: activeChannel ? activeChannel.toLowerCase().replace(/^#/, '') : null
           });
         }
-
-        this.broadcast('alert', {
-          type: 'channel_points',
-          user: username,
-          reward: matchedReward.rewardName || 'Puntos de Canal',
-          message: ttsText
-        });
         return;
       } else if (matchedReward.action === 'song_request') {
         const srCfg = storage.getConfig().songRequest;

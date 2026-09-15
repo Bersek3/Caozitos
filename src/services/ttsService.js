@@ -290,12 +290,15 @@ class TTSService {
       return { success: false, reason: 'Texto vacío o inválido' };
     }
 
-    // 1. Detección y procesamiento Multi-Voz
-    const multiSegments = this.parseMultiVoiceText(rawText, userBadges);
     let selectedVoice = voiceOverride ? this.normalizeVoice(voiceOverride) : (this.normalizeVoice(config.voice) || 'es_mx_mia');
 
-    if (multiSegments.length > 0 && !voiceOverride) {
-      selectedVoice = multiSegments[0].voice || selectedVoice;
+    // 1. Detección y procesamiento Multi-Voz en chat (solo si no se especificó un voiceOverride directo)
+    let multiSegments = [];
+    if (!voiceOverride) {
+      multiSegments = this.parseMultiVoiceText(rawText, userBadges, selectedVoice);
+      if (multiSegments.length > 0) {
+        selectedVoice = multiSegments[0].voice || selectedVoice;
+      }
     }
 
     const cleanText = this.sanitizeText(rawText, config);
@@ -304,16 +307,17 @@ class TTSService {
     }
 
     // Preparar segmentos procesados
-    const processedSegments = (multiSegments.length > 0 ? multiSegments : [{ voice: selectedVoice, text: cleanText }])
+    const baseSegments = (multiSegments.length > 0) ? multiSegments : [{ voice: selectedVoice, text: cleanText }];
+    const processedSegments = baseSegments
       .map(seg => {
         const cleanSegText = this.sanitizeText(seg.text, config);
-        const normVoice = this.normalizeVoice(seg.voice);
-        const isFish = this.isFishAudioVoice(normVoice);
+        const normVoice = voiceOverride ? selectedVoice : this.normalizeVoice(seg.voice || selectedVoice);
+        const isFishSeg = this.isFishAudioVoice(normVoice);
         return {
           voice: normVoice,
           voiceName: seg.voiceName || (voiceCatalog.getVoiceById(normVoice)?.name || 'Voz'),
           text: cleanSegText,
-          engine: isFish ? 'fish_audio' : 'audio_stream',
+          engine: isFishSeg ? 'fish_audio' : 'audio_stream',
           audioUrl: this.generateAudioUrl(cleanSegText, normVoice)
         };
       })

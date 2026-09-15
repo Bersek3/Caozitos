@@ -1,11 +1,11 @@
 [
   {
-    "id": "reward_test_hidrata",
-    "rewardId": "uuid-hidrata-123",
-    "rewardName": "Hidratate",
+    "id": "reward_messi_test",
+    "rewardId": "uuid-messi-123",
+    "rewardName": "Saludo de Messi",
     "action": "tts",
-    "voiceId": "auronplay",
-    "customMessage": "¡{user} ha canjeado {recompensa}! Tómate un vaso de agua fresquita ahora mismo.",
+    "voiceId": "es_ar_messi",
+    "customMessage": "¡{user} ha canjeado un saludo! Qué mirás bobo, andá pa allá.",
     "enabled": true
   }
 ]
