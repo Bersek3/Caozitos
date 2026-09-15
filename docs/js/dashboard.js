@@ -124,7 +124,9 @@ function clearAllUserLocalData() {
     'orbibot_sr_state',
     'orbibot_current_song',
     'orbibot_song_history',
-    'orbibot_last_event'
+    'orbibot_last_event',
+    'orbibot_tts_commands',
+    'orbibot_active_tts_voice'
   ];
   keysToRemove.forEach(k => localStorage.removeItem(k));
 
@@ -255,6 +257,8 @@ async function loadUserDataFromSupabase(userIdentifier) {
       localStorage.removeItem('orbibot_sr_state');
       localStorage.removeItem('orbibot_current_song');
       localStorage.removeItem('orbibot_song_history');
+      localStorage.removeItem('orbibot_tts_commands');
+      localStorage.removeItem('orbibot_active_tts_voice');
 
       currentSrState = { currentSong: null, queue: [], isPlaying: false, history: [] };
       updateSongRequestUI(currentSrState, false);
@@ -265,6 +269,7 @@ async function loadUserDataFromSupabase(userIdentifier) {
       bindConfigToUI(freshCfg);
       renderCommands([]);
       renderRewards([]);
+      renderTTSCommands([]);
       if (typeof renderGoals === 'function') renderGoals([]);
       updatePlatformLinkingUI();
       populateWidgetUrls();
@@ -276,6 +281,7 @@ async function loadUserDataFromSupabase(userIdentifier) {
       saveToAllSupabaseScopes('custom_sounds', []).catch(() => {});
       saveToAllSupabaseScopes('custom_images', []).catch(() => {});
       saveToAllSupabaseScopes('sr_state', currentSrState).catch(() => {});
+      saveToAllSupabaseScopes('tts_commands', []).catch(() => {});
       const myToken = freshCfg?.security?.widgetToken || getEffectiveWidgetToken();
       saveToAllSupabaseScopes('widget_token', myToken).catch(() => {});
       return;
@@ -430,6 +436,11 @@ async function loadUserDataFromSupabase(userIdentifier) {
             if (!appConfig.security) appConfig.security = {};
             appConfig.security.widgetToken = item.value;
           }
+        }
+        if (item.key === 'tts_commands' && Array.isArray(item.value)) {
+          localStorage.setItem('orbibot_tts_commands', JSON.stringify(item.value));
+          cachedTTSCommands = item.value;
+          renderTTSCommands(cachedTTSCommands);
         }
       });
       bindConfigToUI(appConfig);
@@ -4116,6 +4127,7 @@ async function handleAddVoiceFromLibrary(voiceId, voiceName, defaultCommand, btn
         btnEl.innerHTML = '<i class="fas fa-check"></i> Añadido';
       }
       renderTTSCommands(cachedTTSCommands);
+      saveToAllSupabaseScopes('tts_commands', cachedTTSCommands).catch(() => {});
       showToast(`✨ Voz "${voiceName}" agregada a tus comandos con "${trigger}"`, 'success');
       return;
     }
@@ -4126,6 +4138,7 @@ async function handleAddVoiceFromLibrary(voiceId, voiceName, defaultCommand, btn
   // Fallback local
   cachedTTSCommands.unshift({ ...newCmd, id: 'tts_cmd_' + Date.now() });
   renderTTSCommands(cachedTTSCommands);
+  saveToAllSupabaseScopes('tts_commands', cachedTTSCommands).catch(() => {});
   if (btnEl) {
     btnEl.classList.add('added');
     btnEl.innerHTML = '<i class="fas fa-check"></i> Añadido';
@@ -4158,6 +4171,7 @@ async function handleToggleTTSCommandRole(commandId, role) {
 
   cmd.permissions = permissions;
   renderTTSCommands(cachedTTSCommands);
+  saveToAllSupabaseScopes('tts_commands', cachedTTSCommands).catch(() => {});
 
   try {
     await fetch(`/api/tts/commands/${encodeURIComponent(commandId)}`, {
@@ -4178,6 +4192,7 @@ async function handleToggleTTSCommandEnabled(commandId, isChecked) {
     if (isChecked) row.classList.remove('disabled');
     else row.classList.add('disabled');
   }
+  saveToAllSupabaseScopes('tts_commands', cachedTTSCommands).catch(() => {});
 
   try {
     await fetch(`/api/tts/commands/${encodeURIComponent(commandId)}`, {
@@ -4197,6 +4212,7 @@ async function handleUpdateTTSCommandTrigger(commandId, newTrigger) {
   if (cmd) {
     cmd.command = formatted;
   }
+  saveToAllSupabaseScopes('tts_commands', cachedTTSCommands).catch(() => {});
 
   try {
     await fetch(`/api/tts/commands/${encodeURIComponent(commandId)}`, {
@@ -4215,6 +4231,7 @@ async function handleDeleteTTSCommand(commandId, voiceName) {
 
   cachedTTSCommands = cachedTTSCommands.filter(c => c.id !== commandId);
   renderTTSCommands(cachedTTSCommands);
+  saveToAllSupabaseScopes('tts_commands', cachedTTSCommands).catch(() => {});
 
   try {
     await fetch(`/api/tts/commands/${encodeURIComponent(commandId)}`, {
