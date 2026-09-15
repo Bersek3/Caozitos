@@ -249,7 +249,17 @@
           updateSong(update.data?.current);
         } else if (update.action === 'stop') {
           updateSong(null);
+        } else if (update.action === 'pause') {
+          stopYouTubeVideo();
+        } else if (update.action === 'resume' && update.data?.current) {
+          updateSong(update.data.current);
         }
+      } else if (msg.event === 'sr_play' || msg.event === 'sr_resume') {
+        if (msg.data?.videoId || msg.data?.current?.videoId) {
+          updateSong(msg.data.current || msg.data);
+        }
+      } else if (msg.event === 'sr_pause') {
+        stopYouTubeVideo();
       }
     }
 

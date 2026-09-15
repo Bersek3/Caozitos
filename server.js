@@ -235,6 +235,13 @@ kickBot.onEvent((event, payload) => {
 songRequest.onUpdate((payload) => {
   const room = payload?.channel || payload?.room;
   broadcast('sr_update', payload, room);
+  if (payload.action === 'pause') {
+    broadcast('sr_pause', payload, room);
+  } else if (payload.action === 'resume') {
+    broadcast('sr_resume', payload, room);
+  } else if (payload.action === 'play') {
+    broadcast('sr_play', payload, room);
+  }
 });
 
 ttsService.onTTS((payload) => {
@@ -1022,6 +1029,20 @@ app.post('/api/sr/add', async (req, res) => {
 app.post('/api/sr/skip', (req, res) => {
   const target = req.body.channel || req.body.streamer || req.query.channel || req.headers['x-streamer-id'] || 'default';
   const result = songRequest.skip(target, 'Streamer', true);
+  res.json(result);
+});
+
+app.post('/api/sr/pause', (req, res) => {
+  const target = req.body.channel || req.body.streamer || req.query.channel || req.headers['x-streamer-id'] || 'default';
+  const byUser = req.body.by || req.body.requester || 'Streamer';
+  const result = songRequest.pauseSong(target, byUser);
+  res.json(result);
+});
+
+app.post(['/api/sr/play', '/api/sr/resume'], (req, res) => {
+  const target = req.body.channel || req.body.streamer || req.query.channel || req.headers['x-streamer-id'] || 'default';
+  const byUser = req.body.by || req.body.requester || 'Streamer';
+  const result = songRequest.resumeSong(target, byUser);
   res.json(result);
 });
 

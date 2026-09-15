@@ -314,12 +314,60 @@ class SongRequestService {
     this.emitUpdate('play', song, cleanChan);
   }
 
-  setPlayingState(channelOrUser = 'default', isPlaying) {
+  pauseSong(channelOrUser = 'default', byUser = 'Streamer') {
     const cleanChan = (channelOrUser || 'default').toLowerCase().replace(/^#/, '').trim() || 'default';
     const session = this.getSession(cleanChan);
 
-    session.isPlaying = isPlaying;
-    this.emitUpdate('state_change', { isPlaying }, cleanChan);
+    if (!session.currentSong) {
+      return { success: false, message: 'No hay ninguna canción en reproducción para pausar.' };
+    }
+
+    if (session.isPlaying === false) {
+      return { success: false, message: `La canción ya está pausada: ${session.currentSong.title}` };
+    }
+
+    session.isPlaying = false;
+    this.emitUpdate('pause', { current: session.currentSong, by: byUser }, cleanChan);
+    return {
+      success: true,
+      message: `⏸️ Canción en pausa: ${session.currentSong.title}`,
+      song: session.currentSong
+    };
+  }
+
+  resumeSong(channelOrUser = 'default', byUser = 'Streamer') {
+    const cleanChan = (channelOrUser || 'default').toLowerCase().replace(/^#/, '').trim() || 'default';
+    const session = this.getSession(cleanChan);
+
+    if (session.currentSong) {
+      if (session.isPlaying === true) {
+        return { success: false, message: `La canción ya se está reproduciendo: ${session.currentSong.title}` };
+      }
+      session.isPlaying = true;
+      this.emitUpdate('resume', { current: session.currentSong, by: byUser }, cleanChan);
+      return {
+        success: true,
+        message: `▶️ Reanudando: ${session.currentSong.title}`,
+        song: session.currentSong
+      };
+    }
+
+    // Si no había canción actual pero hay cola, reproducir la primera
+    if (session.queue.length > 0) {
+      session.currentSong = session.queue.shift();
+      session.isPlaying = true;
+      this.emitUpdate('play', session.currentSong, cleanChan);
+      return {
+        success: true,
+        message: `▶️ Reproduciendo ahora: ${session.currentSong.title}`,
+        song: session.currentSong
+      };
+    }
+
+    return {
+      success: false,
+      message: 'No hay canciones en cola para reproducir.'
+    };
   }
 }
 

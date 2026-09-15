@@ -1,6 +1,7 @@
 const WebSocket = require('ws');
 const storage = require('../services/storage');
 const ttsService = require('../services/ttsService');
+const songRequest = require('../services/songRequest');
 
 class KickBot {
   constructor() {
@@ -203,6 +204,102 @@ class KickBot {
         const trimmed = message.trim();
         const firstWord = trimmed.split(' ')[0].toLowerCase();
         const isBroadcaster = badges.some(b => b.type === 'broadcaster');
+        const isModOrBroadcaster = isMod || isBroadcaster;
+        const config = storage.getConfig();
+        const isSrEnabled = config.songRequest && config.songRequest.enabled !== false;
+        const srPrefix = (config.songRequest?.prefix || '!sr').toLowerCase();
+
+        // Comandos de moderación para pausar Song Request en Kick (!srpausa, !srpause, !pausa, !pause)
+        if (firstWord === '!srpausa' || firstWord === '!srpause' || firstWord === '!pausa' || firstWord === '!pause') {
+          if (isSrEnabled) {
+            if (isModOrBroadcaster) {
+              const res = songRequest.pauseSong(this.currentChannel, username);
+              this.sendMessage(res.message);
+            } else {
+              this.sendMessage(`@${username}, solo moderadores y el streamer pueden pausar la música.`);
+            }
+            return;
+          }
+        }
+
+        // Comandos de moderación para reanudar / reproducir Song Request en Kick (!srplay, !srresume, !srreanudar, !reanudar, !resume)
+        if (firstWord === '!srplay' || firstWord === '!srresume' || firstWord === '!srreanudar' || firstWord === '!reanudar' || firstWord === '!resume') {
+          if (isSrEnabled) {
+            if (isModOrBroadcaster) {
+              const res = songRequest.resumeSong(this.currentChannel, username);
+              this.sendMessage(res.message);
+            } else {
+              this.sendMessage(res.message);
+            }
+            return;
+          }
+        }
+
+        // Check !song en Kick
+        if (firstWord === '!song' || firstWord === '!cancion') {
+          if (isSrEnabled) {
+            const state = songRequest.getState(this.currentChannel);
+            if (state.currentSong) {
+              const playStatus = state.isPlaying ? '🎶 Sonando ahora' : '⏸️ En pausa';
+              this.sendMessage(`${playStatus}: ${state.currentSong.title} (pedida por @${state.currentSong.requester})`);
+            } else {
+              this.sendMessage('No hay ninguna canción reproduciéndose en este momento.');
+            }
+            return;
+          }
+        }
+
+        // Check !skip en Kick
+        if (firstWord === '!skip' || firstWord === '!saltar') {
+          if (isSrEnabled) {
+            if (isModOrBroadcaster) {
+              const res = songRequest.skip(this.currentChannel, username, true);
+              this.sendMessage(res.message);
+            } else {
+              const res = songRequest.voteSkip(this.currentChannel, username);
+              this.sendMessage(res.message);
+            }
+            return;
+          }
+        }
+
+        // Check !queue en Kick
+        if (firstWord === '!queue' || firstWord === '!cola') {
+          if (isSrEnabled) {
+            const state = songRequest.getState(this.currentChannel);
+            if (state.queue.length === 0) {
+              this.sendMessage('La cola de reproducción está vacía.');
+            } else {
+              const nextSongs = state.queue.slice(0, 3).map((s, i) => `#${i + 1} ${s.title}`).join(' | ');
+              this.sendMessage(`Próximas: ${nextSongs} (Total en cola: ${state.queue.length})`);
+            }
+            return;
+          }
+        }
+
+        // Check !sr en Kick
+        if (trimmed.toLowerCase().startsWith(srPrefix)) {
+          if (!isSrEnabled) {
+            this.sendMessage(`@${username}, el sistema de Song Request está desactivado en este momento.`);
+            return;
+          }
+          const query = trimmed.slice(srPrefix.length).trim();
+          if (!query) {
+            this.sendMessage(`@${username}, uso: ${srPrefix} <enlace o nombre de canción>`);
+            return;
+          }
+
+          songRequest.addSong({
+            channel: this.currentChannel,
+            query,
+            requester: username,
+            isMod: isModOrBroadcaster,
+            isSub
+          }).then(result => {
+            this.sendMessage(result.message);
+          });
+          return;
+        }
 
         // Comandos de moderación para TTS en Kick (!ttsdetener, !ttsreiniciar, !ttsskip)
         if (firstWord === '!ttsdetener' || firstWord === '!ttsstop' || firstWord === '!ttspause') {
@@ -230,7 +327,6 @@ class KickBot {
         }
 
         // Procesar comandos de TTS en Kick
-        const config = storage.getConfig();
         const ttsConfig = config.tts || {};
         if (ttsConfig.enabled && ttsConfig.allowChatCommand) {
           const ttsCmd = (ttsConfig.chatCommand || '!tts').toLowerCase();

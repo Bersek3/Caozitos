@@ -1,5 +1,57 @@
 [
   {
+    "id": "tts_cmd_1789437780258_azw7",
+    "voiceId": "es_peruano",
+    "name": "Peruano",
+    "command": "!peruano",
+    "permissions": [
+      "todos"
+    ],
+    "enabled": true,
+    "volume": 90,
+    "rate": 1,
+    "pitch": 1
+  },
+  {
+    "id": "tts_cmd_1789437773586_7bp6",
+    "voiceId": "es_marianocloss",
+    "name": "Mariano Closs",
+    "command": "!closs",
+    "permissions": [
+      "todos"
+    ],
+    "enabled": true,
+    "volume": 90,
+    "rate": 1,
+    "pitch": 1
+  },
+  {
+    "id": "tts_cmd_1789437768583_68o5",
+    "voiceId": "es_lacobra",
+    "name": "La Cobra",
+    "command": "!lacobra",
+    "permissions": [
+      "todos"
+    ],
+    "enabled": true,
+    "volume": 90,
+    "rate": 1,
+    "pitch": 1
+  },
+  {
+    "id": "tts_cmd_1789437762664_7xeo",
+    "voiceId": "es_davo",
+    "name": "Davo Xeneize",
+    "command": "!davo",
+    "permissions": [
+      "todos"
+    ],
+    "enabled": true,
+    "volume": 90,
+    "rate": 1,
+    "pitch": 1
+  },
+  {
     "id": "tts_cmd_1789437015375_2rhb",
     "voiceId": "es_auronplay",
     "name": "Auronplay",

@@ -304,31 +304,34 @@ class TwitchBot {
       }
 
       const trimmed = message.trim();
+      const firstWord = trimmed.split(' ')[0].toLowerCase();
+      const isBroadcaster = Boolean(tags.badges?.broadcaster === '1' || tags.username === channel.replace(/^#/, '').toLowerCase());
+      const isModOrBroadcaster = isMod || isBroadcaster;
       const config = storage.getConfig();
-
-      // Check Song Request Command (default !sr or custom prefix)
       const isSrEnabled = config.songRequest && config.songRequest.enabled !== false;
       const srPrefix = (config.songRequest?.prefix || '!sr').toLowerCase();
-      if (trimmed.toLowerCase().startsWith(srPrefix)) {
-        if (!isSrEnabled) {
-          this.sendMessage(channel, `@${username}, el sistema de Song Request está desactivado en este momento.`);
-          return;
-        }
-        const query = trimmed.slice(srPrefix.length).trim();
-        if (!query) {
-          this.sendMessage(channel, `@${username}, uso: ${srPrefix} <enlace o nombre de canción>`);
-          return;
-        }
 
-        const result = await songRequest.addSong({
-          channel,
-          query,
-          requester: username,
-          isMod,
-          isSub
-        });
+      // Comandos de moderación para pausar Song Request (!srpausa, !srpause, !pausa, !pause)
+      if (firstWord === '!srpausa' || firstWord === '!srpause' || firstWord === '!pausa' || firstWord === '!pause') {
+        if (!isSrEnabled) return;
+        if (isModOrBroadcaster) {
+          const res = songRequest.pauseSong(channel, username);
+          this.sendMessage(channel, res.message);
+        } else {
+          this.sendMessage(channel, `@${username}, solo moderadores y el streamer pueden pausar la música.`);
+        }
+        return;
+      }
 
-        this.sendMessage(channel, result.message);
+      // Comandos de moderación para reanudar / reproducir Song Request (!srplay, !srresume, !srreanudar, !reanudar, !resume)
+      if (firstWord === '!srplay' || firstWord === '!srresume' || firstWord === '!srreanudar' || firstWord === '!reanudar' || firstWord === '!resume') {
+        if (!isSrEnabled) return;
+        if (isModOrBroadcaster) {
+          const res = songRequest.resumeSong(channel, username);
+          this.sendMessage(channel, res.message);
+        } else {
+          this.sendMessage(channel, `@${username}, solo moderadores y el streamer pueden reanudar la música.`);
+        }
         return;
       }
 
@@ -337,7 +340,8 @@ class TwitchBot {
         if (!isSrEnabled) return;
         const state = songRequest.getState(channel);
         if (state.currentSong) {
-          this.sendMessage(channel, `🎶 Sonando ahora: ${state.currentSong.title} (pedida por @${state.currentSong.requester})`);
+          const playStatus = state.isPlaying ? '🎶 Sonando ahora' : '⏸️ En pausa';
+          this.sendMessage(channel, `${playStatus}: ${state.currentSong.title} (pedida por @${state.currentSong.requester})`);
         } else {
           this.sendMessage(channel, `No hay ninguna canción reproduciéndose en este momento.`);
         }
@@ -347,7 +351,7 @@ class TwitchBot {
       // Check !skip
       if (trimmed.toLowerCase() === '!skip' || trimmed.toLowerCase() === '!saltar') {
         if (!isSrEnabled) return;
-        if (isMod) {
+        if (isModOrBroadcaster) {
           const res = songRequest.skip(channel, username, true);
           this.sendMessage(channel, res.message);
         } else {
@@ -370,10 +374,31 @@ class TwitchBot {
         return;
       }
 
-      const firstWord = trimmed.split(' ')[0].toLowerCase();
+      // Check Song Request Command (default !sr or custom prefix)
+      if (trimmed.toLowerCase().startsWith(srPrefix)) {
+        if (!isSrEnabled) {
+          this.sendMessage(channel, `@${username}, el sistema de Song Request está desactivado en este momento.`);
+          return;
+        }
+        const query = trimmed.slice(srPrefix.length).trim();
+        if (!query) {
+          this.sendMessage(channel, `@${username}, uso: ${srPrefix} <enlace o nombre de canción>`);
+          return;
+        }
+
+        const result = await songRequest.addSong({
+          channel,
+          query,
+          requester: username,
+          isMod: isModOrBroadcaster,
+          isSub
+        });
+
+        this.sendMessage(channel, result.message);
+        return;
+      }
 
       // Comandos de moderación para TTS (!ttsdetener, !ttsreiniciar, !ttsstop, !ttsreset, !ttsskip)
-      const isBroadcaster = Boolean(tags.badges?.broadcaster === '1' || tags.username === channel.replace(/^#/, '').toLowerCase());
       if (firstWord === '!ttsdetener' || firstWord === '!ttsstop' || firstWord === '!ttspause') {
         if (isMod || isBroadcaster) {
           const chanKey = channel ? channel.toLowerCase().replace(/^#/, '') : null;

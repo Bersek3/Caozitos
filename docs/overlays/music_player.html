@@ -322,12 +322,16 @@
       if (ytPlayer && ytPlayer.pauseVideo) {
         try { ytPlayer.pauseVideo(); } catch (e) { }
       }
+      statusText.innerText = 'Pausado';
+      statusDot.style.background = '#ffb700';
     }
 
     function resumeYouTubeVideo() {
       if (ytPlayer && ytPlayer.playVideo) {
         try { ytPlayer.playVideo(); } catch (e) { }
       }
+      statusText.innerText = 'Reproduciendo Audio';
+      statusDot.style.background = '#00ff88';
     }
 
     const songStorageKey = channel ? ('orbibot_current_song_' + channel) : 'orbibot_current_song';

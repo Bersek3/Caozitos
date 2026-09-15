@@ -938,9 +938,11 @@
                       <span class="music-bar"></span>
                     </div>
                   </div>
-                  <div style="display: flex; gap: 8px; align-items: center;">
+                  <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
                     <button id="btnSrMuteDashboard" class="btn btn-secondary btn-sm" onclick="toggleDashboardAudio()"
                       title="Silenciar o activar el audio en este panel web">🔊 Audio Panel: ON</button>
+                    <button id="btnSrPausePlay" class="btn btn-secondary btn-sm" onclick="togglePausePlaySongRequest()"
+                      title="Pausar o reanudar reproducción">⏸️ Pausar</button>
                     <button id="btnSrSkip" class="btn btn-secondary btn-sm" title="Saltar a la siguiente canción">⏭️
                       Saltar</button>
                     <button id="btnSrClear" class="btn btn-danger btn-sm" title="Vaciar toda la cola">🗑️ Vaciar

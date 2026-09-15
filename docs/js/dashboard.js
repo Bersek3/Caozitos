@@ -1751,9 +1751,23 @@ function handleSocketMessage(msg) {
   } else if (event === 'chat_message') {
     appendChatMessage(data);
   } else if (event === 'sr_update') {
-    updateSongRequestUI(data.state);
+    updateSongRequestUI(data.state || data);
     if (data.action === 'play' && data.data) {
       playYouTubeSong(data.data.videoId);
+    } else if (data.action === 'pause') {
+      if (ytPlayer && ytPlayer.pauseVideo) ytPlayer.pauseVideo();
+    } else if (data.action === 'resume') {
+      if (ytPlayer && ytPlayer.playVideo) ytPlayer.playVideo();
+    }
+  } else if (event === 'sr_play' || event === 'sr_resume') {
+    if (data && data.videoId) {
+      playYouTubeSong(data.videoId);
+    } else if (ytPlayer && ytPlayer.playVideo) {
+      ytPlayer.playVideo();
+    }
+  } else if (event === 'sr_pause') {
+    if (ytPlayer && ytPlayer.pauseVideo) {
+      ytPlayer.pauseVideo();
     }
   } else if (event === 'alert') {
     const alertType = data.type ? data.type.toUpperCase().replace('_', ' ') : 'EVENTO';
@@ -2115,25 +2129,68 @@ function connectInBrowserTwitchBot(twitchData) {
           }
         }
 
-        // Procesamiento de comando !sr desde el chat en cliente de navegador
+        // Procesamiento de comandos de Song Request desde el chat en cliente de navegador
         const srCfg = currentCfg.songRequest || {};
         const srPrefix = (srCfg.prefix || '!sr').toLowerCase();
-        if (srCfg.enabled !== false && message.trim().toLowerCase().startsWith(srPrefix)) {
-          const q = message.trim().slice(srPrefix.length).trim();
-          if (q) {
-            fetch('/api/sr/add', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ query: q, requester: username, isMod, isSub })
-            }).then(r => {
-              if (!r.ok && typeof handleClientSongRequest === 'function') {
-                handleClientSongRequest(q, username, false);
+        const firstWord = message.trim().split(' ')[0].toLowerCase();
+        const isBroadcaster = Boolean(tags.badges?.broadcaster === '1' || tags.username === channel.toLowerCase());
+        const isModOrBroadcaster = isMod || isBroadcaster;
+
+        if (srCfg.enabled !== false) {
+          if (firstWord === '!srpausa' || firstWord === '!srpause' || firstWord === '!pausa' || firstWord === '!pause') {
+            if (isModOrBroadcaster) {
+              fetch('/api/sr/pause', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ channel, by: username })
+              }).catch(() => {});
+              if (typeof togglePausePlaySongRequest === 'function') {
+                const state = currentSrState || getLocalSrState();
+                if (state.isPlaying !== false) togglePausePlaySongRequest();
               }
-            }).catch(() => {
-              if (typeof handleClientSongRequest === 'function') {
-                handleClientSongRequest(q, username, false);
+            }
+            return;
+          }
+
+          if (firstWord === '!srplay' || firstWord === '!srresume' || firstWord === '!srreanudar' || firstWord === '!reanudar' || firstWord === '!resume') {
+            if (isModOrBroadcaster) {
+              fetch('/api/sr/resume', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ channel, by: username })
+              }).catch(() => {});
+              if (typeof togglePausePlaySongRequest === 'function') {
+                const state = currentSrState || getLocalSrState();
+                if (state.isPlaying === false) togglePausePlaySongRequest();
               }
-            });
+            }
+            return;
+          }
+
+          if (firstWord === '!skip' || firstWord === '!saltar') {
+            if (isModOrBroadcaster && typeof skipCurrentSong === 'function') {
+              skipCurrentSong();
+            }
+            return;
+          }
+
+          if (message.trim().toLowerCase().startsWith(srPrefix)) {
+            const q = message.trim().slice(srPrefix.length).trim();
+            if (q) {
+              fetch('/api/sr/add', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ query: q, requester: username, isMod: isModOrBroadcaster, isSub, channel })
+              }).then(r => {
+                if (!r.ok && typeof handleClientSongRequest === 'function') {
+                  handleClientSongRequest(q, username, false);
+                }
+              }).catch(() => {
+                if (typeof handleClientSongRequest === 'function') {
+                  handleClientSongRequest(q, username, false);
+                }
+              });
+            }
           }
         }
       } catch (e) { }
@@ -3061,7 +3118,9 @@ function updateSongRequestUI(state, shouldSave = true) {
     if (ytPlayer && ytApiReady && current.videoId) {
       const currentVideoId = ytPlayer.getVideoData ? ytPlayer.getVideoData().video_id : null;
       if (currentVideoId !== current.videoId) {
-        playYouTubeSong(current.videoId);
+        if (state.isPlaying !== false) {
+          playYouTubeSong(current.videoId);
+        }
       }
     }
   } else {
@@ -3071,10 +3130,33 @@ function updateSongRequestUI(state, shouldSave = true) {
     if (requester) requester.innerText = 'Esperando solicitudes...';
   }
 
+  // Update Pause/Play Button in Dashboard
+  const btnPausePlay = document.getElementById('btnSrPausePlay');
+  if (btnPausePlay) {
+    if (current) {
+      if (state.isPlaying === false) {
+        btnPausePlay.innerHTML = '▶️ Reanudar';
+        btnPausePlay.title = 'Reanudar canción actual';
+        btnPausePlay.classList.add('btn-primary');
+        btnPausePlay.classList.remove('btn-secondary');
+      } else {
+        btnPausePlay.innerHTML = '⏸️ Pausar';
+        btnPausePlay.title = 'Pausar canción actual';
+        btnPausePlay.classList.remove('btn-primary');
+        btnPausePlay.classList.add('btn-secondary');
+      }
+    } else {
+      btnPausePlay.innerHTML = '▶️ Reproducir';
+      btnPausePlay.title = (queue.length > 0) ? 'Iniciar cola de reproducción' : 'No hay canciones en cola';
+      btnPausePlay.classList.remove('btn-primary');
+      btnPausePlay.classList.add('btn-secondary');
+    }
+  }
+
   // Visualizer wave
   const wave = document.getElementById('srMusicWave');
   if (wave) {
-    wave.style.display = current ? 'flex' : 'none';
+    wave.style.display = (current && state.isPlaying !== false) ? 'flex' : 'none';
   }
 
   // Render Queue List
@@ -3140,6 +3222,67 @@ window.onYouTubeIframeAPIReady = function () {
 };
 
 let dashboardAudioMuted = false;
+
+async function togglePausePlaySongRequest() {
+  const state = currentSrState || getLocalSrState();
+  const isCurrentlyPlaying = state.isPlaying !== false && Boolean(state.currentSong);
+  const myRoom = getActiveStreamerRoom();
+
+  if (isCurrentlyPlaying) {
+    // Pausar
+    try {
+      const res = await fetch('/api/sr/pause', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ channel: myRoom, by: 'Streamer' })
+      });
+      if (res.ok) {
+        const data = await res.json();
+        if (data.message) showToast(data.message, 'info');
+        if (ytPlayer && ytPlayer.pauseVideo) ytPlayer.pauseVideo();
+        return;
+      }
+    } catch (e) { }
+
+    // Fallback local
+    state.isPlaying = false;
+    saveLocalSrState(state);
+    updateSongRequestUI(state);
+    if (ytPlayer && ytPlayer.pauseVideo) ytPlayer.pauseVideo();
+    broadcastEvent('sr_update', { action: 'pause', data: { current: state.currentSong }, state });
+    showToast(`⏸️ Canción pausada: ${state.currentSong?.title || ''}`, 'info');
+  } else {
+    // Reanudar o reproducir
+    try {
+      const res = await fetch('/api/sr/resume', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ channel: myRoom, by: 'Streamer' })
+      });
+      if (res.ok) {
+        const data = await res.json();
+        if (data.message) showToast(data.message, 'success');
+        if (ytPlayer && ytPlayer.playVideo) ytPlayer.playVideo();
+        return;
+      }
+    } catch (e) { }
+
+    // Fallback local
+    if (state.currentSong) {
+      state.isPlaying = true;
+      saveLocalSrState(state);
+      updateSongRequestUI(state);
+      if (ytPlayer && ytPlayer.playVideo) ytPlayer.playVideo();
+      broadcastEvent('sr_update', { action: 'resume', data: { current: state.currentSong }, state });
+      showToast(`▶️ Reanudando: ${state.currentSong.title}`, 'success');
+    } else if (state.queue && state.queue.length > 0) {
+      skipCurrentSong();
+    } else {
+      showToast('No hay canciones en cola para reproducir', 'warn');
+    }
+  }
+}
+window.togglePausePlaySongRequest = togglePausePlaySongRequest;
 
 function toggleDashboardAudio() {
   dashboardAudioMuted = !dashboardAudioMuted;
@@ -7346,7 +7489,11 @@ function setupEventListeners() {
   }
 
   // Song Request Controls
-  document.getElementById('btnSrSkip').addEventListener('click', skipCurrentSong);
+  const btnSrPausePlay = document.getElementById('btnSrPausePlay');
+  if (btnSrPausePlay) btnSrPausePlay.addEventListener('click', togglePausePlaySongRequest);
+
+  const btnSrSkip = document.getElementById('btnSrSkip');
+  if (btnSrSkip) btnSrSkip.addEventListener('click', skipCurrentSong);
 
   document.getElementById('btnSrClear').addEventListener('click', async () => {
     if (confirm('¿Seguro que deseas vaciar toda la cola de canciones?')) {
