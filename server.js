@@ -1210,7 +1210,25 @@ app.get('/api/tts/audio', async (req, res) => {
 
       'es_auronplay': 'cfc4b2bd851a49538201d20205ba9052',
       'auron': 'cfc4b2bd851a49538201d20205ba9052',
-      'auronplay': 'cfc4b2bd851a49538201d20205ba9052'
+      'auronplay': 'cfc4b2bd851a49538201d20205ba9052',
+
+      'es_peruano': 'fc108d05e7984d4f8845381613e04209',
+      'peruano': 'fc108d05e7984d4f8845381613e04209',
+
+      'es_marianocloss': '5544ecf43b14452fa0ce23d888823367',
+      'marianocloss': '5544ecf43b14452fa0ce23d888823367',
+      'mariano_closs': '5544ecf43b14452fa0ce23d888823367',
+      'closs': '5544ecf43b14452fa0ce23d888823367',
+
+      'es_lacobra': '5458dad9c902431cb0dbb37703160cb7',
+      'lacobra': '5458dad9c902431cb0dbb37703160cb7',
+      'la_cobra': '5458dad9c902431cb0dbb37703160cb7',
+      'cobra': '5458dad9c902431cb0dbb37703160cb7',
+
+      'es_davo': '51ea54dc9b7d46b49a58918742c1a2cd',
+      'davo': '51ea54dc9b7d46b49a58918742c1a2cd',
+      'davoxeneize': '51ea54dc9b7d46b49a58918742c1a2cd',
+      'davo_xeneize': '51ea54dc9b7d46b49a58918742c1a2cd'
     };
 
     const fishRefId = FISH_MODELS[voice];

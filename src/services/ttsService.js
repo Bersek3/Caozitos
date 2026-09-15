@@ -109,6 +109,16 @@ class TTSService {
       illo_juan: 'es_illojuan',
       auron: 'es_auronplay',
       auronplay: 'es_auronplay',
+      peruano: 'es_peruano',
+      closs: 'es_marianocloss',
+      marianocloss: 'es_marianocloss',
+      mariano_closs: 'es_marianocloss',
+      lacobra: 'es_lacobra',
+      cobra: 'es_lacobra',
+      la_cobra: 'es_lacobra',
+      davo: 'es_davo',
+      davoxeneize: 'es_davo',
+      davo_xeneize: 'es_davo',
 
       // Voces Estándar / Multilingües
       mia: 'es_mx_mia',
@@ -151,7 +161,8 @@ class TTSService {
     if (dbVoice && dbVoice.isAI) return true;
     return [
       'es_ar_messi', 'es_ve_maduro', 'es_tiktok', 'es_mx_homero', 'es_dross', 'es_badbunny', 'es_rubius',
-      'es_farid', 'es_westcol', 'es_cr7', 'es_goku', 'es_maradona', 'es_xokas', 'es_illojuan', 'es_auronplay'
+      'es_farid', 'es_westcol', 'es_cr7', 'es_goku', 'es_maradona', 'es_xokas', 'es_illojuan', 'es_auronplay',
+      'es_peruano', 'es_marianocloss', 'es_lacobra', 'es_davo'
     ].includes(normalized);
   }
 

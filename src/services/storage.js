@@ -83,6 +83,50 @@ const DEFAULT_TTS_COMMANDS = [
     pitch: 1.0
   },
   {
+    id: 'tts_cmd_peruano',
+    voiceId: 'es_peruano',
+    name: 'Peruano',
+    command: '!peruano',
+    permissions: ['todos'],
+    enabled: true,
+    volume: 90,
+    rate: 1.0,
+    pitch: 1.0
+  },
+  {
+    id: 'tts_cmd_closs',
+    voiceId: 'es_marianocloss',
+    name: 'Mariano Closs',
+    command: '!closs',
+    permissions: ['todos'],
+    enabled: true,
+    volume: 90,
+    rate: 1.0,
+    pitch: 1.0
+  },
+  {
+    id: 'tts_cmd_lacobra',
+    voiceId: 'es_lacobra',
+    name: 'La Cobra',
+    command: '!lacobra',
+    permissions: ['todos'],
+    enabled: true,
+    volume: 90,
+    rate: 1.0,
+    pitch: 1.0
+  },
+  {
+    id: 'tts_cmd_davo',
+    voiceId: 'es_davo',
+    name: 'Davo Xeneize',
+    command: '!davo',
+    permissions: ['todos'],
+    enabled: true,
+    volume: 90,
+    rate: 1.0,
+    pitch: 1.0
+  },
+  {
     id: 'tts_cmd_farid',
     voiceId: 'es_farid',
     name: 'Farid Dieck',

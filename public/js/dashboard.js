@@ -3579,6 +3579,21 @@ const VOICE_PROFILES = {
   auron: { id: 'es_auronplay', name: 'Auronplay', lang: 'es-ES', gender: 'male', pitch: 1.0, rate: 1.0 },
   auronplay: { id: 'es_auronplay', name: 'Auronplay', lang: 'es-ES', gender: 'male', pitch: 1.0, rate: 1.0 },
 
+  es_peruano: { id: 'es_peruano', name: 'Peruano', lang: 'es-PE', gender: 'male', pitch: 1.0, rate: 1.0 },
+  peruano: { id: 'es_peruano', name: 'Peruano', lang: 'es-PE', gender: 'male', pitch: 1.0, rate: 1.0 },
+
+  es_marianocloss: { id: 'es_marianocloss', name: 'Mariano Closs', lang: 'es-AR', gender: 'male', pitch: 1.0, rate: 1.0 },
+  closs: { id: 'es_marianocloss', name: 'Mariano Closs', lang: 'es-AR', gender: 'male', pitch: 1.0, rate: 1.0 },
+  marianocloss: { id: 'es_marianocloss', name: 'Mariano Closs', lang: 'es-AR', gender: 'male', pitch: 1.0, rate: 1.0 },
+
+  es_lacobra: { id: 'es_lacobra', name: 'La Cobra', lang: 'es-AR', gender: 'male', pitch: 1.0, rate: 1.0 },
+  lacobra: { id: 'es_lacobra', name: 'La Cobra', lang: 'es-AR', gender: 'male', pitch: 1.0, rate: 1.0 },
+  cobra: { id: 'es_lacobra', name: 'La Cobra', lang: 'es-AR', gender: 'male', pitch: 1.0, rate: 1.0 },
+
+  es_davo: { id: 'es_davo', name: 'Davo Xeneize', lang: 'es-AR', gender: 'male', pitch: 1.0, rate: 1.0 },
+  davo: { id: 'es_davo', name: 'Davo Xeneize', lang: 'es-AR', gender: 'male', pitch: 1.0, rate: 1.0 },
+  davoxeneize: { id: 'es_davo', name: 'Davo Xeneize', lang: 'es-AR', gender: 'male', pitch: 1.0, rate: 1.0 },
+
   // Español Latino
   es_mx_mia: { id: 'es_mx_mia', name: 'Mia', lang: 'es-MX', gender: 'female', pitch: 1.15, rate: 1.0 },
   mia: { id: 'es_mx_mia', name: 'Mia', lang: 'es-MX', gender: 'female', pitch: 1.15, rate: 1.0 },
@@ -3654,7 +3669,11 @@ const FISH_AUDIO_KEYS = [
   'es_maradona', 'maradona', 'diego_maradona',
   'es_xokas', 'xokas', 'elxokas', 'el_xokas',
   'es_illojuan', 'illojuan', 'illo_juan', 'juan',
-  'es_auronplay', 'auron', 'auronplay'
+  'es_auronplay', 'auron', 'auronplay',
+  'es_peruano', 'peruano',
+  'es_marianocloss', 'marianocloss', 'mariano_closs', 'closs',
+  'es_lacobra', 'lacobra', 'la_cobra', 'cobra',
+  'es_davo', 'davo', 'davoxeneize', 'davo_xeneize'
 ];
 
 function getTTSAudioUrl(text, voiceId) {
@@ -4063,6 +4082,62 @@ const DEFAULT_VOICE_CATALOG = [
     model: 's2.1-pro-free',
     referenceId: 'cfc4b2bd851a49538201d20205ba9052'
   },
+  {
+    id: 'es_peruano',
+    name: 'Peruano',
+    category: 'memes',
+    tags: ['popular', 'trending', 'ia', 'peru', 'meme', 'regional'],
+    lang: 'es-PE',
+    defaultCommand: '!peruano',
+    stats: { uses: '1.7M', downloads: '12k' },
+    previewText: '¡Habla causa! ¿Cómo estás pe? Saludos a toda la gente del stream.',
+    gender: 'male',
+    isAI: true,
+    model: 's2.1-pro-free',
+    referenceId: 'fc108d05e7984d4f8845381613e04209'
+  },
+  {
+    id: 'es_marianocloss',
+    name: 'Mariano Closs',
+    category: 'celebrity',
+    tags: ['popular', 'trending', 'ia', 'futbol', 'relator', 'argentina', 'libertadores'],
+    lang: 'es-AR',
+    defaultCommand: '!closs',
+    stats: { uses: '1.9M', downloads: '14k' },
+    previewText: '¡Señoras y señores! ¡Buenas noches para todos en esta transmisión!',
+    gender: 'male',
+    isAI: true,
+    model: 's2.1-pro-free',
+    referenceId: '5544ecf43b14452fa0ce23d888823367'
+  },
+  {
+    id: 'es_lacobra',
+    name: 'La Cobra',
+    category: 'streamer',
+    tags: ['popular', 'trending', 'ia', 'streamer', 'futbol', 'argentina', 'kick', 'twitch'],
+    lang: 'es-AR',
+    defaultCommand: '!lacobra',
+    stats: { uses: '1.5M', downloads: '10.5k' },
+    previewText: '¡Pero qué decís amigo! ¡Es una locura total lo que estamos viviendo en este stream!',
+    gender: 'male',
+    isAI: true,
+    model: 's2.1-pro-free',
+    referenceId: '5458dad9c902431cb0dbb37703160cb7'
+  },
+  {
+    id: 'es_davo',
+    name: 'Davo Xeneize',
+    category: 'streamer',
+    tags: ['popular', 'trending', 'ia', 'streamer', 'boca', 'argentina', 'twitch'],
+    lang: 'es-AR',
+    defaultCommand: '!davo',
+    stats: { uses: '1.8M', downloads: '13k' },
+    previewText: 'Buenas noches a todos muchachos, ¿cómo andan? Bienvenidos a un nuevo stream.',
+    gender: 'male',
+    isAI: true,
+    model: 's2.1-pro-free',
+    referenceId: '51ea54dc9b7d46b49a58918742c1a2cd'
+  },
 
   // --- Voces Estándar ---
   {
@@ -4313,6 +4388,50 @@ const DEFAULT_TTS_COMMANDS = [
     voiceId: 'es_auronplay',
     name: 'Auronplay',
     command: '!auron',
+    permissions: ['todos'],
+    enabled: true,
+    volume: 90,
+    rate: 1.0,
+    pitch: 1.0
+  },
+  {
+    id: 'tts_cmd_peruano',
+    voiceId: 'es_peruano',
+    name: 'Peruano',
+    command: '!peruano',
+    permissions: ['todos'],
+    enabled: true,
+    volume: 90,
+    rate: 1.0,
+    pitch: 1.0
+  },
+  {
+    id: 'tts_cmd_closs',
+    voiceId: 'es_marianocloss',
+    name: 'Mariano Closs',
+    command: '!closs',
+    permissions: ['todos'],
+    enabled: true,
+    volume: 90,
+    rate: 1.0,
+    pitch: 1.0
+  },
+  {
+    id: 'tts_cmd_lacobra',
+    voiceId: 'es_lacobra',
+    name: 'La Cobra',
+    command: '!lacobra',
+    permissions: ['todos'],
+    enabled: true,
+    volume: 90,
+    rate: 1.0,
+    pitch: 1.0
+  },
+  {
+    id: 'tts_cmd_davo',
+    voiceId: 'es_davo',
+    name: 'Davo Xeneize',
+    command: '!davo',
     permissions: ['todos'],
     enabled: true,
     volume: 90,

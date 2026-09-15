@@ -222,6 +222,62 @@ const VOICE_CATALOG = [
     model: 's2.1-pro-free',
     referenceId: 'cfc4b2bd851a49538201d20205ba9052'
   },
+  {
+    id: 'es_peruano',
+    name: 'Peruano',
+    category: 'memes',
+    tags: ['popular', 'trending', 'ia', 'peru', 'meme', 'regional'],
+    lang: 'es-PE',
+    defaultCommand: '!peruano',
+    stats: { uses: '1.7M', downloads: '12k' },
+    previewText: '¡Habla causa! ¿Cómo estás pe? Saludos a toda la gente del stream.',
+    gender: 'male',
+    isAI: true,
+    model: 's2.1-pro-free',
+    referenceId: 'fc108d05e7984d4f8845381613e04209'
+  },
+  {
+    id: 'es_marianocloss',
+    name: 'Mariano Closs',
+    category: 'celebrity',
+    tags: ['popular', 'trending', 'ia', 'futbol', 'relator', 'argentina', 'libertadores'],
+    lang: 'es-AR',
+    defaultCommand: '!closs',
+    stats: { uses: '1.9M', downloads: '14k' },
+    previewText: '¡Señoras y señores! ¡Buenas noches para todos en esta transmisión!',
+    gender: 'male',
+    isAI: true,
+    model: 's2.1-pro-free',
+    referenceId: '5544ecf43b14452fa0ce23d888823367'
+  },
+  {
+    id: 'es_lacobra',
+    name: 'La Cobra',
+    category: 'streamer',
+    tags: ['popular', 'trending', 'ia', 'streamer', 'futbol', 'argentina', 'kick', 'twitch'],
+    lang: 'es-AR',
+    defaultCommand: '!lacobra',
+    stats: { uses: '1.5M', downloads: '10.5k' },
+    previewText: '¡Pero qué decís amigo! ¡Es una locura total lo que estamos viviendo en este stream!',
+    gender: 'male',
+    isAI: true,
+    model: 's2.1-pro-free',
+    referenceId: '5458dad9c902431cb0dbb37703160cb7'
+  },
+  {
+    id: 'es_davo',
+    name: 'Davo Xeneize',
+    category: 'streamer',
+    tags: ['popular', 'trending', 'ia', 'streamer', 'boca', 'argentina', 'twitch'],
+    lang: 'es-AR',
+    defaultCommand: '!davo',
+    stats: { uses: '1.8M', downloads: '13k' },
+    previewText: 'Buenas noches a todos muchachos, ¿cómo andan? Bienvenidos a un nuevo stream.',
+    gender: 'male',
+    isAI: true,
+    model: 's2.1-pro-free',
+    referenceId: '51ea54dc9b7d46b49a58918742c1a2cd'
+  },
 
   // --- Voces Multilingües Estándar ---
   {
