@@ -57,305 +57,382 @@
     const ttsIndicator = document.getElementById('ttsIndicator');
     const ttsUser = document.getElementById('ttsUser');
 
+    // Cola estricta y control de reproducción único (FIFO)
     const queue = [];
     let isSpeaking = false;
+    let currentActiveAudio = null;
+    let currentSegmentTimer = null;
+    let currentFinalizeTimer = null;
 
+    const VOICE_PROFILES = {
+      // Voces IA & Famosas (Fish Audio)
+      es_ar_messi: { id: 'es_ar_messi', name: 'Lionel Messi', lang: 'es-AR', gender: 'male', pitch: 0.78, rate: 0.98 },
+      messi: { id: 'es_ar_messi', name: 'Lionel Messi', lang: 'es-AR', gender: 'male', pitch: 0.78, rate: 0.98 },
+      es_ve_maduro: { id: 'es_ve_maduro', name: 'Nicolás Maduro', lang: 'es-VE', gender: 'male', pitch: 0.72, rate: 0.95 },
+      maduro: { id: 'es_ve_maduro', name: 'Nicolás Maduro', lang: 'es-VE', gender: 'male', pitch: 0.72, rate: 0.95 },
+      es_tiktok: { id: 'es_tiktok', name: 'Voz TikTok', lang: 'es-MX', gender: 'female', pitch: 1.2, rate: 1.05 },
+      tiktok: { id: 'es_tiktok', name: 'Voz TikTok', lang: 'es-MX', gender: 'female', pitch: 1.2, rate: 1.05 },
+      es_mx_homero: { id: 'es_mx_homero', name: 'Homero Simpson', lang: 'es-MX', gender: 'male', pitch: 0.85, rate: 0.92 },
+      homero: { id: 'es_mx_homero', name: 'Homero Simpson', lang: 'es-MX', gender: 'male', pitch: 0.85, rate: 0.92 },
+      es_dross: { id: 'es_dross', name: 'Dross Rotzank', lang: 'es-VE', gender: 'male', pitch: 0.70, rate: 0.95 },
+      dross: { id: 'es_dross', name: 'Dross Rotzank', lang: 'es-VE', gender: 'male', pitch: 0.70, rate: 0.95 },
+      es_badbunny: { id: 'es_badbunny', name: 'Bad Bunny', lang: 'es-PR', gender: 'male', pitch: 0.75, rate: 0.95 },
+      badbunny: { id: 'es_badbunny', name: 'Bad Bunny', lang: 'es-PR', gender: 'male', pitch: 0.75, rate: 0.95 },
+      es_rubius: { id: 'es_rubius', name: 'ElRubius', lang: 'es-ES', gender: 'male', pitch: 1.05, rate: 1.05 },
+      rubius: { id: 'es_rubius', name: 'ElRubius', lang: 'es-ES', gender: 'male', pitch: 1.05, rate: 1.05 },
+      es_farid: { id: 'es_farid', name: 'Farid Dieck', lang: 'es-MX', gender: 'male', pitch: 1.0, rate: 1.0 },
+      farid: { id: 'es_farid', name: 'Farid Dieck', lang: 'es-MX', gender: 'male', pitch: 1.0, rate: 1.0 },
+      es_westcol: { id: 'es_westcol', name: 'WestCol', lang: 'es-CO', gender: 'male', pitch: 1.0, rate: 1.0 },
+      westcol: { id: 'es_westcol', name: 'WestCol', lang: 'es-CO', gender: 'male', pitch: 1.0, rate: 1.0 },
+      es_cr7: { id: 'es_cr7', name: 'Cristiano Ronaldo', lang: 'es-ES', gender: 'male', pitch: 0.75, rate: 1.0 },
+      cr7: { id: 'es_cr7', name: 'Cristiano Ronaldo', lang: 'es-ES', gender: 'male', pitch: 0.75, rate: 1.0 },
+      es_goku: { id: 'es_goku', name: 'Goku Latino', lang: 'es-MX', gender: 'male', pitch: 1.05, rate: 1.0 },
+      goku: { id: 'es_goku', name: 'Goku Latino', lang: 'es-MX', gender: 'male', pitch: 1.05, rate: 1.0 },
+      es_maradona: { id: 'es_maradona', name: 'Diego Maradona', lang: 'es-AR', gender: 'male', pitch: 0.85, rate: 0.95 },
+      maradona: { id: 'es_maradona', name: 'Diego Maradona', lang: 'es-AR', gender: 'male', pitch: 0.85, rate: 0.95 },
+      es_xokas: { id: 'es_xokas', name: 'El Xokas', lang: 'es-ES', gender: 'male', pitch: 1.0, rate: 1.05 },
+      xokas: { id: 'es_xokas', name: 'El Xokas', lang: 'es-ES', gender: 'male', pitch: 1.0, rate: 1.05 },
+      es_illojuan: { id: 'es_illojuan', name: 'IlloJuan', lang: 'es-ES', gender: 'male', pitch: 1.0, rate: 1.0 },
+      illojuan: { id: 'es_illojuan', name: 'IlloJuan', lang: 'es-ES', gender: 'male', pitch: 1.0, rate: 1.0 },
+      es_auronplay: { id: 'es_auronplay', name: 'Auronplay', lang: 'es-ES', gender: 'male', pitch: 1.0, rate: 1.0 },
+      auron: { id: 'es_auronplay', name: 'Auronplay', lang: 'es-ES', gender: 'male', pitch: 1.0, rate: 1.0 },
+      auronplay: { id: 'es_auronplay', name: 'Auronplay', lang: 'es-ES', gender: 'male', pitch: 1.0, rate: 1.0 },
+
+      // Español Latino / Estándar
+      es_mx_mia: { id: 'es_mx_mia', name: 'Mia', lang: 'es-MX', gender: 'female', pitch: 1.15, rate: 1.0 },
+      mia: { id: 'es_mx_mia', name: 'Mia', lang: 'es-MX', gender: 'female', pitch: 1.15, rate: 1.0 },
+      es_us_miguel: { id: 'es_us_miguel', name: 'Miguel', lang: 'es-US', gender: 'male', pitch: 0.65, rate: 1.0 },
+      miguel: { id: 'es_us_miguel', name: 'Miguel', lang: 'es-US', gender: 'male', pitch: 0.65, rate: 1.0 },
+      es_us_lupe: { id: 'es_us_lupe', name: 'Lupe', lang: 'es-US', gender: 'female', pitch: 1.2, rate: 1.0 },
+      lupe: { id: 'es_us_lupe', name: 'Lupe', lang: 'es-US', gender: 'female', pitch: 1.2, rate: 1.0 },
+      es_us_penelope: { id: 'es_us_penelope', name: 'Penelope', lang: 'es-US', gender: 'female', pitch: 1.05, rate: 0.95 },
+      penelope: { id: 'es_us_penelope', name: 'Penelope', lang: 'es-US', gender: 'female', pitch: 1.05, rate: 0.95 },
+      'penélope': { id: 'es_us_penelope', name: 'Penelope', lang: 'es-US', gender: 'female', pitch: 1.05, rate: 0.95 },
+
+      // Castellano / España
+      es_es_enrique: { id: 'es_es_enrique', name: 'Enrique', lang: 'es-ES', gender: 'male', pitch: 0.62, rate: 1.05 },
+      enrique: { id: 'es_es_enrique', name: 'Enrique', lang: 'es-ES', gender: 'male', pitch: 0.62, rate: 1.05 },
+      es_es_conchita: { id: 'es_es_conchita', name: 'Conchita', lang: 'es-ES', gender: 'female', pitch: 1.1, rate: 1.0 },
+      conchita: { id: 'es_es_conchita', name: 'Conchita', lang: 'es-ES', gender: 'female', pitch: 1.1, rate: 1.0 },
+      es_es_lucia: { id: 'es_es_lucia', name: 'Lucia', lang: 'es-ES', gender: 'female', pitch: 1.25, rate: 1.05 },
+      lucia: { id: 'es_es_lucia', name: 'Lucia', lang: 'es-ES', gender: 'female', pitch: 1.25, rate: 1.05 },
+
+      // English
+      en_brian: { id: 'en_brian', name: 'Brian', lang: 'en-GB', gender: 'male', pitch: 0.7, rate: 0.95 },
+      brian: { id: 'en_brian', name: 'Brian', lang: 'en-GB', gender: 'male', pitch: 0.7, rate: 0.95 },
+      en_emma: { id: 'en_emma', name: 'Emma', lang: 'en-GB', gender: 'female', pitch: 1.15, rate: 1.0 },
+      emma: { id: 'en_emma', name: 'Emma', lang: 'en-GB', gender: 'female', pitch: 1.15, rate: 1.0 },
+      en_joey: { id: 'en_joey', name: 'Joey', lang: 'en-US', gender: 'male', pitch: 0.68, rate: 1.0 },
+      joey: { id: 'en_joey', name: 'Joey', lang: 'en-US', gender: 'male', pitch: 0.68, rate: 1.0 },
+      en_matthew: { id: 'en_matthew', name: 'Matthew', lang: 'en-US', gender: 'male', pitch: 0.6, rate: 0.95 },
+      matthew: { id: 'en_matthew', name: 'Matthew', lang: 'en-US', gender: 'male', pitch: 0.6, rate: 0.95 },
+      en_kendra: { id: 'en_kendra', name: 'Kendra', lang: 'en-US', gender: 'female', pitch: 1.2, rate: 1.0 },
+      kendra: { id: 'en_kendra', name: 'Kendra', lang: 'en-US', gender: 'female', pitch: 1.2, rate: 1.0 },
+      en_justin: { id: 'en_justin', name: 'Justin', lang: 'en-US', gender: 'male', pitch: 1.35, rate: 1.1 },
+      justin: { id: 'en_justin', name: 'Justin', lang: 'en-US', gender: 'male', pitch: 1.35, rate: 1.1 },
+      en_russell: { id: 'en_russell', name: 'Russell', lang: 'en-AU', gender: 'male', pitch: 0.75, rate: 1.0 },
+      russell: { id: 'en_russell', name: 'Russell', lang: 'en-AU', gender: 'male', pitch: 0.75, rate: 1.0 },
+
+      // Internacionales
+      pt_cristiano: { id: 'pt_cristiano', name: 'Cristiano', lang: 'pt-BR', gender: 'male', pitch: 0.7, rate: 1.0 },
+      cristiano: { id: 'pt_cristiano', name: 'Cristiano', lang: 'pt-BR', gender: 'male', pitch: 0.7, rate: 1.0 },
+      fr_mathieu: { id: 'fr_mathieu', name: 'Mathieu', lang: 'fr-FR', gender: 'male', pitch: 0.7, rate: 1.0 },
+      mathieu: { id: 'fr_mathieu', name: 'Mathieu', lang: 'fr-FR', gender: 'male', pitch: 0.7, rate: 1.0 },
+      it_giorgio: { id: 'it_giorgio', name: 'Giorgio', lang: 'it-IT', gender: 'male', pitch: 0.7, rate: 1.0 },
+      giorgio: { id: 'it_giorgio', name: 'Giorgio', lang: 'it-IT', gender: 'male', pitch: 0.7, rate: 1.0 },
+      de_hans: { id: 'de_hans', name: 'Hans', lang: 'de-DE', gender: 'male', pitch: 0.65, rate: 0.95 },
+      hans: { id: 'de_hans', name: 'Hans', lang: 'de-DE', gender: 'male', pitch: 0.65, rate: 0.95 },
+      ja_takumi: { id: 'ja_takumi', name: 'Takumi', lang: 'ja-JP', gender: 'male', pitch: 0.8, rate: 1.1 },
+      takumi: { id: 'ja_takumi', name: 'Takumi', lang: 'ja-JP', gender: 'male', pitch: 0.8, rate: 1.1 },
+      ja_mizuki: { id: 'ja_mizuki', name: 'Mizuki', lang: 'ja-JP', gender: 'female', pitch: 1.25, rate: 1.05 },
+      mizuki: { id: 'ja_mizuki', name: 'Mizuki', lang: 'ja-JP', gender: 'female', pitch: 1.25, rate: 1.05 },
+
+      // Fallbacks
+      es_001: { id: 'es_mx_mia', name: 'Mia', lang: 'es-MX', gender: 'female', pitch: 1.15, rate: 1.0 },
+      es_female: { id: 'es_mx_mia', name: 'Mia', lang: 'es-MX', gender: 'female', pitch: 1.15, rate: 1.0 },
+      es_male: { id: 'es_us_miguel', name: 'Miguel', lang: 'es-US', gender: 'male', pitch: 0.65, rate: 1.0 },
+      es_002: { id: 'es_es_conchita', name: 'Conchita', lang: 'es-ES', gender: 'female', pitch: 1.1, rate: 1.0 },
+      'es-es-standard-a': { id: 'es_es_enrique', name: 'Enrique', lang: 'es-ES', gender: 'male', pitch: 0.62, rate: 1.05 },
+      en_001: { id: 'en_brian', name: 'Brian', lang: 'en-GB', gender: 'male', pitch: 0.7, rate: 0.95 },
+      en_002: { id: 'en_emma', name: 'Emma', lang: 'en-GB', gender: 'female', pitch: 1.15, rate: 1.0 }
+    };
+
+    const fishAudioKeys = [
+      'es_ar_messi', 'messi', 'lionel_messi', 'leo_messi',
+      'es_ve_maduro', 'maduro', 'nicolas_maduro',
+      'es_tiktok', 'tiktok', 'voz_tiktok',
+      'es_mx_homero', 'homero', 'homero_simpson', 'homer',
+      'es_dross', 'dross', 'drossrotzank',
+      'es_badbunny', 'badbunny', 'bad_bunny', 'benito',
+      'es_rubius', 'rubius', 'elrubius', 'el_rubius',
+      'es_farid', 'farid', 'farid_dieck',
+      'es_westcol', 'westcol',
+      'es_cr7', 'cr7', 'cristiano_ronaldo', 'ronaldo', 'bicho',
+      'es_goku', 'goku', 'goku_latino',
+      'es_maradona', 'maradona', 'diego_maradona',
+      'es_xokas', 'xokas', 'elxokas', 'el_xokas',
+      'es_illojuan', 'illojuan', 'illo_juan', 'juan',
+      'es_auronplay', 'auron', 'auronplay'
+    ];
+
+    let audioCtx = null;
+    function getAudioContext() {
+      if (!audioCtx) {
+        const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+        if (AudioContextClass) audioCtx = new AudioContextClass();
+      }
+      if (audioCtx && audioCtx.state === 'suspended') {
+        audioCtx.resume().catch(() => {});
+      }
+      return audioCtx;
+    }
+
+    document.addEventListener('DOMContentLoaded', () => { getAudioContext(); });
+    window.addEventListener('load', () => { getAudioContext(); });
+    document.body.addEventListener('click', () => { getAudioContext(); });
+
+    /**
+     * Detiene de inmediato cualquier reproducción de audio o síntesis activa
+     */
+    function stopCurrentAudio() {
+      if (currentSegmentTimer) {
+        clearTimeout(currentSegmentTimer);
+        currentSegmentTimer = null;
+      }
+      if (currentFinalizeTimer) {
+        clearTimeout(currentFinalizeTimer);
+        currentFinalizeTimer = null;
+      }
+      if (currentActiveAudio) {
+        try {
+          currentActiveAudio.onended = null;
+          currentActiveAudio.onerror = null;
+          currentActiveAudio.pause();
+          currentActiveAudio.currentTime = 0;
+          currentActiveAudio.src = '';
+        } catch (e) {}
+        currentActiveAudio = null;
+      }
+      if ('speechSynthesis' in window) {
+        try {
+          window.speechSynthesis.cancel();
+        } catch (e) {}
+      }
+    }
+
+    /**
+     * Reproduce audio vía Google TTS / Web Speech API garantizando invocación única de callback onEnd
+     */
+    function playTTSAudio(text, voiceKey, volume = 0.9, onEnd = null) {
+      stopCurrentAudio();
+
+      const cleanKey = (voiceKey || '').toString().toLowerCase().trim().replace(/^[-@/]/, '').replace(/^voice:/, '');
+      const profile = VOICE_PROFILES[cleanKey] || VOICE_PROFILES[voiceKey] || VOICE_PROFILES['es_mx_mia'];
+      const targetLang = (profile.lang || 'es-ES').split('-')[0].toLowerCase();
+      const ctx = getAudioContext();
+
+      let audioUrl = '';
+      if (fishAudioKeys.includes(cleanKey)) {
+        audioUrl = `/api/tts/audio?text=${encodeURIComponent(text)}&voice=${encodeURIComponent(cleanKey)}`;
+      } else {
+        audioUrl = `https://translate.google.com/translate_tts?ie=UTF-8&q=${encodeURIComponent(text)}&tl=${encodeURIComponent(targetLang)}&client=tw-ob`;
+      }
+
+      const audio = new Audio();
+      audio.crossOrigin = 'anonymous';
+      audio.src = audioUrl;
+      audio.volume = Math.max(0, Math.min(1, volume));
+      currentActiveAudio = audio;
+
+      if (ctx) {
+        try {
+          const source = ctx.createMediaElementSource(audio);
+          source.connect(ctx.destination);
+        } catch (e) {}
+      }
+
+      let isFinished = false;
+      function done() {
+        if (isFinished) return;
+        isFinished = true;
+        if (currentActiveAudio === audio) {
+          currentActiveAudio = null;
+        }
+        if (typeof onEnd === 'function') onEnd();
+      }
+
+      audio.onended = done;
+      audio.onerror = () => {
+        fallbackSpeechSynth();
+      };
+
+      const playPromise = audio.play();
+      if (playPromise !== undefined) {
+        playPromise.catch(() => {
+          if (ctx && ctx.resume) {
+            ctx.resume().then(() => {
+              audio.play().catch(() => fallbackSpeechSynth());
+            }).catch(() => fallbackSpeechSynth());
+          } else {
+            fallbackSpeechSynth();
+          }
+        });
+      }
+
+      function fallbackSpeechSynth() {
+        if (!('speechSynthesis' in window)) {
+          done();
+          return;
+        }
+        try {
+          window.speechSynthesis.cancel();
+          const utterance = new SpeechSynthesisUtterance(text);
+          utterance.volume = Math.max(0, Math.min(1, volume));
+          utterance.rate = profile.rate || 1.0;
+          utterance.pitch = profile.pitch || 1.0;
+          utterance.lang = profile.lang || 'es-ES';
+
+          const voices = window.speechSynthesis.getVoices() || [];
+          let matchedVoice = voices.find(v => v.lang.toLowerCase().startsWith(targetLang));
+          if (!matchedVoice) matchedVoice = voices.find(v => v.lang.toLowerCase().startsWith('es') || v.lang.toLowerCase().startsWith('en'));
+          if (matchedVoice) utterance.voice = matchedVoice;
+
+          utterance.onend = done;
+          utterance.onerror = done;
+          window.speechSynthesis.speak(utterance);
+        } catch (e) {
+          done();
+        }
+      }
+    }
+
+    /**
+     * Procesa la cola de mensajes TTS en orden secuencial estricto (1 mensaje a la vez)
+     */
     function processQueue() {
       if (isSpeaking || queue.length === 0) return;
       isSpeaking = true;
 
       const item = queue.shift();
       ttsIndicator.classList.add('active');
-      ttsUser.innerText = `TTS: ${item.user}`;
+      ttsUser.innerText = `TTS: ${item.user || 'Espectador'}`;
 
-      let finished = false;
-      // Safety timeout: si el audio no termina en 10s, forzar el avance de la cola
-      const safetyTimer = setTimeout(() => {
-        if (!finished) {
-          console.warn('TTS safety timeout reached, advancing queue');
-          finalize();
-        }
-      }, 10000);
-
-      function finalize() {
-        if (finished) return;
-        finished = true;
-        clearTimeout(safetyTimer);
-        finishSpeaking();
-      }
-
-      const VOICE_PROFILES = {
-        // Voces IA & Famosas
-        es_ar_messi: { id: 'es_ar_messi', name: 'Lionel Messi', lang: 'es-AR', gender: 'male', pitch: 0.78, rate: 0.98 },
-        messi: { id: 'es_ar_messi', name: 'Lionel Messi', lang: 'es-AR', gender: 'male', pitch: 0.78, rate: 0.98 },
-        es_ve_maduro: { id: 'es_ve_maduro', name: 'Nicolás Maduro', lang: 'es-VE', gender: 'male', pitch: 0.72, rate: 0.95 },
-        maduro: { id: 'es_ve_maduro', name: 'Nicolás Maduro', lang: 'es-VE', gender: 'male', pitch: 0.72, rate: 0.95 },
-        es_tiktok: { id: 'es_tiktok', name: 'Voz TikTok', lang: 'es-MX', gender: 'female', pitch: 1.2, rate: 1.05 },
-        tiktok: { id: 'es_tiktok', name: 'Voz TikTok', lang: 'es-MX', gender: 'female', pitch: 1.2, rate: 1.05 },
-        es_mx_homero: { id: 'es_mx_homero', name: 'Homero Simpson', lang: 'es-MX', gender: 'male', pitch: 0.85, rate: 0.92 },
-        homero: { id: 'es_mx_homero', name: 'Homero Simpson', lang: 'es-MX', gender: 'male', pitch: 0.85, rate: 0.92 },
-        es_dross: { id: 'es_dross', name: 'Dross Rotzank', lang: 'es-VE', gender: 'male', pitch: 0.70, rate: 0.95 },
-        dross: { id: 'es_dross', name: 'Dross Rotzank', lang: 'es-VE', gender: 'male', pitch: 0.70, rate: 0.95 },
-        es_badbunny: { id: 'es_badbunny', name: 'Bad Bunny', lang: 'es-PR', gender: 'male', pitch: 0.75, rate: 0.95 },
-        badbunny: { id: 'es_badbunny', name: 'Bad Bunny', lang: 'es-PR', gender: 'male', pitch: 0.75, rate: 0.95 },
-        es_rubius: { id: 'es_rubius', name: 'ElRubius', lang: 'es-ES', gender: 'male', pitch: 1.05, rate: 1.05 },
-        rubius: { id: 'es_rubius', name: 'ElRubius', lang: 'es-ES', gender: 'male', pitch: 1.05, rate: 1.05 },
-        es_farid: { id: 'es_farid', name: 'Farid Dieck', lang: 'es-MX', gender: 'male', pitch: 1.0, rate: 1.0 },
-        farid: { id: 'es_farid', name: 'Farid Dieck', lang: 'es-MX', gender: 'male', pitch: 1.0, rate: 1.0 },
-        es_westcol: { id: 'es_westcol', name: 'WestCol', lang: 'es-CO', gender: 'male', pitch: 1.0, rate: 1.0 },
-        westcol: { id: 'es_westcol', name: 'WestCol', lang: 'es-CO', gender: 'male', pitch: 1.0, rate: 1.0 },
-        es_cr7: { id: 'es_cr7', name: 'Cristiano Ronaldo', lang: 'es-ES', gender: 'male', pitch: 0.75, rate: 1.0 },
-        cr7: { id: 'es_cr7', name: 'Cristiano Ronaldo', lang: 'es-ES', gender: 'male', pitch: 0.75, rate: 1.0 },
-        es_goku: { id: 'es_goku', name: 'Goku Latino', lang: 'es-MX', gender: 'male', pitch: 1.05, rate: 1.0 },
-        goku: { id: 'es_goku', name: 'Goku Latino', lang: 'es-MX', gender: 'male', pitch: 1.05, rate: 1.0 },
-        es_maradona: { id: 'es_maradona', name: 'Diego Maradona', lang: 'es-AR', gender: 'male', pitch: 0.85, rate: 0.95 },
-        maradona: { id: 'es_maradona', name: 'Diego Maradona', lang: 'es-AR', gender: 'male', pitch: 0.85, rate: 0.95 },
-        es_xokas: { id: 'es_xokas', name: 'El Xokas', lang: 'es-ES', gender: 'male', pitch: 1.0, rate: 1.05 },
-        xokas: { id: 'es_xokas', name: 'El Xokas', lang: 'es-ES', gender: 'male', pitch: 1.0, rate: 1.05 },
-        es_illojuan: { id: 'es_illojuan', name: 'IlloJuan', lang: 'es-ES', gender: 'male', pitch: 1.0, rate: 1.0 },
-        illojuan: { id: 'es_illojuan', name: 'IlloJuan', lang: 'es-ES', gender: 'male', pitch: 1.0, rate: 1.0 },
-        es_auronplay: { id: 'es_auronplay', name: 'Auronplay', lang: 'es-ES', gender: 'male', pitch: 1.0, rate: 1.0 },
-        auron: { id: 'es_auronplay', name: 'Auronplay', lang: 'es-ES', gender: 'male', pitch: 1.0, rate: 1.0 },
-        auronplay: { id: 'es_auronplay', name: 'Auronplay', lang: 'es-ES', gender: 'male', pitch: 1.0, rate: 1.0 },
-
-        // Español Latino / Estándar
-        es_mx_mia: { id: 'es_mx_mia', name: 'Mia', lang: 'es-MX', gender: 'female', pitch: 1.15, rate: 1.0 },
-        mia: { id: 'es_mx_mia', name: 'Mia', lang: 'es-MX', gender: 'female', pitch: 1.15, rate: 1.0 },
-        es_us_miguel: { id: 'es_us_miguel', name: 'Miguel', lang: 'es-US', gender: 'male', pitch: 0.65, rate: 1.0 },
-        miguel: { id: 'es_us_miguel', name: 'Miguel', lang: 'es-US', gender: 'male', pitch: 0.65, rate: 1.0 },
-        es_us_lupe: { id: 'es_us_lupe', name: 'Lupe', lang: 'es-US', gender: 'female', pitch: 1.2, rate: 1.0 },
-        lupe: { id: 'es_us_lupe', name: 'Lupe', lang: 'es-US', gender: 'female', pitch: 1.2, rate: 1.0 },
-        es_us_penelope: { id: 'es_us_penelope', name: 'Penelope', lang: 'es-US', gender: 'female', pitch: 1.05, rate: 0.95 },
-        penelope: { id: 'es_us_penelope', name: 'Penelope', lang: 'es-US', gender: 'female', pitch: 1.05, rate: 0.95 },
-        'penélope': { id: 'es_us_penelope', name: 'Penelope', lang: 'es-US', gender: 'female', pitch: 1.05, rate: 0.95 },
-
-        // Castellano / España
-        es_es_enrique: { id: 'es_es_enrique', name: 'Enrique', lang: 'es-ES', gender: 'male', pitch: 0.62, rate: 1.05 },
-        enrique: { id: 'es_es_enrique', name: 'Enrique', lang: 'es-ES', gender: 'male', pitch: 0.62, rate: 1.05 },
-        es_es_conchita: { id: 'es_es_conchita', name: 'Conchita', lang: 'es-ES', gender: 'female', pitch: 1.1, rate: 1.0 },
-        conchita: { id: 'es_es_conchita', name: 'Conchita', lang: 'es-ES', gender: 'female', pitch: 1.1, rate: 1.0 },
-        es_es_lucia: { id: 'es_es_lucia', name: 'Lucia', lang: 'es-ES', gender: 'female', pitch: 1.25, rate: 1.05 },
-        lucia: { id: 'es_es_lucia', name: 'Lucia', lang: 'es-ES', gender: 'female', pitch: 1.25, rate: 1.05 },
-
-        // English
-        en_brian: { id: 'en_brian', name: 'Brian', lang: 'en-GB', gender: 'male', pitch: 0.7, rate: 0.95 },
-        brian: { id: 'en_brian', name: 'Brian', lang: 'en-GB', gender: 'male', pitch: 0.7, rate: 0.95 },
-        en_emma: { id: 'en_emma', name: 'Emma', lang: 'en-GB', gender: 'female', pitch: 1.15, rate: 1.0 },
-        emma: { id: 'en_emma', name: 'Emma', lang: 'en-GB', gender: 'female', pitch: 1.15, rate: 1.0 },
-        en_joey: { id: 'en_joey', name: 'Joey', lang: 'en-US', gender: 'male', pitch: 0.68, rate: 1.0 },
-        joey: { id: 'en_joey', name: 'Joey', lang: 'en-US', gender: 'male', pitch: 0.68, rate: 1.0 },
-        en_matthew: { id: 'en_matthew', name: 'Matthew', lang: 'en-US', gender: 'male', pitch: 0.6, rate: 0.95 },
-        matthew: { id: 'en_matthew', name: 'Matthew', lang: 'en-US', gender: 'male', pitch: 0.6, rate: 0.95 },
-        en_kendra: { id: 'en_kendra', name: 'Kendra', lang: 'en-US', gender: 'female', pitch: 1.2, rate: 1.0 },
-        kendra: { id: 'en_kendra', name: 'Kendra', lang: 'en-US', gender: 'female', pitch: 1.2, rate: 1.0 },
-        en_justin: { id: 'en_justin', name: 'Justin', lang: 'en-US', gender: 'male', pitch: 1.35, rate: 1.1 },
-        justin: { id: 'en_justin', name: 'Justin', lang: 'en-US', gender: 'male', pitch: 1.35, rate: 1.1 },
-        en_russell: { id: 'en_russell', name: 'Russell', lang: 'en-AU', gender: 'male', pitch: 0.75, rate: 1.0 },
-        russell: { id: 'en_russell', name: 'Russell', lang: 'en-AU', gender: 'male', pitch: 0.75, rate: 1.0 },
-
-        // Internacionales
-        pt_cristiano: { id: 'pt_cristiano', name: 'Cristiano', lang: 'pt-BR', gender: 'male', pitch: 0.7, rate: 1.0 },
-        cristiano: { id: 'pt_cristiano', name: 'Cristiano', lang: 'pt-BR', gender: 'male', pitch: 0.7, rate: 1.0 },
-        fr_mathieu: { id: 'fr_mathieu', name: 'Mathieu', lang: 'fr-FR', gender: 'male', pitch: 0.7, rate: 1.0 },
-        mathieu: { id: 'fr_mathieu', name: 'Mathieu', lang: 'fr-FR', gender: 'male', pitch: 0.7, rate: 1.0 },
-        it_giorgio: { id: 'it_giorgio', name: 'Giorgio', lang: 'it-IT', gender: 'male', pitch: 0.7, rate: 1.0 },
-        giorgio: { id: 'it_giorgio', name: 'Giorgio', lang: 'it-IT', gender: 'male', pitch: 0.7, rate: 1.0 },
-        de_hans: { id: 'de_hans', name: 'Hans', lang: 'de-DE', gender: 'male', pitch: 0.65, rate: 0.95 },
-        hans: { id: 'de_hans', name: 'Hans', lang: 'de-DE', gender: 'male', pitch: 0.65, rate: 0.95 },
-        ja_takumi: { id: 'ja_takumi', name: 'Takumi', lang: 'ja-JP', gender: 'male', pitch: 0.8, rate: 1.1 },
-        takumi: { id: 'ja_takumi', name: 'Takumi', lang: 'ja-JP', gender: 'male', pitch: 0.8, rate: 1.1 },
-        ja_mizuki: { id: 'ja_mizuki', name: 'Mizuki', lang: 'ja-JP', gender: 'female', pitch: 1.25, rate: 1.05 },
-        mizuki: { id: 'ja_mizuki', name: 'Mizuki', lang: 'ja-JP', gender: 'female', pitch: 1.25, rate: 1.05 },
-
-        // Fallbacks
-        es_001: { id: 'es_mx_mia', name: 'Mia', lang: 'es-MX', gender: 'female', pitch: 1.15, rate: 1.0 },
-        es_female: { id: 'es_mx_mia', name: 'Mia', lang: 'es-MX', gender: 'female', pitch: 1.15, rate: 1.0 },
-        es_male: { id: 'es_us_miguel', name: 'Miguel', lang: 'es-US', gender: 'male', pitch: 0.65, rate: 1.0 },
-        es_002: { id: 'es_es_conchita', name: 'Conchita', lang: 'es-ES', gender: 'female', pitch: 1.1, rate: 1.0 },
-        'es-es-standard-a': { id: 'es_es_enrique', name: 'Enrique', lang: 'es-ES', gender: 'male', pitch: 0.62, rate: 1.05 },
-        en_001: { id: 'en_brian', name: 'Brian', lang: 'en-GB', gender: 'male', pitch: 0.7, rate: 0.95 },
-        en_002: { id: 'en_emma', name: 'Emma', lang: 'en-GB', gender: 'female', pitch: 1.15, rate: 1.0 }
-      };
-
-      const fishAudioKeys = [
-        'es_ar_messi', 'messi', 'lionel_messi', 'leo_messi',
-        'es_ve_maduro', 'maduro', 'nicolas_maduro',
-        'es_tiktok', 'tiktok', 'voz_tiktok',
-        'es_mx_homero', 'homero', 'homero_simpson', 'homer',
-        'es_dross', 'dross', 'drossrotzank',
-        'es_badbunny', 'badbunny', 'bad_bunny', 'benito',
-        'es_rubius', 'rubius', 'elrubius', 'el_rubius',
-        'es_farid', 'farid', 'farid_dieck',
-        'es_westcol', 'westcol',
-        'es_cr7', 'cr7', 'cristiano_ronaldo', 'ronaldo', 'bicho',
-        'es_goku', 'goku', 'goku_latino',
-        'es_maradona', 'maradona', 'diego_maradona',
-        'es_xokas', 'xokas', 'elxokas', 'el_xokas',
-        'es_illojuan', 'illojuan', 'illo_juan', 'juan',
-        'es_auronplay', 'auron', 'auronplay'
-      ];
-
-      let audioCtx = null;
-      function getAudioContext() {
-        if (!audioCtx) {
-          const AudioContextClass = window.AudioContext || window.webkitAudioContext;
-          if (AudioContextClass) audioCtx = new AudioContextClass();
-        }
-        if (audioCtx && audioCtx.state === 'suspended') {
-          audioCtx.resume().catch(() => {});
-        }
-        return audioCtx;
-      }
-
-      document.addEventListener('DOMContentLoaded', () => { getAudioContext(); });
-      window.addEventListener('load', () => { getAudioContext(); });
-      document.body.addEventListener('click', () => { getAudioContext(); });
-
-      function playTTSAudio(text, voiceKey, volume = 0.9, onEnd = null) {
-        const cleanKey = (voiceKey || '').toString().toLowerCase().trim().replace(/^[-@/]/, '').replace(/^voice:/, '');
-        const profile = VOICE_PROFILES[cleanKey] || VOICE_PROFILES[voiceKey] || VOICE_PROFILES['es_mx_mia'];
-        const targetLang = (profile.lang || 'es-ES').split('-')[0].toLowerCase();
-        const ctx = getAudioContext();
-
-        let audioUrl = '';
-        if (fishAudioKeys.includes(cleanKey)) {
-          audioUrl = `/api/tts/audio?text=${encodeURIComponent(text)}&voice=${encodeURIComponent(cleanKey)}`;
-        } else {
-          audioUrl = `https://translate.google.com/translate_tts?ie=UTF-8&q=${encodeURIComponent(text)}&tl=${encodeURIComponent(targetLang)}&client=tw-ob`;
-        }
-
-        const audio = new Audio();
-        audio.crossOrigin = 'anonymous';
-        audio.src = audioUrl;
-        audio.volume = Math.max(0, Math.min(1, volume));
-
-        if (ctx) {
-          try {
-            const source = ctx.createMediaElementSource(audio);
-            source.connect(ctx.destination);
-          } catch(e) {}
-        }
-
-        let finished = false;
-        function done() {
-          if (finished) return;
-          finished = true;
-          if (onEnd) onEnd();
-        }
-
-        audio.onended = done;
-        audio.onerror = () => {
-          // Si falla la URL, intentar con Web Speech API
-          fallbackSpeechSynth();
-        };
-
-        const playPromise = audio.play();
-        if (playPromise !== undefined) {
-          playPromise.catch(() => {
-            if (ctx && ctx.resume) {
-              ctx.resume().then(() => {
-                audio.play().catch(() => fallbackSpeechSynth());
-              }).catch(() => fallbackSpeechSynth());
-            } else {
-              fallbackSpeechSynth();
-            }
-          });
-        }
-
-        function fallbackSpeechSynth() {
-          if (!('speechSynthesis' in window)) {
-            done();
-            return;
-          }
-          try {
-            window.speechSynthesis.cancel();
-            const utterance = new SpeechSynthesisUtterance(text);
-            utterance.volume = volume;
-            utterance.rate = profile.rate || 1.0;
-            utterance.pitch = profile.pitch || 1.0;
-            utterance.lang = profile.lang || 'es-ES';
-
-            const voices = window.speechSynthesis.getVoices() || [];
-            let matchedVoice = voices.find(v => v.lang.toLowerCase().startsWith(targetLang));
-            if (!matchedVoice) matchedVoice = voices.find(v => v.lang.toLowerCase().startsWith('es') || v.lang.toLowerCase().startsWith('en'));
-            if (matchedVoice) utterance.voice = matchedVoice;
-
-            utterance.onend = done;
-            utterance.onerror = done;
-            window.speechSynthesis.speak(utterance);
-          } catch (e) {
-            done();
-          }
-        }
-      }
-
-      // Procesamiento de segmentos multi-voz o voz única
       const rawSegments = Array.isArray(item.segments) && item.segments.length > 0
         ? item.segments
-        : [{ voice: item.voice, voiceName: item.voiceName || 'Voz', text: item.text, audioUrl: item.audioUrl, engine: item.engine }];
+        : [{
+            voice: item.voice || 'es_mx_mia',
+            voiceName: item.voiceName || (VOICE_PROFILES[item.voice]?.name || item.voice || 'Voz'),
+            text: item.text || '',
+            audioUrl: item.audioUrl,
+            engine: item.engine
+          }];
 
       let currentSegIdx = 0;
+      let itemFinalized = false;
+
+      function finalizeItem() {
+        if (itemFinalized) return;
+        itemFinalized = true;
+
+        stopCurrentAudio();
+        ttsIndicator.classList.remove('active');
+
+        // Pausa de 350ms antes de avanzar al siguiente mensaje de la cola
+        if (currentFinalizeTimer) clearTimeout(currentFinalizeTimer);
+        currentFinalizeTimer = setTimeout(() => {
+          isSpeaking = false;
+          processQueue();
+        }, 350);
+      }
 
       function playNextSegment() {
-        if (finished) return;
+        if (itemFinalized) return;
         if (currentSegIdx >= rawSegments.length) {
-          finalize();
+          finalizeItem();
           return;
         }
 
-        const seg = rawSegments[currentSegIdx];
-        currentSegIdx++;
-
+        const seg = rawSegments[currentSegIdx++];
         const segVoiceName = seg.voiceName || (VOICE_PROFILES[seg.voice]?.name || seg.voice || 'TTS');
-        ttsUser.innerText = `${item.user} (${segVoiceName})`;
+        ttsUser.innerText = `${item.user || 'Espectador'} (${segVoiceName})`;
+
+        // Temporizador de seguridad dinámico basado en la longitud del texto (mínimo 15 segundos)
+        const segTextLen = (seg.text || '').length;
+        const dynamicTimeoutMs = Math.max(15000, segTextLen * 350);
+
+        if (currentSegmentTimer) clearTimeout(currentSegmentTimer);
+        currentSegmentTimer = setTimeout(() => {
+          console.warn(`[TTS Overlay] Timeout de seguridad para segmento alcanzado (${dynamicTimeoutMs}ms). Avanzando...`);
+          stopCurrentAudio();
+          playNextSegment();
+        }, dynamicTimeoutMs);
+
+        let segmentDone = false;
+        const handleSegmentEnd = () => {
+          if (segmentDone) return;
+          segmentDone = true;
+          if (currentSegmentTimer) {
+            clearTimeout(currentSegmentTimer);
+            currentSegmentTimer = null;
+          }
+          playNextSegment();
+        };
 
         const segAudioUrl = seg.audioUrl || `/api/tts/audio?text=${encodeURIComponent(seg.text)}&voice=${encodeURIComponent(seg.voice || 'es_mx_mia')}`;
         const isFish = seg.engine === 'fish_audio' || fishAudioKeys.includes(seg.voice) || (segAudioUrl && segAudioUrl.includes('/api/tts/audio'));
 
         if (isFish && segAudioUrl) {
+          stopCurrentAudio();
           const ctx = getAudioContext();
           const directAudio = new Audio();
           directAudio.crossOrigin = 'anonymous';
           directAudio.src = segAudioUrl;
           directAudio.volume = item.volume !== undefined ? item.volume : 0.9;
+          currentActiveAudio = directAudio;
 
           if (ctx) {
             try {
               const source = ctx.createMediaElementSource(directAudio);
               source.connect(ctx.destination);
-            } catch(e) {}
+            } catch (e) {}
           }
 
-          let segEnded = false;
-          const handleEnd = () => {
-            if (segEnded) return;
-            segEnded = true;
-            playNextSegment();
+          directAudio.onended = () => {
+            if (currentActiveAudio === directAudio) currentActiveAudio = null;
+            handleSegmentEnd();
           };
-          directAudio.onended = handleEnd;
+
+          let fallbackInvoked = false;
+          const runFallback = () => {
+            if (fallbackInvoked || segmentDone || itemFinalized) return;
+            fallbackInvoked = true;
+            if (currentActiveAudio === directAudio) currentActiveAudio = null;
+            playTTSAudio(seg.text, seg.voice, item.volume !== undefined ? item.volume : 0.9, handleSegmentEnd);
+          };
+
           directAudio.onerror = (e) => {
-            console.warn('Direct stream failed, falling back to local synthesizer:', e);
-            playTTSAudio(seg.text, seg.voice, item.volume !== undefined ? item.volume : 0.9, handleEnd);
+            console.warn('[TTS Overlay] Falló audio directo de Fish Audio, usando sintetizador fallback:', e);
+            runFallback();
           };
-          directAudio.play().catch(() => {
-            playTTSAudio(seg.text, seg.voice, item.volume !== undefined ? item.volume : 0.9, handleEnd);
-          });
+
+          const playPromise = directAudio.play();
+          if (playPromise !== undefined) {
+            playPromise.catch(() => {
+              if (ctx && ctx.resume) {
+                ctx.resume().then(() => {
+                  directAudio.play().catch(() => runFallback());
+                }).catch(() => runFallback());
+              } else {
+                runFallback();
+              }
+            });
+          }
         } else {
-          playTTSAudio(seg.text, seg.voice, item.volume !== undefined ? item.volume : 0.9, () => {
-            playNextSegment();
-          });
+          playTTSAudio(seg.text, seg.voice, item.volume !== undefined ? item.volume : 0.9, handleSegmentEnd);
         }
       }
 
       playNextSegment();
-    }
-
-    function finishSpeaking() {
-      ttsIndicator.classList.remove('active');
-      setTimeout(() => {
-        isSpeaking = false;
-        processQueue();
-      }, 400);
     }
 
     if ('speechSynthesis' in window) {
@@ -364,19 +441,33 @@
       };
     }
 
-    const processedTtsIds = new Set();
+    // Deduplicación robusta de eventos TTS para prevenir que se añadan dos veces a la cola
+    const recentTtsMap = new Map();
     function isDuplicateTts(msg) {
       if (!msg) return true;
       const data = msg.data || msg;
-      const eventId = msg.id || data.id || `tts_${data.user || ''}_${data.text || ''}_${Math.floor((msg.timestamp || data.timestamp || Date.now()) / 3500)}`;
-      
-      if (processedTtsIds.has(eventId)) {
+      const user = (data.user || msg.user || '').trim().toLowerCase();
+      const text = (data.text || msg.text || '').trim().toLowerCase();
+      const rawId = msg.id || data.id || '';
+      const now = Date.now();
+
+      // Limpiar entradas antiguas mayores a 12 segundos
+      for (const [key, ts] of recentTtsMap.entries()) {
+        if (now - ts > 12000) recentTtsMap.delete(key);
+      }
+
+      if (rawId && recentTtsMap.has('id_' + rawId)) {
         return true;
       }
-      processedTtsIds.add(eventId);
-      setTimeout(() => {
-        processedTtsIds.delete(eventId);
-      }, 15000);
+
+      const contentKey = 'content_' + user + '_' + text;
+      if (user && text && recentTtsMap.has(contentKey)) {
+        return true;
+      }
+
+      if (rawId) recentTtsMap.set('id_' + rawId, now);
+      if (user && text) recentTtsMap.set(contentKey, now);
+
       return false;
     }
 
@@ -433,8 +524,11 @@
           console.log('[TTS Overlay] TTS está deshabilitado en la configuración. Mensaje ignorado.');
           return;
         }
-        if (isDuplicateTts(msg)) return;
-        queue.push(msg.data);
+        if (isDuplicateTts(msg)) {
+          return;
+        }
+        const ttsItem = msg.data || msg;
+        queue.push(ttsItem);
         processQueue();
       } else if (msg.event === 'config_updated' || msg.event === 'init_state') {
         const cfg = msg.data?.config || msg.data;
@@ -445,7 +539,6 @@
     }
 
     function connectChannels() {
-
       // 1. Local WebSocket con reconexión automática en segundo plano
       let wsInstance = null;
       let wsReconnectTimeout = null;
