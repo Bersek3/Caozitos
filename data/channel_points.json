@@ -1,10 +1,11 @@
 [
   {
-    "id": "reward-1789254410697",
-    "rewardId": "cf78df7d-b7e7-4af1-803b-8ace9bc9f76b",
-    "rewardName": "Pide una canción",
-    "action": "song_request",
-    "soundUrl": null,
+    "id": "reward_test_hidrata",
+    "rewardId": "uuid-hidrata-123",
+    "rewardName": "Hidratate",
+    "action": "tts",
+    "voiceId": "auronplay",
+    "customMessage": "¡{user} ha canjeado {recompensa}! Tómate un vaso de agua fresquita ahora mismo.",
     "enabled": true
   }
 ]

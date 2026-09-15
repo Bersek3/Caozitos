@@ -121,6 +121,31 @@ class TwitchBot {
       // Sincronizar automáticamente IDs de recompensas de Puntos de Canal con Twitch
       this.syncTwitchRewards();
 
+      // Resolver broadcaster userId si no está guardado para EventSub
+      if (!twitchCfg.userId && twitchCfg.clientId && twitchCfg.oauthToken) {
+        try {
+          const cleanToken = twitchCfg.oauthToken.replace(/^oauth:/i, '').trim();
+          const userRes = await fetch(`https://api.twitch.tv/helix/users?login=${channelName}`, {
+            headers: {
+              'Client-Id': twitchCfg.clientId,
+              'Authorization': `Bearer ${cleanToken}`
+            }
+          });
+          if (userRes.ok) {
+            const uData = await userRes.json();
+            if (uData.data && uData.data.length > 0) {
+              twitchCfg.userId = uData.data[0].id;
+              const fullCfg = storage.getConfig();
+              fullCfg.twitch = { ...fullCfg.twitch, userId: uData.data[0].id };
+              storage.saveConfig(fullCfg);
+              console.log(`[TwitchBot] ✅ Broadcaster userId resuelto: ${twitchCfg.userId}`);
+            }
+          }
+        } catch (uErr) {
+          console.warn('[TwitchBot] Error al resolver userId:', uErr.message);
+        }
+      }
+
       // Conectar a EventSub WebSocket para captura en tiempo real de todos los canjes de Puntos de Canal
       if (twitchCfg.userId && twitchCfg.clientId && twitchCfg.oauthToken) {
         this.connectEventSub(twitchCfg.userId, twitchCfg.clientId, twitchCfg.oauthToken);
@@ -603,11 +628,13 @@ class TwitchBot {
       } catch (e) { }
     }
 
-    // 1. Coincidencia por ID de Twitch o título exacto
+    const norm = (s) => (s || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim().toLowerCase();
+
+    // 1. Coincidencia por ID de Twitch o título exacto / normalizado
     let matchedReward = rewards.find(r => r.enabled && (
       (r.rewardId && customRewardId && r.rewardId.toLowerCase() === customRewardId.toLowerCase()) ||
       (r.id && customRewardId && r.id.toLowerCase() === customRewardId.toLowerCase()) ||
-      (rewardTitle && r.rewardName && r.rewardName.trim().toLowerCase() === rewardTitle.trim().toLowerCase())
+      (rewardTitle && r.rewardName && norm(r.rewardName) === norm(rewardTitle))
     ));
 
     // 2. Si no coincide aún, resolver el título por Helix API en vivo
@@ -626,8 +653,8 @@ class TwitchBot {
           if (res.ok) {
             const data = await res.json();
             if (data.data && data.data.length > 0) {
-              const fetchedTitle = data.data[0].title.trim().toLowerCase();
-              matchedReward = rewards.find(r => r.enabled && r.rewardName.trim().toLowerCase() === fetchedTitle);
+              const fetchedTitle = data.data[0].title;
+              matchedReward = rewards.find(r => r.enabled && norm(r.rewardName) === norm(fetchedTitle));
               if (matchedReward) {
                 matchedReward.rewardId = customRewardId;
                 storage.saveRewards(rewards);
@@ -660,6 +687,8 @@ class TwitchBot {
     this.recentRedemptions.add(dedupeKey);
     setTimeout(() => this.recentRedemptions.delete(dedupeKey), 10000);
 
+    const activeChannel = channel || this.channel || (storage.getConfig().twitch?.channel || '');
+
     if (matchedReward && matchedReward.enabled) {
       console.log(`[TwitchBot] 🎁 Canje procesado: "${matchedReward.rewardName}" (${matchedReward.action}) por @${username}`);
       if (matchedReward.action === 'sound') {
@@ -691,7 +720,7 @@ class TwitchBot {
             text: ttsText,
             voiceOverride: selectedVoice,
             source: 'channel_points',
-            channel: channel ? channel.toLowerCase().replace(/^#/, '') : null
+            channel: activeChannel ? activeChannel.toLowerCase().replace(/^#/, '') : null
           });
         }
 
@@ -705,20 +734,20 @@ class TwitchBot {
       } else if (matchedReward.action === 'song_request') {
         const srCfg = storage.getConfig().songRequest;
         if (srCfg && srCfg.enabled === false) {
-          if (channel) this.sendMessage(channel, `@${username}, el sistema de Song Request está desactivado en este momento.`);
+          if (activeChannel) this.sendMessage(activeChannel, `@${username}, el sistema de Song Request está desactivado en este momento.`);
           return;
         }
         if (!cleanMsg) return;
 
         const result = await songRequest.addSong({
-          channel,
+          channel: activeChannel,
           query: cleanMsg,
           requester: username,
           isMod: true,
           isSub: true,
           isPriority: true
         });
-        if (channel) this.sendMessage(channel, `@${username} ${result.message}`);
+        if (activeChannel) this.sendMessage(activeChannel, `@${username} ${result.message}`);
         this.broadcast('alert', {
           type: 'channel_points',
           user: username,
@@ -743,8 +772,13 @@ class TwitchBot {
   connectEventSub(userId, clientId, token) {
     if (!userId || !clientId || !token) return;
 
-    const WebSocket = require('ws');
-    if (this.eventsubWs && (this.eventsubWs.readyState === WebSocket.OPEN || this.eventsubWs.readyState === WebSocket.CONNECTING) && this._activeEventSubUserId === userId) {
+    const WS = globalThis.WebSocket || (typeof require !== 'undefined' ? (function() { try { return require('ws'); } catch(e){ return null; } })() : null);
+    if (!WS) {
+      console.warn('[TwitchBot] WebSocket no disponible para EventSub.');
+      return;
+    }
+
+    if (this.eventsubWs && (this.eventsubWs.readyState === 1 || this.eventsubWs.readyState === 0) && this._activeEventSubUserId === userId) {
       return; // Conexión ya activa y operando
     }
 
@@ -755,16 +789,18 @@ class TwitchBot {
     this._activeEventSubUserId = userId;
 
     try {
-      const ws = new WebSocket('wss://eventsub.wss.twitch.tv/ws');
+      const ws = new WS('wss://eventsub.wss.twitch.tv/ws');
       this.eventsubWs = ws;
 
-      ws.on('open', () => {
+      const handleOpen = () => {
         console.log('[TwitchBot] 🟢 Conectado a Twitch EventSub WebSocket (Puntos de Canal en vivo).');
-      });
+      };
 
-      ws.on('message', async (data) => {
+      const handleMessage = async (dataOrEvent) => {
         try {
-          const msg = JSON.parse(data.toString());
+          const raw = dataOrEvent.data !== undefined ? (typeof dataOrEvent.data === 'string' ? dataOrEvent.data : dataOrEvent.data.toString()) : dataOrEvent.toString();
+          const msg = JSON.parse(raw);
+
           if (msg.metadata && msg.metadata.message_type === 'session_welcome') {
             const sessionId = msg.payload.session.id;
             const cleanToken = token.replace(/^oauth:/i, '').trim();
@@ -796,15 +832,17 @@ class TwitchBot {
           } else if (msg.metadata && msg.metadata.message_type === 'notification') {
             const ev = msg.payload?.event;
             if (ev && ev.reward) {
-              this.handleChannelPointRedemption(ev.reward.id, ev.user_name || ev.user_login || 'Espectador', ev.user_input || '', ev.reward.title || '');
+              console.log(`[TwitchBot] 🎁 EventSub Canje detectado: "${ev.reward.title}" por @${ev.user_name || ev.user_login}`);
+              const activeChannel = this.channel || (storage.getConfig().twitch?.channel || '');
+              this.handleChannelPointRedemption(ev.reward.id, ev.user_name || ev.user_login || 'Espectador', ev.user_input || '', ev.reward.title || '', activeChannel);
             }
           }
         } catch (err) {
           console.warn('[TwitchBot] Error procesando mensaje de EventSub:', err.message);
         }
-      });
+      };
 
-      ws.on('close', () => {
+      const handleClose = () => {
         this.eventsubWs = null;
         if (this.status === 'connected' && !this.isExplicitDisconnect) {
           setTimeout(() => {
@@ -817,11 +855,29 @@ class TwitchBot {
             }
           }, 8000);
         }
-      });
+      };
 
-      ws.on('error', (err) => {
-        console.warn('[TwitchBot] EventSub WebSocket error:', err.message);
-      });
+      const handleError = (err) => {
+        console.warn('[TwitchBot] EventSub WebSocket error:', err?.message || err);
+      };
+
+      if (typeof ws.addEventListener === 'function') {
+        ws.addEventListener('open', handleOpen);
+        ws.addEventListener('message', handleMessage);
+        ws.addEventListener('close', handleClose);
+        ws.addEventListener('error', handleError);
+      } else {
+        ws.onopen = handleOpen;
+        ws.onmessage = handleMessage;
+        ws.onclose = handleClose;
+        ws.onerror = handleError;
+        if (typeof ws.on === 'function') {
+          ws.on('open', handleOpen);
+          ws.on('message', handleMessage);
+          ws.on('close', handleClose);
+          ws.on('error', handleError);
+        }
+      }
     } catch (e) {
       console.warn('[TwitchBot] EventSub no disponible:', e.message);
     }

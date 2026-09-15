@@ -2247,13 +2247,21 @@ function connectInBrowserTwitchBot(twitchData) {
   browserTmiClient = new window.tmi.Client(opts);
   setupClient(browserTmiClient);
 
-  browserTmiClient.connect().catch(e => {
+  browserTmiClient.connect().then(() => {
+    if (twitchData && twitchData.userId && twitchData.clientId && twitchData.oauthToken) {
+      connectBrowserEventSub(twitchData.userId, twitchData.clientId, twitchData.oauthToken);
+    }
+  }).catch(e => {
     console.warn('IRC authed connection failed, falling back to anonymous read-only:', e);
     try {
       delete opts.identity;
       browserTmiClient = new window.tmi.Client(opts);
       setupClient(browserTmiClient);
-      browserTmiClient.connect().catch(err => {
+      browserTmiClient.connect().then(() => {
+        if (twitchData && twitchData.userId && twitchData.clientId && twitchData.oauthToken) {
+          connectBrowserEventSub(twitchData.userId, twitchData.clientId, twitchData.oauthToken);
+        }
+      }).catch(err => {
         updateBotStatusUI({ status: 'connected', channel });
       });
     } catch (err) {
@@ -2262,6 +2270,94 @@ function connectInBrowserTwitchBot(twitchData) {
   });
 }
 
+let browserEventSubWs = null;
+let activeBrowserEventSubUserId = null;
+
+function connectBrowserEventSub(userId, clientId, token) {
+  if (!userId || !clientId || !token) return;
+  if (typeof WebSocket === 'undefined') return;
+
+  if (browserEventSubWs && (browserEventSubWs.readyState === 1 || browserEventSubWs.readyState === 0) && activeBrowserEventSubUserId === userId) {
+    return;
+  }
+
+  if (browserEventSubWs) {
+    try { browserEventSubWs.close(); } catch(e){}
+    browserEventSubWs = null;
+  }
+  activeBrowserEventSubUserId = userId;
+
+  try {
+    const ws = new WebSocket('wss://eventsub.wss.twitch.tv/ws');
+    browserEventSubWs = ws;
+
+    ws.onopen = () => {
+      console.log('[Dashboard EventSub] 🟢 Conectado a Twitch EventSub WebSocket en navegador.');
+    };
+
+    ws.onmessage = async (event) => {
+      try {
+        const raw = typeof event.data === 'string' ? event.data : event.data.toString();
+        const msg = JSON.parse(raw);
+
+        if (msg.metadata && msg.metadata.message_type === 'session_welcome') {
+          const sessionId = msg.payload.session.id;
+          const cleanToken = token.replace(/^oauth:/i, '').trim();
+
+          const subRes = await fetch('https://api.twitch.tv/helix/eventsub/subscriptions', {
+            method: 'POST',
+            headers: {
+              'Client-Id': clientId,
+              'Authorization': `Bearer ${cleanToken}`,
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+              type: 'channel.channel_points_custom_reward_redemption.add',
+              version: '1',
+              condition: { broadcaster_user_id: userId },
+              transport: {
+                method: 'websocket',
+                session_id: sessionId
+              }
+            })
+          });
+
+          if (subRes.ok) {
+            console.log('[Dashboard EventSub] ✅ Suscripción a Puntos de Canal activa en vivo.');
+          } else {
+            const errData = await subRes.json().catch(() => ({}));
+            console.warn('[Dashboard EventSub] Subscription info:', errData.message || subRes.statusText);
+          }
+        } else if (msg.metadata && msg.metadata.message_type === 'notification') {
+          const ev = msg.payload?.event;
+          if (ev && ev.reward) {
+            console.log(`[Dashboard EventSub] 🎁 Canje detectado: "${ev.reward.title}" por @${ev.user_name || ev.user_login}`);
+            handleBrowserChannelPointRedemption(ev.reward.id, ev.user_name || ev.user_login || 'Espectador', ev.user_input || '', ev.reward.title || '');
+          }
+        }
+      } catch (err) {
+        console.warn('[Dashboard EventSub] Error procesando mensaje:', err.message);
+      }
+    };
+
+    ws.onclose = () => {
+      browserEventSubWs = null;
+      const currentCfg = (typeof appConfig !== 'undefined' && appConfig) ? appConfig : {};
+      const tCfg = currentCfg.twitch || {};
+      if (tCfg.connected && tCfg.userId && tCfg.clientId && tCfg.oauthToken) {
+        setTimeout(() => connectBrowserEventSub(tCfg.userId, tCfg.clientId, tCfg.oauthToken), 10000);
+      }
+    };
+
+    ws.onerror = (err) => {
+      console.warn('[Dashboard EventSub] WebSocket error:', err?.message || err);
+    };
+  } catch(e) {
+    console.warn('[Dashboard EventSub] No se pudo inicializar WebSocket:', e.message);
+  }
+}
+window.connectBrowserEventSub = connectBrowserEventSub;
+
 let browserRecentRedemptions = new Set();
 async function handleBrowserChannelPointRedemption(customRewardId, username, message = '', rewardTitle = '') {
   let rewards = [];
@@ -2269,17 +2365,19 @@ async function handleBrowserChannelPointRedemption(customRewardId, username, mes
     rewards = JSON.parse(localStorage.getItem('orbibot_rewards') || '[]');
   } catch(e) {}
 
+  const norm = (s) => (s || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim().toLowerCase();
+
   let matchedReward = rewards.find(r => r.enabled && (
     (r.rewardId && customRewardId && r.rewardId.toLowerCase() === customRewardId.toLowerCase()) ||
     (r.id && customRewardId && r.id.toLowerCase() === customRewardId.toLowerCase()) ||
-    (rewardTitle && r.rewardName && r.rewardName.trim().toLowerCase() === rewardTitle.trim().toLowerCase())
+    (rewardTitle && r.rewardName && norm(r.rewardName) === norm(rewardTitle))
   ));
 
   // Si no coincide directamente, buscar por cachedTwitchHelixRewards
   if (!matchedReward && customRewardId && typeof cachedTwitchHelixRewards !== 'undefined' && Array.isArray(cachedTwitchHelixRewards)) {
     const helixMatch = cachedTwitchHelixRewards.find(tr => tr.id === customRewardId);
     if (helixMatch) {
-      matchedReward = rewards.find(r => r.enabled && r.rewardName.trim().toLowerCase() === helixMatch.title.trim().toLowerCase());
+      matchedReward = rewards.find(r => r.enabled && norm(r.rewardName) === norm(helixMatch.title));
       if (matchedReward) {
         matchedReward.rewardId = customRewardId;
         localStorage.setItem('orbibot_rewards', JSON.stringify(rewards));
@@ -6373,6 +6471,34 @@ function previewRewardTTS() {
 }
 window.previewRewardTTS = previewRewardTTS;
 
+function onRewardCustomMessageInput(val) {
+  const hasCustomMsg = Boolean((val || '').trim().length > 0);
+  const actionSel = document.getElementById('rewardActionSelect');
+  const lockBadge = document.getElementById('rewardActionLockBadge');
+  const soundGroup = document.getElementById('rewardSoundGroup');
+  const ttsGroup = document.getElementById('rewardTtsGroup');
+
+  if (hasCustomMsg) {
+    if (actionSel) {
+      actionSel.value = 'tts';
+      actionSel.disabled = true;
+      actionSel.style.opacity = '0.75';
+      actionSel.style.cursor = 'not-allowed';
+    }
+    if (lockBadge) lockBadge.style.display = 'inline-block';
+    if (soundGroup) soundGroup.style.display = 'none';
+    if (ttsGroup) ttsGroup.style.display = 'block';
+  } else {
+    if (actionSel) {
+      actionSel.disabled = false;
+      actionSel.style.opacity = '1';
+      actionSel.style.cursor = 'pointer';
+    }
+    if (lockBadge) lockBadge.style.display = 'none';
+  }
+}
+window.onRewardCustomMessageInput = onRewardCustomMessageInput;
+
 function toggleRewardForm(show) {
   const form = document.getElementById('rewardFormCard');
   if (!form) return;
@@ -6386,8 +6512,12 @@ function toggleRewardForm(show) {
     setupRewardAutocomplete();
     syncTwitchRewardsUI();
     populateRewardVoicesSelect();
-    const currentAction = document.getElementById('rewardActionSelect')?.value || 'tts';
-    handleRewardActionChange(currentAction);
+    const currentMsg = document.getElementById('rewardCustomMessageInput')?.value || '';
+    onRewardCustomMessageInput(currentMsg);
+    if (!currentMsg.trim()) {
+      const currentAction = document.getElementById('rewardActionSelect')?.value || 'tts';
+      handleRewardActionChange(currentAction);
+    }
   }
 }
 
@@ -6730,10 +6860,11 @@ async function handleSoundFileUpload(input) {
 async function saveRewardUI() {
   const inputEl = document.getElementById('rewardNameInput');
   const name = (inputEl?.value || '').trim();
-  const action = document.getElementById('rewardActionSelect').value;
+  const customMessage = (document.getElementById('rewardCustomMessageInput')?.value || '').trim() || null;
+  const actionSel = document.getElementById('rewardActionSelect');
+  const action = customMessage ? 'tts' : (actionSel?.value || 'tts');
   const soundUrl = document.getElementById('rewardSoundSelect')?.value || null;
   const voiceId = document.getElementById('rewardVoiceSelect')?.value || null;
-  const customMessage = (document.getElementById('rewardCustomMessageInput')?.value || '').trim() || null;
   const editId = document.getElementById('editRewardId').value;
 
   if (!name) {
@@ -6837,6 +6968,7 @@ async function saveRewardUI() {
   if (voiceSel) voiceSel.value = '';
   const customMsgInput = document.getElementById('rewardCustomMessageInput');
   if (customMsgInput) customMsgInput.value = '';
+  onRewardCustomMessageInput('');
 
   showToast(`Recompensa "${name}" guardada`, 'success');
 }
@@ -6878,6 +7010,11 @@ async function editReward(rewardId) {
     populateRewardVoicesSelect(r.voiceId || r.voice || '');
     const msgInput = document.getElementById('rewardCustomMessageInput');
     if (msgInput) msgInput.value = r.customMessage || '';
+    onRewardCustomMessageInput(r.customMessage || '');
+  } else {
+    const msgInput = document.getElementById('rewardCustomMessageInput');
+    if (msgInput) msgInput.value = '';
+    onRewardCustomMessageInput('');
   }
 
   if (r.soundUrl) {

@@ -1704,7 +1704,10 @@
                 </div>
 
                 <div class="form-group">
-                  <label class="form-label" style="font-weight: 600; color: #ffffff;">⚡ Acción a Ejecutar en Stream</label>
+                  <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px;">
+                    <label class="form-label" style="font-weight: 600; color: #ffffff; margin: 0;">⚡ Acción a Ejecutar en Stream</label>
+                    <span id="rewardActionLockBadge" style="display: none; font-size: 11.5px; color: #c084fc; background: rgba(145, 70, 255, 0.2); border: 1px solid rgba(145, 70, 255, 0.5); padding: 2px 8px; border-radius: 6px; font-weight: 700;">🔒 Bloqueado en Voz TTS de IA</span>
+                  </div>
                   <select id="rewardActionSelect" class="form-control" onchange="handleRewardActionChange(this.value)" style="font-size: 13.5px;">
                     <option value="tts">🗣️ Voz TTS de IA (Lee en voz alta en OBS con voz y mensaje personalizado)</option>
                     <option value="song_request">🎶 Pedir Canción (Prioridad VIP: entra en puesto #1 de la cola de música)</option>
@@ -1727,7 +1730,7 @@
                     <span>💬 Mensaje de Voz Personalizado (Plantilla)</span>
                     <span style="font-size: 11px; font-weight: 600; color: #a855f7;">Opcional</span>
                   </label>
-                  <textarea id="rewardCustomMessageInput" class="form-control" rows="2" style="font-size: 13.5px; background: #070a12; color: #fff; border: 1px solid rgba(145, 70, 255, 0.5);" placeholder="Ej: ¡{user} ha canjeado Hidrátate! Tómate un vaso de agua ahora mismo."></textarea>
+                  <textarea id="rewardCustomMessageInput" class="form-control" rows="2" oninput="onRewardCustomMessageInput(this.value)" style="font-size: 13.5px; background: #070a12; color: #fff; border: 1px solid rgba(145, 70, 255, 0.5);" placeholder="Ej: ¡{user} ha canjeado Hidrátate! Tómate un vaso de agua ahora mismo."></textarea>
                   
                   <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px; margin-top: 8px;">
                     <div style="font-size: 11.5px; color: #94a3b8;">
