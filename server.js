@@ -240,6 +240,13 @@ songRequest.onUpdate((payload) => {
 ttsService.onTTS((payload) => {
   const room = payload?.channel || payload?.room;
   broadcast('tts', payload, room);
+  broadcast('tts_queue_update', { queue: ttsService.getQueueState(room) }, room);
+});
+
+ttsService.onTTSControl((payload) => {
+  const room = payload?.channel || payload?.room;
+  broadcast('tts_control', payload, room);
+  broadcast('tts_queue_update', { queue: ttsService.getQueueState(room) }, room);
 });
 
 function handleClientMessage(ws, message) {
@@ -1098,6 +1105,34 @@ app.delete('/api/tts/commands/:id', (req, res) => {
   const remaining = storage.deleteTtsCommand(req.params.id);
   broadcast('tts_commands_updated', remaining);
   res.json({ success: true, commands: remaining });
+});
+
+app.get('/api/tts/queue', (req, res) => {
+  const channel = (req.query.channel || req.query.streamer || req.headers['x-streamer-id'] || '').toLowerCase().replace(/^#/, '').trim();
+  res.json({ success: true, queue: ttsService.getQueueState(channel) });
+});
+
+app.post('/api/tts/control', (req, res) => {
+  const { action, id, channel, streamer, user } = req.body || {};
+  const targetChannel = (channel || streamer || req.headers['x-streamer-id'] || '').toLowerCase().replace(/^#/, '').trim();
+  const targetUser = user || 'Streamer';
+
+  let result = { success: true };
+  if (action === 'stop') {
+    result = ttsService.stopTTS(targetChannel, targetUser);
+  } else if (action === 'skip') {
+    result = ttsService.skipTTS(targetChannel, targetUser);
+  } else if (action === 'reset') {
+    result = ttsService.resetTTS(targetChannel, targetUser);
+  } else if (action === 'clear') {
+    result = ttsService.clearQueue(targetChannel, targetUser);
+  } else if (action === 'remove') {
+    result = ttsService.removeItem(id, targetChannel);
+  } else {
+    return res.status(400).json({ success: false, message: 'Acción inválida' });
+  }
+
+  res.json(result);
 });
 
 app.get('/api/tts/audio', async (req, res) => {

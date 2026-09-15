@@ -370,11 +370,41 @@ class TwitchBot {
         return;
       }
 
+      const firstWord = trimmed.split(' ')[0].toLowerCase();
+
+      // Comandos de moderación para TTS (!ttsdetener, !ttsreiniciar, !ttsstop, !ttsreset, !ttsskip)
+      const isBroadcaster = Boolean(tags.badges?.broadcaster === '1' || tags.username === channel.replace(/^#/, '').toLowerCase());
+      if (firstWord === '!ttsdetener' || firstWord === '!ttsstop' || firstWord === '!ttspause') {
+        if (isMod || isBroadcaster) {
+          const chanKey = channel ? channel.toLowerCase().replace(/^#/, '') : null;
+          ttsService.stopTTS(chanKey, username);
+          this.sendMessage(channel, `[TTS] ⏹️ Audio de TTS detenido por @${username}.`);
+          return;
+        }
+      }
+
+      if (firstWord === '!ttsreiniciar' || firstWord === '!ttsreset' || firstWord === '!ttsclear') {
+        if (isMod || isBroadcaster) {
+          const chanKey = channel ? channel.toLowerCase().replace(/^#/, '') : null;
+          ttsService.resetTTS(chanKey, username);
+          this.sendMessage(channel, `[TTS] 🔄 Cola de TTS reiniciada y reproductor restablecido por @${username}.`);
+          return;
+        }
+      }
+
+      if (firstWord === '!ttsskip' || firstWord === '!ttssaltar') {
+        if (isMod || isBroadcaster) {
+          const chanKey = channel ? channel.toLowerCase().replace(/^#/, '') : null;
+          ttsService.skipTTS(chanKey, username);
+          this.sendMessage(channel, `[TTS] ⏭️ Mensaje TTS saltado por @${username}.`);
+          return;
+        }
+      }
+
       // Check TTS Commands (Generic !tts or Specific Voice Commands ej: !messi, !homero, !dross, !rubius)
       const ttsConfig = config.tts || {};
       const ttsCmd = (ttsConfig.chatCommand || '!tts').toLowerCase();
       const ttsVoiceCommands = storage.getTtsCommands() || [];
-      const firstWord = trimmed.split(' ')[0].toLowerCase();
       const matchedVoiceCmd = ttsVoiceCommands.find(c => c.enabled && c.command && c.command.toLowerCase() === firstWord);
 
       if (ttsConfig.enabled && ttsConfig.allowChatCommand) {

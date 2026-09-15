@@ -530,6 +530,30 @@
         const ttsItem = msg.data || msg;
         queue.push(ttsItem);
         processQueue();
+      } else if (msg.event === 'tts_control') {
+        const action = msg.data?.action || msg.action;
+        console.log('[TTS Overlay] Comando de control recibido:', action);
+        if (action === 'stop') {
+          stopCurrentAudio();
+          ttsIndicator.classList.remove('active');
+          isSpeaking = false;
+        } else if (action === 'skip') {
+          stopCurrentAudio();
+          ttsIndicator.classList.remove('active');
+          isSpeaking = false;
+          setTimeout(() => processQueue(), 200);
+        } else if (action === 'reset' || action === 'clear') {
+          stopCurrentAudio();
+          queue.length = 0;
+          ttsIndicator.classList.remove('active');
+          isSpeaking = false;
+        } else if (action === 'item_removed') {
+          const remId = msg.data?.id || msg.id;
+          if (remId) {
+            const idx = queue.findIndex(i => i.id === remId);
+            if (idx >= 0) queue.splice(idx, 1);
+          }
+        }
       } else if (msg.event === 'config_updated' || msg.event === 'init_state') {
         const cfg = msg.data?.config || msg.data;
         if (cfg?.tts && cfg.tts.enabled !== undefined) {

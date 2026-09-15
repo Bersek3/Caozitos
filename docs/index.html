@@ -1097,6 +1097,7 @@
           <div class="tts-subtabs-nav">
             <button class="tts-subtab-btn active" data-subtab="tts-subtab-commands">Comandos</button>
             <button class="tts-subtab-btn" data-subtab="tts-subtab-library">Biblioteca de voces</button>
+            <button class="tts-subtab-btn" data-subtab="tts-subtab-queue">Cola de solicitudes</button>
             <button class="tts-subtab-btn" data-subtab="tts-subtab-moderation">Moderación</button>
           </div>
 
@@ -1157,7 +1158,51 @@
             </div>
           </div>
 
-          <!-- 3. SUB-PESTAÑA: MODERACIÓN -->
+          <!-- 3. SUB-PESTAÑA: COLA DE SOLICITUDES DE TTS -->
+          <div id="tts-subtab-queue" class="tts-subtab-content">
+            <div class="tts-commands-header" style="margin-bottom: 20px;">
+              <div class="tts-header-title-wrap">
+                <h3 class="tts-section-title">Cola de Solicitudes TTS en Vivo</h3>
+                <span id="ttsQueueCountBadge" class="tts-count-badge">0 en cola</span>
+              </div>
+              <div class="tts-header-actions" style="gap: 8px;">
+                <button class="btn btn-secondary btn-sm" id="btnTtsStopAction" onclick="handleTtsStop()" title="Detener audio que está sonando ahora">
+                  <i class="fas fa-stop" style="color: #ef4444;"></i> Detener Audio
+                </button>
+                <button class="btn btn-secondary btn-sm" id="btnTtsSkipAction" onclick="handleTtsSkip()" title="Saltar al siguiente mensaje en la cola">
+                  <i class="fas fa-forward" style="color: #00f2fe;"></i> Saltar Siguiente
+                </button>
+                <button class="btn btn-secondary btn-sm" id="btnTtsResetAction" onclick="handleTtsReset()" title="Reiniciar cola y reproductor en OBS">
+                  <i class="fas fa-sync-alt" style="color: #a3e635;"></i> Reiniciar Cola
+                </button>
+                <button class="btn btn-danger btn-sm" id="btnTtsClearAction" onclick="handleTtsClear()" title="Eliminar todos los mensajes pendientes">
+                  <i class="fas fa-trash-alt"></i> Limpiar Todo
+                </button>
+              </div>
+            </div>
+
+            <!-- Panel Informativo de Comandos de Chat para Mods -->
+            <div style="background: rgba(145, 70, 255, 0.08); border: 1px solid rgba(145, 70, 255, 0.3); border-radius: 12px; padding: 14px 18px; margin-bottom: 20px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px;">
+              <div style="font-size: 13px; color: #cbd5e1;">
+                <strong style="color: #a78bfa;"><i class="fas fa-shield-alt"></i> Comandos de Chat para Moderadores y Streamer:</strong>
+                <div style="margin-top: 4px; display: flex; gap: 14px; flex-wrap: wrap;">
+                  <span><code style="color: #a3e635; font-weight: bold;">!ttsdetener</code> (Detiene el audio actual)</span>
+                  <span><code style="color: #00f2fe; font-weight: bold;">!ttsreiniciar</code> (Limpia la cola y reinicia)</span>
+                  <span><code style="color: #facc15; font-weight: bold;">!ttsskip</code> (Salta al siguiente)</span>
+                </div>
+              </div>
+              <button class="btn btn-secondary btn-sm" onclick="loadTTSQueue(true)" title="Refrescar cola manualmente">
+                <i class="fas fa-rotate-right"></i> Actualizar
+              </button>
+            </div>
+
+            <!-- Contenedor Dinámico de la Cola de TTS -->
+            <div id="ttsQueueContainer" style="display: flex; flex-direction: column; gap: 16px;">
+              <!-- Se renderiza dinámicamente con renderTTSQueue() -->
+            </div>
+          </div>
+
+          <!-- 4. SUB-PESTAÑA: MODERACIÓN -->
           <div id="tts-subtab-moderation" class="tts-subtab-content">
             <div class="grid-2">
               <div class="card">

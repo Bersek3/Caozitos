@@ -20,9 +20,7 @@
     "gender": "male",
     "isAI": true,
     "referenceId": "e3ded66586764591a457fcdaba8a268b",
-    "sampleAudio": "/assets/sounds/messi_sample.mp3",
-    "pitch": 0.78,
-    "rate": 0.98
+    "sampleAudio": "/assets/sounds/messi_sample.mp3"
   },
   {
     "id": "es_ve_maduro",
@@ -44,9 +42,7 @@
     "gender": "male",
     "isAI": true,
     "referenceId": "b011ad1198284358b766a597f6fdd171",
-    "sampleAudio": "/assets/sounds/maduro_sample.mp3",
-    "pitch": 0.72,
-    "rate": 0.95
+    "sampleAudio": "/assets/sounds/maduro_sample.mp3"
   },
   {
     "id": "es_tiktok",
@@ -68,9 +64,7 @@
     "gender": "female",
     "isAI": true,
     "referenceId": "1505e291ec504760a285fd163a78b5eb",
-    "sampleAudio": "/assets/sounds/tiktok_sample.mp3",
-    "pitch": 1.2,
-    "rate": 1.05
+    "sampleAudio": "/assets/sounds/tiktok_sample.mp3"
   },
   {
     "id": "es_mx_homero",
@@ -93,9 +87,7 @@
     "gender": "male",
     "isAI": true,
     "referenceId": "134d19eda4c64cb0b2a84d93e327be3b",
-    "sampleAudio": "/assets/sounds/homero_sample.mp3",
-    "pitch": 0.85,
-    "rate": 0.92
+    "sampleAudio": "/assets/sounds/homero_sample.mp3"
   },
   {
     "id": "es_dross",
@@ -118,9 +110,7 @@
     "gender": "male",
     "isAI": true,
     "referenceId": "d9f0d3d3fe734af6acb5ecc9129bc49a",
-    "sampleAudio": "/assets/sounds/dross_sample.mp3",
-    "pitch": 0.7,
-    "rate": 0.95
+    "sampleAudio": "/assets/sounds/dross_sample.mp3"
   },
   {
     "id": "es_badbunny",
@@ -143,9 +133,7 @@
     "gender": "male",
     "isAI": true,
     "referenceId": "9b30f7190dbe49acb731345e70366cf7",
-    "sampleAudio": "/assets/sounds/badbunny_sample.mp3",
-    "pitch": 0.75,
-    "rate": 0.95
+    "sampleAudio": "/assets/sounds/badbunny_sample.mp3"
   },
   {
     "id": "es_rubius",
@@ -168,9 +156,165 @@
     "gender": "male",
     "isAI": true,
     "referenceId": "39382efbc7584d428f0f789d882cd3b8",
-    "sampleAudio": "/assets/sounds/rubius_sample.mp3",
-    "pitch": 1.05,
-    "rate": 1.05
+    "sampleAudio": "/assets/sounds/rubius_sample.mp3"
+  },
+  {
+    "id": "es_farid",
+    "name": "Farid Dieck",
+    "category": "celebrity",
+    "tags": [
+      "popular",
+      "trending",
+      "ia",
+      "reflexion",
+      "motivacion"
+    ],
+    "lang": "es-MX",
+    "defaultCommand": "!farid",
+    "stats": {
+      "uses": "890k",
+      "downloads": "6.2k"
+    },
+    "previewText": "Las cosas no pasan por algo, pasan para algo. Saludos a todos en el stream.",
+    "gender": "male",
+    "isAI": true,
+    "referenceId": "dfa5b230c8054f429e434f4a6e9bbdec"
+  },
+  {
+    "id": "es_westcol",
+    "name": "WestCol",
+    "category": "streamer",
+    "tags": [
+      "popular",
+      "trending",
+      "ia",
+      "streamer",
+      "colombia"
+    ],
+    "lang": "es-CO",
+    "defaultCommand": "!westcol",
+    "stats": {
+      "uses": "1.4M",
+      "downloads": "9.8k"
+    },
+    "previewText": "¡Qué hubo pues parceros! Bienvenidos a la transmisión.",
+    "gender": "male",
+    "isAI": true,
+    "referenceId": "1e5d99568ab847f499bb1d65be15afd6"
+  },
+  {
+    "id": "es_cr7",
+    "name": "Cristiano Ronaldo",
+    "category": "celebrity",
+    "tags": [
+      "popular",
+      "trending",
+      "ia",
+      "futbol",
+      "cr7",
+      "siuuu"
+    ],
+    "lang": "es-ES",
+    "defaultCommand": "!cr7",
+    "stats": {
+      "uses": "2.3M",
+      "downloads": "18k"
+    },
+    "previewText": "¡Siuuu! Aquí el bicho mandando un saludo a toda la gente del chat.",
+    "gender": "male",
+    "isAI": true,
+    "referenceId": "3521525edb80495e9ad276fc86c7a5e9"
+  },
+  {
+    "id": "es_goku",
+    "name": "Goku (Latino)",
+    "category": "anime",
+    "tags": [
+      "popular",
+      "trending",
+      "ia",
+      "anime",
+      "dragonball"
+    ],
+    "lang": "es-MX",
+    "defaultCommand": "!goku",
+    "stats": {
+      "uses": "1.6M",
+      "downloads": "11k"
+    },
+    "previewText": "¡Hola, soy Goku! ¡Levanten las manos para darme su energía!",
+    "gender": "male",
+    "isAI": true,
+    "referenceId": "9f850ee9ada24b20a6866825eaefd3f8"
+  },
+  {
+    "id": "es_maradona",
+    "name": "Diego Maradona",
+    "category": "celebrity",
+    "tags": [
+      "popular",
+      "trending",
+      "ia",
+      "futbol",
+      "argentina",
+      "d10s"
+    ],
+    "lang": "es-AR",
+    "defaultCommand": "!maradona",
+    "stats": {
+      "uses": "1.1M",
+      "downloads": "7.5k"
+    },
+    "previewText": "Eeee... la pelota no se mancha. Saludos a todo el stream.",
+    "gender": "male",
+    "isAI": true,
+    "referenceId": "51f0a7c29e5f4743a84e41250898d293"
+  },
+  {
+    "id": "es_xokas",
+    "name": "El Xokas",
+    "category": "streamer",
+    "tags": [
+      "popular",
+      "trending",
+      "ia",
+      "streamer",
+      "gaming",
+      "twitch"
+    ],
+    "lang": "es-ES",
+    "defaultCommand": "!xokas",
+    "stats": {
+      "uses": "1.3M",
+      "downloads": "8.9k"
+    },
+    "previewText": "¡Esto es una locura! Soy el número uno y nadie me supera.",
+    "gender": "male",
+    "isAI": true,
+    "referenceId": "8f23453397d14e4d9a579bad5aab41a8"
+  },
+  {
+    "id": "es_illojuan",
+    "name": "IlloJuan",
+    "category": "streamer",
+    "tags": [
+      "popular",
+      "trending",
+      "ia",
+      "streamer",
+      "malaga",
+      "twitch"
+    ],
+    "lang": "es-ES",
+    "defaultCommand": "!illojuan",
+    "stats": {
+      "uses": "1.2M",
+      "downloads": "8.1k"
+    },
+    "previewText": "¡Illo qué pasa cabeza! Un abrazo muy fuerte pa toda la gente del stream.",
+    "gender": "male",
+    "isAI": true,
+    "referenceId": "97582f301e1c4f93a514ceda15e23e26"
   },
   {
     "id": "es_mx_mia",
@@ -189,9 +333,7 @@
     },
     "previewText": "Hola streamer, soy Mia con voz en español latino.",
     "gender": "female",
-    "isAI": false,
-    "pitch": 1.15,
-    "rate": 1
+    "isAI": false
   },
   {
     "id": "es_us_miguel",
@@ -210,9 +352,7 @@
     },
     "previewText": "Saludos a toda la comunidad del canal.",
     "gender": "male",
-    "isAI": false,
-    "pitch": 0.65,
-    "rate": 1
+    "isAI": false
   },
   {
     "id": "es_us_lupe",
@@ -268,9 +408,7 @@
     },
     "previewText": "Hola a todos chavales, aquí Enrique desde España.",
     "gender": "male",
-    "isAI": false,
-    "pitch": 0.62,
-    "rate": 1.05
+    "isAI": false
   },
   {
     "id": "es_es_conchita",
@@ -289,9 +427,7 @@
     },
     "previewText": "Voz clásica en castellano con Conchita.",
     "gender": "female",
-    "isAI": false,
-    "pitch": 1.1,
-    "rate": 1
+    "isAI": false
   },
   {
     "id": "es_es_lucia",
@@ -330,9 +466,7 @@
     },
     "previewText": "Hello there, I am Brian the classic Twitch TTS voice.",
     "gender": "male",
-    "isAI": false,
-    "pitch": 0.7,
-    "rate": 0.95
+    "isAI": false
   },
   {
     "id": "en_emma",
@@ -537,9 +671,7 @@
     },
     "previewText": "皆さん、こんにちは！配信へようこそ。",
     "gender": "male",
-    "isAI": false,
-    "pitch": 0.8,
-    "rate": 1.1
+    "isAI": false
   },
   {
     "id": "ja_mizuki",

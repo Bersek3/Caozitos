@@ -340,11 +340,83 @@ class TTSService {
 
     this.queue.push(ttsItem);
     this.emitTTS(ttsItem);
+    this.emitQueueUpdate(cleanChannel);
 
     return {
       success: true,
       item: ttsItem
     };
+  }
+
+  onTTSControl(callback) {
+    if (typeof callback === 'function') {
+      if (!this.controlListeners) this.controlListeners = [];
+      this.controlListeners.push(callback);
+    }
+  }
+
+  emitTTSControl(payload) {
+    if (!this.controlListeners) this.controlListeners = [];
+    for (const listener of this.controlListeners) {
+      try {
+        listener(payload);
+      } catch (err) {
+        console.error('Error dispatching TTS control listener:', err);
+      }
+    }
+  }
+
+  emitQueueUpdate(channel = null) {
+    this.emitTTSControl({
+      action: 'queue_update',
+      channel,
+      queue: this.queue
+    });
+  }
+
+  getQueueState(channel = null) {
+    if (channel) {
+      const clean = channel.toLowerCase().replace(/^#/, '').trim();
+      return this.queue.filter(q => !q.channel || q.channel === clean);
+    }
+    return this.queue;
+  }
+
+  stopTTS(channel = null, user = 'Moderador') {
+    const payload = { action: 'stop', channel, user, timestamp: Date.now() };
+    this.emitTTSControl(payload);
+    return { success: true, message: 'TTS detenido' };
+  }
+
+  skipTTS(channel = null, user = 'Moderador') {
+    if (this.queue.length > 0) {
+      this.queue.shift();
+    }
+    const payload = { action: 'skip', channel, user, timestamp: Date.now(), queue: this.queue };
+    this.emitTTSControl(payload);
+    return { success: true, message: 'TTS saltado' };
+  }
+
+  resetTTS(channel = null, user = 'Moderador') {
+    this.queue = [];
+    const payload = { action: 'reset', channel, user, timestamp: Date.now(), queue: [] };
+    this.emitTTSControl(payload);
+    return { success: true, message: 'Cola de TTS reiniciada' };
+  }
+
+  clearQueue(channel = null, user = 'Moderador') {
+    this.queue = [];
+    const payload = { action: 'clear', channel, user, timestamp: Date.now(), queue: [] };
+    this.emitTTSControl(payload);
+    return { success: true, message: 'Cola de TTS limpiada' };
+  }
+
+  removeItem(id, channel = null) {
+    if (!id) return { success: false };
+    this.queue = this.queue.filter(item => item.id !== id);
+    const payload = { action: 'item_removed', id, channel, queue: this.queue };
+    this.emitTTSControl(payload);
+    return { success: true, queue: this.queue };
   }
 
   getVoices() {

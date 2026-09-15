@@ -1223,11 +1223,39 @@ class StorageService {
 
   // ================= 🎙️ CATÁLOGO GENERAL DE VOCES =================
   getVoiceCatalog() {
-    const list = readJSON('voice_catalog.json', null);
-    if (Array.isArray(list) && list.length > 0) {
-      return list;
+    const codeVoices = (voiceCatalog && typeof voiceCatalog.getCodeVoices === 'function') ? voiceCatalog.getCodeVoices() : [];
+    let list = readJSON('voice_catalog.json', []);
+    if (!Array.isArray(list)) list = [];
+
+    // Combinar siempre las voces del código (para que nuevas voces como Auronplay, Farid, etc. se muestren de inmediato)
+    const voiceMap = new Map();
+    for (const v of codeVoices) {
+      if (v && v.id) voiceMap.set(v.id.toLowerCase(), { ...v });
     }
-    return this.initVoiceCatalog();
+    for (const v of list) {
+      if (v && v.id) {
+        const existing = voiceMap.get(v.id.toLowerCase());
+        if (existing) {
+          voiceMap.set(v.id.toLowerCase(), { ...existing, ...v });
+        } else {
+          voiceMap.set(v.id.toLowerCase(), { ...v });
+        }
+      }
+    }
+
+    const merged = Array.from(voiceMap.values());
+    if (merged.length !== list.length) {
+      writeJSON('voice_catalog.json', merged);
+    }
+    if (voiceCatalog && typeof voiceCatalog.setVoices === 'function') {
+      voiceCatalog.setVoices(merged);
+    }
+    return merged;
+  }
+
+  initVoiceCatalog() {
+    const codeVoices = (voiceCatalog && typeof voiceCatalog.getCodeVoices === 'function') ? voiceCatalog.getCodeVoices() : [];
+    return this.saveVoiceCatalog(codeVoices);
   }
 
   saveVoiceCatalog(catalog) {

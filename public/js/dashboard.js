@@ -1743,6 +1743,40 @@ function handleSocketMessage(msg) {
     showToast(`🔔 Alerta en OBS: ${alertType} de ${data.user || 'Espectador'}`, 'info');
   } else if (event === 'tts') {
     console.log('TTS triggered in dashboard:', data);
+    if (data && typeof renderTTSQueue === 'function') {
+      if (!cachedTTSQueue.queue) cachedTTSQueue.queue = [];
+      const exists = cachedTTSQueue.queue.some(q => q.id === data.id);
+      if (!exists) {
+        cachedTTSQueue.queue.push(data);
+        renderTTSQueue(cachedTTSQueue);
+      }
+    }
+  } else if (event === 'tts_control') {
+    if (data && typeof renderTTSQueue === 'function') {
+      if (data.action === 'reset' || data.action === 'clear') {
+        cachedTTSQueue.queue = [];
+        renderTTSQueue(cachedTTSQueue);
+      } else if (data.action === 'skip') {
+        if (cachedTTSQueue.queue && cachedTTSQueue.queue.length > 0) {
+          cachedTTSQueue.queue.shift();
+          renderTTSQueue(cachedTTSQueue);
+        }
+      } else if (data.action === 'item_removed' && data.id) {
+        if (cachedTTSQueue.queue) {
+          cachedTTSQueue.queue = cachedTTSQueue.queue.filter(i => i.id !== data.id);
+          renderTTSQueue(cachedTTSQueue);
+        }
+      }
+      if (Array.isArray(data.queue)) {
+        cachedTTSQueue.queue = data.queue;
+        renderTTSQueue(cachedTTSQueue);
+      }
+    }
+  } else if (event === 'tts_queue_update') {
+    if (data && Array.isArray(data.queue) && typeof renderTTSQueue === 'function') {
+      cachedTTSQueue.queue = data.queue;
+      renderTTSQueue(cachedTTSQueue);
+    }
   } else if (event === 'tts_commands_updated') {
     if (Array.isArray(data)) {
       cachedTTSCommands = data;
@@ -3822,6 +3856,8 @@ function initTTSMultiVoiceSystem() {
 
       if (targetSubtab === 'tts-subtab-library') {
         loadVoiceLibrary('', activeVoiceCategory);
+      } else if (targetSubtab === 'tts-subtab-queue') {
+        loadTTSQueue();
       }
     });
   });
@@ -4243,6 +4279,219 @@ async function handleDeleteTTSCommand(commandId, voiceName) {
     });
     showToast(`Comando de voz eliminado`, 'info');
   } catch (e) { }
+}
+
+// ================= TTS QUEUE & PLAYBACK CONTROLS =================
+let cachedTTSQueue = { current: null, queue: [] };
+
+async function loadTTSQueue(showFeedback = false) {
+  const container = document.getElementById('ttsQueueContainer');
+  const badge = document.getElementById('ttsQueueCountBadge');
+  if (!container) return;
+
+  try {
+    const res = await fetch('/api/tts/queue');
+    if (res.ok) {
+      const data = await res.json();
+      cachedTTSQueue.queue = Array.isArray(data.queue) ? data.queue : [];
+      renderTTSQueue(cachedTTSQueue);
+      if (showFeedback) showToast('📋 Cola de TTS actualizada', 'info');
+      return;
+    }
+  } catch (e) {
+    console.warn('Error loading TTS queue:', e);
+  }
+  renderTTSQueue(cachedTTSQueue);
+}
+
+function renderTTSQueue(queueState) {
+  const container = document.getElementById('ttsQueueContainer');
+  const badge = document.getElementById('ttsQueueCountBadge');
+  if (!container) return;
+
+  const list = Array.isArray(queueState?.queue) ? queueState.queue : (Array.isArray(queueState) ? queueState : []);
+  if (badge) {
+    badge.innerText = `${list.length} ${list.length === 1 ? 'en cola' : 'en cola'}`;
+  }
+
+  if (list.length === 0) {
+    container.innerHTML = `
+      <div style="text-align: center; padding: 48px 20px; background: rgba(17, 21, 34, 0.6); border-radius: 12px; border: 1px dashed rgba(255,255,255,0.1);">
+        <div style="font-size: 36px; margin-bottom: 10px;">🗣️</div>
+        <h4 style="font-size: 15px; font-weight: 700; color: #fff; margin-bottom: 6px;">No hay mensajes en cola actualmente</h4>
+        <p style="color: var(--text-secondary); font-size: 13px; max-width: 440px; margin: 0 auto;">
+          Cuando los espectadores envíen mensajes de voz con <code>!tts</code> o comandos como <code>!messi</code>, <code>!auron</code>, <code>!homero</code>, aparecerán listados aquí en orden de llegada.
+        </p>
+      </div>
+    `;
+    return;
+  }
+
+  const currentItem = list[0];
+  const pendingItems = list.slice(1);
+
+  let currentHtml = '';
+  if (currentItem) {
+    const voiceName = currentItem.voiceName || (VOICE_PROFILES[currentItem.voice]?.name || currentItem.voice || 'TTS');
+    currentHtml = `
+      <div style="background: linear-gradient(135deg, rgba(145, 70, 255, 0.15), rgba(0, 242, 254, 0.08)); border: 1.5px solid var(--primary-purple); border-radius: 12px; padding: 18px; box-shadow: 0 8px 24px rgba(0,0,0,0.4);">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; flex-wrap: wrap; gap: 8px;">
+          <div style="display: flex; align-items: center; gap: 10px;">
+            <span style="background: var(--primary-purple); color: #fff; font-size: 11px; font-weight: 800; padding: 3px 10px; border-radius: 999px; text-transform: uppercase; letter-spacing: 0.5px;">
+              🔊 Sonando Ahora
+            </span>
+            <strong style="font-size: 15px; color: #fff;">@${escapeHtml(currentItem.user || 'Espectador')}</strong>
+            <span style="font-size: 12px; color: var(--cyan-accent); background: rgba(0,242,254,0.1); padding: 2px 8px; border-radius: 6px; border: 1px solid rgba(0,242,254,0.2);">
+              🎙️ ${escapeHtml(voiceName)}
+            </span>
+          </div>
+          <div style="display: flex; gap: 8px;">
+            <button class="btn btn-secondary btn-sm" onclick="handleTtsSkip()" title="Saltar al siguiente">
+              <i class="fas fa-forward"></i> Saltar
+            </button>
+            <button class="btn btn-danger btn-sm" onclick="handleTtsStop()" title="Detener reproducción">
+              <i class="fas fa-stop"></i> Detener
+            </button>
+          </div>
+        </div>
+        <div style="background: rgba(0,0,0,0.3); border-radius: 8px; padding: 12px 14px; font-size: 14px; color: #f1f5f9; line-height: 1.5; font-style: italic;">
+          "${escapeHtml(currentItem.text || '')}"
+        </div>
+      </div>
+    `;
+  }
+
+  let pendingHtml = '';
+  if (pendingItems.length > 0) {
+    pendingHtml = `
+      <div class="card" style="padding: 0; overflow: hidden; border: 1px solid rgba(255,255,255,0.08); margin-top: 14px;">
+        <div style="padding: 14px 18px; border-bottom: 1px solid rgba(255,255,255,0.08); background: rgba(255,255,255,0.02); display: flex; justify-content: space-between; align-items: center;">
+          <span style="font-size: 13px; font-weight: 700; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.5px;">
+            📋 Próximos en Espera (${pendingItems.length})
+          </span>
+          <button class="btn btn-secondary btn-sm" style="font-size: 11.5px; padding: 3px 10px;" onclick="handleTtsClear()">
+            <i class="fas fa-trash-alt"></i> Limpiar Espera
+          </button>
+        </div>
+        <div style="display: flex; flex-direction: column;">
+          ${pendingItems.map((item, idx) => {
+            const vName = item.voiceName || (VOICE_PROFILES[item.voice]?.name || item.voice || 'TTS');
+            return `
+              <div style="display: flex; align-items: center; justify-content: space-between; padding: 12px 18px; border-bottom: 1px solid rgba(255,255,255,0.04); gap: 14px; transition: background 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.02)'" onmouseout="this.style.background='transparent'">
+                <div style="display: flex; align-items: center; gap: 12px; min-width: 0; flex: 1;">
+                  <span style="font-size: 12px; font-weight: 700; color: var(--text-muted); width: 22px;">#${idx + 2}</span>
+                  <div style="min-width: 0; flex: 1;">
+                    <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 3px;">
+                      <strong style="color: #fff; font-size: 13px;">@${escapeHtml(item.user || 'Espectador')}</strong>
+                      <span style="font-size: 11px; color: #a3e635; background: rgba(163,230,53,0.1); padding: 1px 6px; border-radius: 4px;">${escapeHtml(vName)}</span>
+                    </div>
+                    <div style="font-size: 12.5px; color: #94a3b8; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                      ${escapeHtml(item.text || '')}
+                    </div>
+                  </div>
+                </div>
+                <button class="btn-delete-cmd" style="padding: 6px 10px;" title="Eliminar de la cola" onclick="handleTtsRemoveItem('${item.id}')">
+                  <i class="fas fa-times"></i>
+                </button>
+              </div>
+            `;
+          }).join('')}
+        </div>
+      </div>
+    `;
+  }
+
+  container.innerHTML = currentHtml + pendingHtml;
+}
+
+async function handleTtsStop() {
+  try {
+    await fetch('/api/tts/control', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'stop' })
+    });
+    broadcastEvent('tts_control', { action: 'stop' });
+    showToast('⏹️ TTS detenido', 'info');
+  } catch (e) {
+    broadcastEvent('tts_control', { action: 'stop' });
+    showToast('⏹️ TTS detenido', 'info');
+  }
+}
+
+async function handleTtsSkip() {
+  try {
+    await fetch('/api/tts/control', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'skip' })
+    });
+    broadcastEvent('tts_control', { action: 'skip' });
+    showToast('⏭️ Mensaje TTS saltado', 'info');
+    loadTTSQueue();
+  } catch (e) {
+    if (cachedTTSQueue.queue.length > 0) cachedTTSQueue.queue.shift();
+    renderTTSQueue(cachedTTSQueue);
+    broadcastEvent('tts_control', { action: 'skip' });
+    showToast('⏭️ Mensaje TTS saltado', 'info');
+  }
+}
+
+async function handleTtsReset() {
+  try {
+    await fetch('/api/tts/control', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'reset' })
+    });
+    broadcastEvent('tts_control', { action: 'reset' });
+    cachedTTSQueue.queue = [];
+    renderTTSQueue(cachedTTSQueue);
+    showToast('🔄 Cola de TTS reiniciada y reproductor restablecido', 'success');
+  } catch (e) {
+    cachedTTSQueue.queue = [];
+    renderTTSQueue(cachedTTSQueue);
+    broadcastEvent('tts_control', { action: 'reset' });
+    showToast('🔄 Cola de TTS reiniciada', 'success');
+  }
+}
+
+async function handleTtsClear() {
+  try {
+    await fetch('/api/tts/control', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'clear' })
+    });
+    broadcastEvent('tts_control', { action: 'clear' });
+    cachedTTSQueue.queue = [];
+    renderTTSQueue(cachedTTSQueue);
+    showToast('🗑️ Cola de TTS vaciada', 'success');
+  } catch (e) {
+    cachedTTSQueue.queue = [];
+    renderTTSQueue(cachedTTSQueue);
+    broadcastEvent('tts_control', { action: 'clear' });
+    showToast('🗑️ Cola de TTS vaciada', 'success');
+  }
+}
+
+async function handleTtsRemoveItem(id) {
+  if (!id) return;
+  try {
+    await fetch('/api/tts/control', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'remove', id })
+    });
+    broadcastEvent('tts_control', { action: 'item_removed', id });
+    cachedTTSQueue.queue = cachedTTSQueue.queue.filter(i => i.id !== id);
+    renderTTSQueue(cachedTTSQueue);
+    showToast('Mensaje eliminado de la cola', 'info');
+  } catch (e) {
+    cachedTTSQueue.queue = cachedTTSQueue.queue.filter(i => i.id !== id);
+    renderTTSQueue(cachedTTSQueue);
+    broadcastEvent('tts_control', { action: 'item_removed', id });
+  }
 }
 
 // ================= CUSTOM GOALS MANAGER (OBS WIDGETS) =================

@@ -200,21 +200,48 @@ class KickBot {
 
         this.broadcast('chat_message', chatPayload);
 
+        const trimmed = message.trim();
+        const firstWord = trimmed.split(' ')[0].toLowerCase();
+        const isBroadcaster = badges.some(b => b.type === 'broadcaster');
+
+        // Comandos de moderación para TTS en Kick (!ttsdetener, !ttsreiniciar, !ttsskip)
+        if (firstWord === '!ttsdetener' || firstWord === '!ttsstop' || firstWord === '!ttspause') {
+          if (isMod || isBroadcaster) {
+            ttsService.stopTTS(this.currentChannel, username);
+            this.sendMessage(`[TTS] ⏹️ Audio de TTS detenido por @${username}.`);
+            return;
+          }
+        }
+
+        if (firstWord === '!ttsreiniciar' || firstWord === '!ttsreset' || firstWord === '!ttsclear') {
+          if (isMod || isBroadcaster) {
+            ttsService.resetTTS(this.currentChannel, username);
+            this.sendMessage(`[TTS] 🔄 Cola de TTS reiniciada y reproductor restablecido por @${username}.`);
+            return;
+          }
+        }
+
+        if (firstWord === '!ttsskip' || firstWord === '!ttssaltar') {
+          if (isMod || isBroadcaster) {
+            ttsService.skipTTS(this.currentChannel, username);
+            this.sendMessage(`[TTS] ⏭️ Mensaje TTS saltado por @${username}.`);
+            return;
+          }
+        }
+
         // Procesar comandos de TTS en Kick
         const config = storage.getConfig();
         const ttsConfig = config.tts || {};
         if (ttsConfig.enabled && ttsConfig.allowChatCommand) {
-          const trimmed = message.trim();
           const ttsCmd = (ttsConfig.chatCommand || '!tts').toLowerCase();
           const ttsVoiceCommands = storage.getTtsCommands() || [];
-          const firstWord = trimmed.split(' ')[0].toLowerCase();
           const matchedVoiceCmd = ttsVoiceCommands.find(c => c.enabled && c.command && c.command.toLowerCase() === firstWord);
 
           const userBadges = {
             isMod,
             isSub,
             vip: badges.some(b => b.type === 'vip'),
-            broadcaster: badges.some(b => b.type === 'broadcaster')
+            broadcaster: isBroadcaster
           };
 
           if (trimmed.toLowerCase().startsWith(ttsCmd)) {

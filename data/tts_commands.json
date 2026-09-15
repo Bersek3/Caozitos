@@ -1,14 +1,102 @@
 [
   {
+    "id": "tts_cmd_1789434880533_tp68",
+    "voiceId": "es_maradona",
+    "name": "Diego Maradona",
+    "command": "!maradona",
+    "permissions": [
+      "todos"
+    ],
+    "enabled": true,
+    "volume": 90,
+    "rate": 1,
+    "pitch": 1
+  },
+  {
+    "id": "tts_cmd_1789434879749_xsvy",
+    "voiceId": "es_farid",
+    "name": "Farid Dieck",
+    "command": "!farid",
+    "permissions": [
+      "todos"
+    ],
+    "enabled": true,
+    "volume": 90,
+    "rate": 1,
+    "pitch": 1
+  },
+  {
+    "id": "tts_cmd_1789434878003_npgh",
+    "voiceId": "es_goku",
+    "name": "Goku (Latino)",
+    "command": "!goku",
+    "permissions": [
+      "todos"
+    ],
+    "enabled": true,
+    "volume": 90,
+    "rate": 1,
+    "pitch": 1
+  },
+  {
+    "id": "tts_cmd_1789434875926_1oti",
+    "voiceId": "es_illojuan",
+    "name": "IlloJuan",
+    "command": "!illojuan",
+    "permissions": [
+      "todos"
+    ],
+    "enabled": true,
+    "volume": 90,
+    "rate": 1,
+    "pitch": 1
+  },
+  {
+    "id": "tts_cmd_1789434875137_uu09",
+    "voiceId": "es_cr7",
+    "name": "Cristiano Ronaldo",
+    "command": "!cr7",
+    "permissions": [
+      "todos"
+    ],
+    "enabled": true,
+    "volume": 90,
+    "rate": 1,
+    "pitch": 1
+  },
+  {
+    "id": "tts_cmd_1789434874070_e72r",
+    "voiceId": "es_westcol",
+    "name": "WestCol",
+    "command": "!westcol",
+    "permissions": [
+      "todos"
+    ],
+    "enabled": true,
+    "volume": 90,
+    "rate": 1,
+    "pitch": 1
+  },
+  {
+    "id": "tts_cmd_1789434872789_5anp",
+    "voiceId": "es_xokas",
+    "name": "El Xokas",
+    "command": "!xokas",
+    "permissions": [
+      "todos"
+    ],
+    "enabled": true,
+    "volume": 90,
+    "rate": 1,
+    "pitch": 1
+  },
+  {
     "id": "tts_cmd_messi",
     "voiceId": "es_ar_messi",
     "name": "Lionel Messi",
     "command": "!messi",
     "permissions": [
-      "todos",
-      "vip",
-      "sub",
-      "mod"
+      "todos"
     ],
     "enabled": true,
     "volume": 90,
@@ -53,5 +141,44 @@
     "volume": 90,
     "rate": 0.95,
     "pitch": 0.75
+  },
+  {
+    "id": "tts_cmd_rubius",
+    "voiceId": "es_rubius",
+    "name": "ElRubius",
+    "command": "!rubius",
+    "permissions": [
+      "todos"
+    ],
+    "enabled": true,
+    "volume": 90,
+    "rate": 1.05,
+    "pitch": 1.05
+  },
+  {
+    "id": "tts_cmd_maduro",
+    "voiceId": "es_ve_maduro",
+    "name": "Nicolás Maduro",
+    "command": "!maduro",
+    "permissions": [
+      "todos"
+    ],
+    "enabled": true,
+    "volume": 90,
+    "rate": 0.95,
+    "pitch": 0.72
+  },
+  {
+    "id": "tts_cmd_tiktok",
+    "voiceId": "es_tiktok",
+    "name": "Voz TikTok",
+    "command": "!tiktok",
+    "permissions": [
+      "todos"
+    ],
+    "enabled": true,
+    "volume": 90,
+    "rate": 1.05,
+    "pitch": 1.2
   }
 ]
