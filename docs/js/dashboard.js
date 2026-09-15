@@ -3834,8 +3834,449 @@ async function triggerTestTTS() {
 }
 
 // ================= TTS MULTI-VOICE SYSTEM & VOICE LIBRARY =================
+const DEFAULT_VOICE_CATALOG = [
+  // --- Voces IA (Fish Audio) ---
+  {
+    id: 'es_ar_messi',
+    name: 'Lionel Messi',
+    category: 'celebrity',
+    tags: ['popular', 'trending', 'ia', 'futbol', 'argentina'],
+    lang: 'es-AR',
+    defaultCommand: '!messi',
+    stats: { uses: '1.2M', downloads: '8.5k' },
+    previewText: 'Hola gente del stream, ¿qué mirás bobo? Andá pa allá.',
+    gender: 'male',
+    isAI: true,
+    referenceId: 'e3ded66586764591a457fcdaba8a268b'
+  },
+  {
+    id: 'es_ve_maduro',
+    name: 'Nicolás Maduro',
+    category: 'celebrity',
+    tags: ['popular', 'trending', 'ia', 'politica'],
+    lang: 'es-VE',
+    defaultCommand: '!maduro',
+    stats: { uses: '890k', downloads: '5.1k' },
+    previewText: 'Compatriotas, los saludo a todos en el stream.',
+    gender: 'male',
+    isAI: true,
+    referenceId: 'b011ad1198284358b766a597f6fdd171'
+  },
+  {
+    id: 'es_tiktok',
+    name: 'Voz TikTok',
+    category: 'memes',
+    tags: ['popular', 'trending', 'ia', 'tiktok'],
+    lang: 'es-MX',
+    defaultCommand: '!tiktok',
+    stats: { uses: '1.5M', downloads: '9.2k' },
+    previewText: 'Esta es la clásica voz que escuchas en todos los videos de TikTok.',
+    gender: 'female',
+    isAI: true,
+    referenceId: '1505e291ec504760a285fd163a78b5eb'
+  },
+  {
+    id: 'es_mx_homero',
+    name: 'Homero Simpson',
+    category: 'tv',
+    tags: ['popular', 'trending', 'ia', 'simpsons', 'caricatura'],
+    lang: 'es-MX',
+    defaultCommand: '!homero',
+    stats: { uses: '1.1M', downloads: '7.8k' },
+    previewText: '¡Ouch! ¡Mmm, rosquillas! Hola muchachos del chat.',
+    gender: 'male',
+    isAI: true,
+    referenceId: '134d19eda4c64cb0b2a84d93e327be3b'
+  },
+  {
+    id: 'es_dross',
+    name: 'Dross Rotzank',
+    category: 'streamer',
+    tags: ['popular', 'trending', 'ia', 'terror', 'youtube'],
+    lang: 'es-VE',
+    defaultCommand: '!dross',
+    stats: { uses: '940k', downloads: '6.4k' },
+    previewText: 'Mi libro Luna de Plutón ya está disponible. Te ha hablado Dross y te deseo buenas noches.',
+    gender: 'male',
+    isAI: true,
+    referenceId: 'd9f0d3d3fe734af6acb5ecc9129bc49a'
+  },
+  {
+    id: 'es_badbunny',
+    name: 'Bad Bunny',
+    category: 'celebrity',
+    tags: ['popular', 'trending', 'ia', 'musica', 'trap'],
+    lang: 'es-PR',
+    defaultCommand: '!badbunny',
+    stats: { uses: '850k', downloads: '5.9k' },
+    previewText: 'Ey, Benito en el stream. La noche de anoche fue una noche de locura.',
+    gender: 'male',
+    isAI: true,
+    referenceId: '9b30f7190dbe49acb731345e70366cf7'
+  },
+  {
+    id: 'es_rubius',
+    name: 'ElRubius',
+    category: 'streamer',
+    tags: ['popular', 'trending', 'ia', 'streamer', 'gaming'],
+    lang: 'es-ES',
+    defaultCommand: '!rubius',
+    stats: { uses: '780k', downloads: '4.8k' },
+    previewText: '¡Muy buenas criaturitas del señor! Bienvenidos al stream.',
+    gender: 'male',
+    isAI: true,
+    referenceId: '39382efbc7584d428f0f789d882cd3b8'
+  },
+  {
+    id: 'es_farid',
+    name: 'Farid Dieck',
+    category: 'celebrity',
+    tags: ['popular', 'trending', 'ia', 'reflexion', 'motivacion'],
+    lang: 'es-MX',
+    defaultCommand: '!farid',
+    stats: { uses: '890k', downloads: '6.2k' },
+    previewText: 'Las cosas no pasan por algo, pasan para algo. Saludos a todos en el stream.',
+    gender: 'male',
+    isAI: true,
+    referenceId: 'dfa5b230c8054f429e434f4a6e9bbdec'
+  },
+  {
+    id: 'es_westcol',
+    name: 'WestCol',
+    category: 'streamer',
+    tags: ['popular', 'trending', 'ia', 'streamer', 'colombia'],
+    lang: 'es-CO',
+    defaultCommand: '!westcol',
+    stats: { uses: '1.4M', downloads: '9.8k' },
+    previewText: '¡Qué hubo pues parceros! Bienvenidos a la transmisión.',
+    gender: 'male',
+    isAI: true,
+    referenceId: '1e5d99568ab847f499bb1d65be15afd6'
+  },
+  {
+    id: 'es_cr7',
+    name: 'Cristiano Ronaldo',
+    category: 'celebrity',
+    tags: ['popular', 'trending', 'ia', 'futbol', 'cr7', 'siuuu'],
+    lang: 'es-ES',
+    defaultCommand: '!cr7',
+    stats: { uses: '2.3M', downloads: '18k' },
+    previewText: '¡Siuuu! Aquí el bicho mandando un saludo a toda la gente del chat.',
+    gender: 'male',
+    isAI: true,
+    referenceId: '3521525edb80495e9ad276fc86c7a5e9'
+  },
+  {
+    id: 'es_goku',
+    name: 'Goku (Latino)',
+    category: 'anime',
+    tags: ['popular', 'trending', 'ia', 'anime', 'dragonball'],
+    lang: 'es-MX',
+    defaultCommand: '!goku',
+    stats: { uses: '1.6M', downloads: '11k' },
+    previewText: '¡Hola, soy Goku! ¡Levanten las manos para darme su energía!',
+    gender: 'male',
+    isAI: true,
+    referenceId: '9f850ee9ada24b20a6866825eaefd3f8'
+  },
+  {
+    id: 'es_maradona',
+    name: 'Diego Maradona',
+    category: 'celebrity',
+    tags: ['popular', 'trending', 'ia', 'futbol', 'argentina', 'd10s'],
+    lang: 'es-AR',
+    defaultCommand: '!maradona',
+    stats: { uses: '1.1M', downloads: '7.5k' },
+    previewText: 'Eeee... la pelota no se mancha. Saludos a todo el stream.',
+    gender: 'male',
+    isAI: true,
+    referenceId: '51f0a7c29e5f4743a84e41250898d293'
+  },
+  {
+    id: 'es_xokas',
+    name: 'El Xokas',
+    category: 'streamer',
+    tags: ['popular', 'trending', 'ia', 'streamer', 'gaming', 'twitch'],
+    lang: 'es-ES',
+    defaultCommand: '!xokas',
+    stats: { uses: '1.3M', downloads: '8.9k' },
+    previewText: '¡Esto es una locura! Soy el número uno y nadie me supera.',
+    gender: 'male',
+    isAI: true,
+    referenceId: '8f23453397d14e4d9a579bad5aab41a8'
+  },
+  {
+    id: 'es_illojuan',
+    name: 'IlloJuan',
+    category: 'streamer',
+    tags: ['popular', 'trending', 'ia', 'streamer', 'malaga', 'twitch'],
+    lang: 'es-ES',
+    defaultCommand: '!illojuan',
+    stats: { uses: '1.2M', downloads: '8.1k' },
+    previewText: '¡Illo qué pasa cabeza! Un abrazo muy fuerte pa toda la gente del stream.',
+    gender: 'male',
+    isAI: true,
+    referenceId: '97582f301e1c4f93a514ceda15e23e26'
+  },
+  {
+    id: 'es_auronplay',
+    name: 'Auronplay',
+    category: 'streamer',
+    tags: ['popular', 'trending', 'ia', 'streamer', 'twitch', 'youtube', 'espana'],
+    lang: 'es-ES',
+    defaultCommand: '!auron',
+    stats: { uses: '2.1M', downloads: '15k' },
+    previewText: '¡Hey, muy buenas a todos! Saludos a toda la gente del chat.',
+    gender: 'male',
+    isAI: true,
+    referenceId: 'cfc4b2bd851a49538201d20205ba9052'
+  },
+
+  // --- Voces Estándar ---
+  {
+    id: 'es_mx_mia',
+    name: 'Mia (Español Latino)',
+    category: 'standard',
+    tags: ['recent', 'latino', 'femenino'],
+    lang: 'es-MX',
+    defaultCommand: '!mia',
+    stats: { uses: '620k', downloads: '3.1k' },
+    previewText: 'Hola streamer, soy Mia con voz en español latino.',
+    gender: 'female',
+    isAI: false
+  },
+  {
+    id: 'es_us_miguel',
+    name: 'Miguel (Español Latino)',
+    category: 'standard',
+    tags: ['recent', 'latino', 'masculino'],
+    lang: 'es-US',
+    defaultCommand: '!miguel',
+    stats: { uses: '450k', downloads: '2.4k' },
+    previewText: 'Saludos a toda la comunidad del canal.',
+    gender: 'male',
+    isAI: false
+  },
+  {
+    id: 'es_us_lupe',
+    name: 'Lupe (Español Neutro)',
+    category: 'standard',
+    tags: ['recent', 'neutro', 'femenino'],
+    lang: 'es-US',
+    defaultCommand: '!lupe',
+    stats: { uses: '310k', downloads: '1.5k' },
+    previewText: 'Esta es la voz de Lupe para tus alertas de chat.',
+    gender: 'female',
+    isAI: false
+  },
+  {
+    id: 'es_us_penelope',
+    name: 'Penélope (Español US)',
+    category: 'standard',
+    tags: ['recent', 'femenino'],
+    lang: 'es-US',
+    defaultCommand: '!penelope',
+    stats: { uses: '280k', downloads: '1.2k' },
+    previewText: 'Mensaje de voz en español neutro con Penélope.',
+    gender: 'female',
+    isAI: false
+  },
+  {
+    id: 'es_es_enrique',
+    name: 'Enrique (Castellano)',
+    category: 'standard',
+    tags: ['recent', 'españa', 'masculino'],
+    lang: 'es-ES',
+    defaultCommand: '!enrique',
+    stats: { uses: '510k', downloads: '2.8k' },
+    previewText: 'Hola a todos chavales, aquí Enrique desde España.',
+    gender: 'male',
+    isAI: false
+  },
+  {
+    id: 'es_es_conchita',
+    name: 'Conchita (Castellano)',
+    category: 'standard',
+    tags: ['recent', 'españa', 'femenino'],
+    lang: 'es-ES',
+    defaultCommand: '!conchita',
+    stats: { uses: '390k', downloads: '1.9k' },
+    previewText: 'Voz clásica en castellano con Conchita.',
+    gender: 'female',
+    isAI: false
+  },
+  {
+    id: 'es_es_lucia',
+    name: 'Lucía (Castellano Natural)',
+    category: 'standard',
+    tags: ['recent', 'españa', 'femenino'],
+    lang: 'es-ES',
+    defaultCommand: '!lucia',
+    stats: { uses: '340k', downloads: '1.7k' },
+    previewText: 'Voz natural en castellano para tus mensajes de TTS.',
+    gender: 'female',
+    isAI: false
+  },
+  {
+    id: 'en_brian',
+    name: 'Brian (English UK Classic)',
+    category: 'standard',
+    tags: ['popular', 'english', 'meme', 'classic'],
+    lang: 'en-GB',
+    defaultCommand: '!brian',
+    stats: { uses: '2.1M', downloads: '15k' },
+    previewText: 'Hello there, I am Brian the classic Twitch TTS voice.',
+    gender: 'male',
+    isAI: false
+  },
+  {
+    id: 'en_emma',
+    name: 'Emma (English UK)',
+    category: 'standard',
+    tags: ['recent', 'english', 'femenino'],
+    lang: 'en-GB',
+    defaultCommand: '!emma',
+    stats: { uses: '420k', downloads: '2.1k' },
+    previewText: 'Greetings to everyone in the stream chat.',
+    gender: 'female',
+    isAI: false
+  },
+  {
+    id: 'en_joey',
+    name: 'Joey (English US)',
+    category: 'standard',
+    tags: ['recent', 'english', 'masculino'],
+    lang: 'en-US',
+    defaultCommand: '!joey',
+    stats: { uses: '360k', downloads: '1.8k' },
+    previewText: 'Hey what is going on stream! Joey here.',
+    gender: 'male',
+    isAI: false
+  },
+  {
+    id: 'en_matthew',
+    name: 'Matthew (English US)',
+    category: 'standard',
+    tags: ['recent', 'english', 'masculino'],
+    lang: 'en-US',
+    defaultCommand: '!matthew',
+    stats: { uses: '290k', downloads: '1.4k' },
+    previewText: 'Welcome to the live broadcast.',
+    gender: 'male',
+    isAI: false
+  },
+  {
+    id: 'en_kendra',
+    name: 'Kendra (English US)',
+    category: 'standard',
+    tags: ['recent', 'english', 'femenino'],
+    lang: 'en-US',
+    defaultCommand: '!kendra',
+    stats: { uses: '310k', downloads: '1.5k' },
+    previewText: 'This is Kendra reading your chat donation.',
+    gender: 'female',
+    isAI: false
+  },
+  {
+    id: 'en_justin',
+    name: 'Justin (English US Young)',
+    category: 'standard',
+    tags: ['recent', 'english', 'joven'],
+    lang: 'en-US',
+    defaultCommand: '!justin',
+    stats: { uses: '240k', downloads: '1.1k' },
+    previewText: 'Hey guys, Justin speaking!',
+    gender: 'male',
+    isAI: false
+  },
+  {
+    id: 'en_russell',
+    name: 'Russell (English Australia)',
+    category: 'standard',
+    tags: ['recent', 'australia'],
+    lang: 'en-AU',
+    defaultCommand: '!russell',
+    stats: { uses: '190k', downloads: '980' },
+    previewText: 'G day mate, having a great stream today.',
+    gender: 'male',
+    isAI: false
+  },
+  {
+    id: 'pt_cristiano',
+    name: 'Cristiano (Português)',
+    category: 'standard',
+    tags: ['recent', 'brasil', 'portugal'],
+    lang: 'pt-BR',
+    defaultCommand: '!cristiano',
+    stats: { uses: '370k', downloads: '2.3k' },
+    previewText: 'Olá a todos no chat do canal.',
+    gender: 'male',
+    isAI: false
+  },
+  {
+    id: 'fr_mathieu',
+    name: 'Mathieu (Français)',
+    category: 'standard',
+    tags: ['recent', 'frances'],
+    lang: 'fr-FR',
+    defaultCommand: '!mathieu',
+    stats: { uses: '180k', downloads: '890' },
+    previewText: 'Bonjour à tous sur le live stream.',
+    gender: 'male',
+    isAI: false
+  },
+  {
+    id: 'it_giorgio',
+    name: 'Giorgio (Italiano)',
+    category: 'standard',
+    tags: ['recent', 'italiano'],
+    lang: 'it-IT',
+    defaultCommand: '!giorgio',
+    stats: { uses: '160k', downloads: '750' },
+    previewText: 'Ciao a todos, benvenuti nella directa.',
+    gender: 'male',
+    isAI: false
+  },
+  {
+    id: 'de_hans',
+    name: 'Hans (Deutsch)',
+    category: 'standard',
+    tags: ['recent', 'aleman'],
+    lang: 'de-DE',
+    defaultCommand: '!hans',
+    stats: { uses: '140k', downloads: '680' },
+    previewText: 'Hallo zusammen im Live Stream.',
+    gender: 'male',
+    isAI: false
+  },
+  {
+    id: 'ja_takumi',
+    name: 'Takumi (日本語 Anime)',
+    category: 'anime',
+    tags: ['popular', 'japon', 'anime'],
+    lang: 'ja-JP',
+    defaultCommand: '!takumi',
+    stats: { uses: '490k', downloads: '3.2k' },
+    previewText: '皆さん、こんにちは！配信へようこそ。',
+    gender: 'male',
+    isAI: false
+  },
+  {
+    id: 'ja_mizuki',
+    name: 'Mizuki (日本語 Femenino)',
+    category: 'anime',
+    tags: ['popular', 'japon', 'anime', 'femenino'],
+    lang: 'ja-JP',
+    defaultCommand: '!mizuki',
+    stats: { uses: '430k', downloads: '2.9k' },
+    previewText: 'こんにちは！チャットの皆さん、よろしくお願いします。',
+    gender: 'female',
+    isAI: false
+  }
+];
+
 let cachedTTSCommands = [];
-let cachedVoiceLibrary = [];
+let cachedVoiceLibrary = [...DEFAULT_VOICE_CATALOG];
 let activeVoiceCategory = 'popular';
 let activeTTSPreviewAudio = null;
 
@@ -4024,28 +4465,60 @@ function renderTTSCommands(commands) {
   }).join('');
 }
 
+function getFilteredVoicesLocal(query = '', category = 'all') {
+  let list = (cachedVoiceLibrary && cachedVoiceLibrary.length > 0) ? cachedVoiceLibrary : DEFAULT_VOICE_CATALOG;
+  if (category && category !== 'all') {
+    if (category === 'popular' || category === 'populares') {
+      list = list.filter(v => (v.tags && v.tags.includes('popular')) || (v.stats && v.stats.uses && (v.stats.uses.includes('M') || parseInt(v.stats.uses) >= 300)));
+    } else if (category === 'recent' || category === 'recientes') {
+      list = list.filter(v => (v.tags && v.tags.includes('recent')) || (v.category === 'standard'));
+    } else if (category === 'trending' || category === 'tendencia') {
+      list = list.filter(v => (v.tags && v.tags.includes('trending')) || v.isAI);
+    } else {
+      list = list.filter(v => v.category === category || (v.tags && v.tags.includes(category)));
+    }
+  }
+  if (query && query.trim()) {
+    const q = query.trim().toLowerCase();
+    list = list.filter(v =>
+      (v.name || '').toLowerCase().includes(q) ||
+      (v.id || '').toLowerCase().includes(q) ||
+      (v.defaultCommand || '').toLowerCase().includes(q) ||
+      (v.tags && v.tags.some(t => t.toLowerCase().includes(q))) ||
+      (v.previewText || '').toLowerCase().includes(q)
+    );
+  }
+  return list;
+}
+
 async function loadVoiceLibrary(query = '', category = 'all') {
   const grid = document.getElementById('voiceLibraryGrid');
   const countBadge = document.getElementById('voiceLibraryTotalCount');
   if (!grid) return;
 
+  // 1. Mostrar de inmediato la lista filtrada local/por defecto (garantiza que Auronplay y todas las voces aparezcan siempre)
+  const localList = getFilteredVoicesLocal(query, category);
+  if (countBadge) {
+    countBadge.innerText = `${localList.length} voces`;
+  }
+  renderVoiceLibrary(localList);
+
+  // 2. Si hay servidor Node backend disponible, refrescar
   try {
     const res = await fetch(`/api/tts/library?q=${encodeURIComponent(query)}&category=${encodeURIComponent(category)}`);
     if (res.ok) {
       const data = await res.json();
-      cachedVoiceLibrary = data.voices || [];
-      if (countBadge) {
-        countBadge.innerText = `${data.total || cachedVoiceLibrary.length} voces`;
+      if (Array.isArray(data.voices) && data.voices.length > 0) {
+        cachedVoiceLibrary = data.voices;
+        if (countBadge) {
+          countBadge.innerText = `${data.total || data.voices.length} voces`;
+        }
+        renderVoiceLibrary(data.voices);
       }
-      renderVoiceLibrary(cachedVoiceLibrary);
-      return;
     }
   } catch (err) {
-    console.warn('Error fetching voice library:', err);
+    // Continuar con localList
   }
-
-  // Fallback a voces por defecto
-  renderVoiceLibrary(cachedVoiceLibrary);
 }
 
 function renderVoiceLibrary(voices) {
