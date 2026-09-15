@@ -1170,7 +1170,11 @@ app.get('/api/tts/audio', async (req, res) => {
       'es_illojuan': '97582f301e1c4f93a514ceda15e23e26',
       'illojuan': '97582f301e1c4f93a514ceda15e23e26',
       'illo_juan': '97582f301e1c4f93a514ceda15e23e26',
-      'juan': '97582f301e1c4f93a514ceda15e23e26'
+      'juan': '97582f301e1c4f93a514ceda15e23e26',
+
+      'es_auronplay': 'cfc4b2bd851a49538201d20205ba9052',
+      'auron': 'cfc4b2bd851a49538201d20205ba9052',
+      'auronplay': 'cfc4b2bd851a49538201d20205ba9052'
     };
 
     const fishRefId = FISH_MODELS[voice];

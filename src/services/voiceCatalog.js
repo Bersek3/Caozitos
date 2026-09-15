@@ -194,6 +194,19 @@ const VOICE_CATALOG = [
     isAI: true,
     referenceId: '97582f301e1c4f93a514ceda15e23e26'
   },
+  {
+    id: 'es_auronplay',
+    name: 'Auronplay',
+    category: 'streamer',
+    tags: ['popular', 'trending', 'ia', 'streamer', 'twitch', 'youtube', 'espana'],
+    lang: 'es-ES',
+    defaultCommand: '!auron',
+    stats: { uses: '2.1M', downloads: '15k' },
+    previewText: '¡Hey, muy buenas a todos! Saludos a toda la gente del chat.',
+    gender: 'male',
+    isAI: true,
+    referenceId: 'cfc4b2bd851a49538201d20205ba9052'
+  },
 
   // --- Voces Multilingües Estándar ---
   {

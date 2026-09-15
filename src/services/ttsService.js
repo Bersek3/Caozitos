@@ -107,6 +107,8 @@ class TTSService {
       elxokas: 'es_xokas',
       illojuan: 'es_illojuan',
       illo_juan: 'es_illojuan',
+      auron: 'es_auronplay',
+      auronplay: 'es_auronplay',
 
       // Voces Estándar / Multilingües
       mia: 'es_mx_mia',
@@ -149,7 +151,7 @@ class TTSService {
     if (dbVoice && dbVoice.isAI) return true;
     return [
       'es_ar_messi', 'es_ve_maduro', 'es_tiktok', 'es_mx_homero', 'es_dross', 'es_badbunny', 'es_rubius',
-      'es_farid', 'es_westcol', 'es_cr7', 'es_goku', 'es_maradona', 'es_xokas', 'es_illojuan'
+      'es_farid', 'es_westcol', 'es_cr7', 'es_goku', 'es_maradona', 'es_xokas', 'es_illojuan', 'es_auronplay'
     ].includes(normalized);
   }
 

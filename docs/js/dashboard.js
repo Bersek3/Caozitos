@@ -3524,6 +3524,9 @@ const VOICE_PROFILES = {
   xokas: { id: 'es_xokas', name: 'El Xokas', lang: 'es-ES', gender: 'male', pitch: 1.0, rate: 1.05 },
   es_illojuan: { id: 'es_illojuan', name: 'IlloJuan', lang: 'es-ES', gender: 'male', pitch: 1.0, rate: 1.0 },
   illojuan: { id: 'es_illojuan', name: 'IlloJuan', lang: 'es-ES', gender: 'male', pitch: 1.0, rate: 1.0 },
+  es_auronplay: { id: 'es_auronplay', name: 'Auronplay', lang: 'es-ES', gender: 'male', pitch: 1.0, rate: 1.0 },
+  auron: { id: 'es_auronplay', name: 'Auronplay', lang: 'es-ES', gender: 'male', pitch: 1.0, rate: 1.0 },
+  auronplay: { id: 'es_auronplay', name: 'Auronplay', lang: 'es-ES', gender: 'male', pitch: 1.0, rate: 1.0 },
 
   // Español Latino
   es_mx_mia: { id: 'es_mx_mia', name: 'Mia', lang: 'es-MX', gender: 'female', pitch: 1.15, rate: 1.0 },
@@ -3599,7 +3602,8 @@ const FISH_AUDIO_KEYS = [
   'es_goku', 'goku', 'goku_latino',
   'es_maradona', 'maradona', 'diego_maradona',
   'es_xokas', 'xokas', 'elxokas', 'el_xokas',
-  'es_illojuan', 'illojuan', 'illo_juan', 'juan'
+  'es_illojuan', 'illojuan', 'illo_juan', 'juan',
+  'es_auronplay', 'auron', 'auronplay'
 ];
 
 function getTTSAudioUrl(text, voiceId) {
